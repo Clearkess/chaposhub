@@ -24,11 +24,20 @@ points.get('/balance', authMiddleware, async (c) => {
   return c.json({ points: user.points, currency: 'USD' })
 })
 
+const ACTION_META: Record<string, { icon: string; color: string; type: string; title: string }> = {
+  download: { icon: '🧾', color: 'rgba(249,115,22,0.15)', type: 'receipt', title: 'Receipt Downloaded' },
+  print: { icon: '🖨️', color: 'rgba(34,197,94,0.15)', type: 'receipt', title: 'Receipt Printed' },
+  email: { icon: '📧', color: 'rgba(34,197,94,0.15)', type: 'email', title: 'Email Sent' },
+  link: { icon: '🔗', color: 'rgba(59,130,246,0.15)', type: 'link', title: 'Short Link' },
+  ai: { icon: '🤖', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Reply' },
+  support: { icon: '🛟', color: 'rgba(59,130,246,0.15)', type: 'support', title: 'Support Page' }
+}
+
 // Deduct points for action
 points.post('/deduct', authMiddleware, async (c) => {
   const userId = c.get('userId')
   const body = await c.req.json().catch(() => ({}))
-  const { amount, action } = body
+  const { amount, action, description } = body
 
   if (!Number.isInteger(amount) || amount < 1) {
     return c.json({ error: 'Validation failed', details: 'amount must be a positive integer' }, 400)
@@ -47,13 +56,18 @@ points.post('/deduct', authMiddleware, async (c) => {
 
   const newBalance = user.points - amount
   const now = new Date().toISOString()
+  const meta = ACTION_META[action] || { icon: '📋', color: 'rgba(99,102,241,0.15)', type: action, title: action }
 
   await c.env.DB.batch([
     c.env.DB.prepare('UPDATE users SET points = ? WHERE id = ?').bind(newBalance, userId),
     c.env.DB.prepare(
       `INSERT INTO points_transactions (id, user_id, type, amount, balance, description, action, created_at)
        VALUES (?, ?, 'deduction', ?, ?, ?, ?, ?)`
-    ).bind(generateId('ptx'), userId, -amount, newBalance, `${amount} points deducted for ${action}`, action, now)
+    ).bind(generateId('ptx'), userId, -amount, newBalance, `${amount} points deducted for ${action}`, action, now),
+    c.env.DB.prepare(
+      `INSERT INTO activities (id, user_id, type, title, description, icon, color, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+    ).bind(generateId('act'), userId, meta.type, meta.title, description || `-${amount} pts`, meta.icon, meta.color, now)
   ])
 
   return c.json({
