@@ -16,6 +16,54 @@ export const APP_HTML = `<!DOCTYPE html>
 <body>
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
+<!-- Marketing landing page (shown before login) -->
+<div class="landing-page" id="landingPage">
+  <header class="landing-header">
+    <div class="landing-logo">🧾 Chapo'sHub</div>
+    <button class="landing-signin-btn" onclick="window.ChapoAuth.showAuthModal('login')">Sign In</button>
+  </header>
+
+  <section class="landing-hero">
+    <div class="landing-hero-badge">✨ Receipts · Points · AI</div>
+    <h1 class="landing-hero-title">Branded receipts, an AI reply assistant, and a pay-as-you-go points economy — all in one hub.</h1>
+    <p class="landing-hero-sub">Chapo'sHub gives you instant, polished receipts for 13+ platforms, a smart AI reply generator, and a flexible points system so you only pay for what you use.</p>
+    <div class="landing-hero-cta">
+      <button class="landing-cta-primary" onclick="window.ChapoAuth.showAuthModal('register')">🚀 Get Started Free</button>
+      <button class="landing-cta-secondary" onclick="window.ChapoAuth.showAuthModal('login')">Sign In</button>
+    </div>
+    <div class="landing-hero-note">No credit card required · 245 free points on signup</div>
+  </section>
+
+  <section class="landing-features" aria-label="Features">
+    <div class="landing-feature-card">
+      <div class="landing-feature-icon">🧾</div>
+      <div class="landing-feature-text"><div class="landing-feature-title">Receipt Management</div><div class="landing-feature-desc">Create polished, branded receipts for PayPal, Binance, Cash App, OPay, Zelle and more — download, print, email, or share a short link in seconds.</div></div>
+    </div>
+    <div class="landing-feature-card">
+      <div class="landing-feature-icon">💎</div>
+      <div class="landing-feature-text"><div class="landing-feature-title">Points Economy</div><div class="landing-feature-desc">Pay-as-you-go points power every action. Top up anytime with crypto, card, or bank transfer — no subscriptions, no waste.</div></div>
+    </div>
+    <div class="landing-feature-card">
+      <div class="landing-feature-icon">🤖</div>
+      <div class="landing-feature-text"><div class="landing-feature-title">AI Reply Assistant</div><div class="landing-feature-desc">Paste any customer message and get a smart, tone-matched reply instantly — professional, friendly, casual, urgent, or apologetic.</div></div>
+    </div>
+    <div class="landing-feature-card">
+      <div class="landing-feature-icon">🛟</div>
+      <div class="landing-feature-text"><div class="landing-feature-title">Support Page Builder</div><div class="landing-feature-desc">Spin up a branded support contact page with your colors, WhatsApp, Telegram and email in one click.</div></div>
+    </div>
+  </section>
+
+  <section class="landing-final-cta">
+    <h2>Ready to get started?</h2>
+    <p>Create your free account and get 245 points instantly.</p>
+    <button class="landing-cta-primary" onclick="window.ChapoAuth.showAuthModal('register')">Create Free Account</button>
+  </section>
+
+  <footer class="landing-footer">
+    <p>© 2026 Chapo'sHub · Simulated receipts for demo/testing purposes only.</p>
+  </footer>
+</div>
+
 <!-- Auth modal -->
 <div class="auth-overlay hidden" id="authOverlay">
   <div class="auth-modal">
@@ -50,6 +98,8 @@ export const APP_HTML = `<!DOCTYPE html>
   </div>
 </div>
 
+<!-- Main app shell (hidden until authenticated) -->
+<div class="app-shell hidden" id="appShell">
 <div class="page active" id="page-dashboard" role="main" aria-label="Dashboard">
 <div class="top-bar"><div class="top-left"><div class="top-avatar">CH</div><div class="top-user" id="topUser">guest<span>KE</span></div></div><div class="top-right"><div class="top-badge" id="topBadge">💎 0pts</div><div class="top-icon-btn" onclick="showToast('Theme toggle coming soon')" role="button" tabindex="0" aria-label="Toggle theme" title="Toggle theme">🌙</div></div></div>
 <div class="ref-bar"><div class="ref-left">👤 Referral program</div><button class="ref-btn" onclick="copyRefLink()">Copy Ref Link</button></div>
@@ -134,6 +184,7 @@ export const APP_HTML = `<!DOCTYPE html>
 <button class="nav-item-btm" onclick="showPage('history')" aria-label="History"><span class="nav-icon" aria-hidden="true">🕐</span><span class="nav-label">History</span></button>
 <button class="nav-item-btm" onclick="logoutUser()" aria-label="Log out"><span class="nav-icon" aria-hidden="true">🚪</span><span class="nav-label">Log Out</span></button>
 </nav>
+</div>
 
 <script src="/static/js/api-client.js"></script>
 <script src="/static/js/auth.js"></script>

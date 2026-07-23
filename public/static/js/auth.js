@@ -74,7 +74,8 @@
     }
   }
 
-  function showAuthModal() {
+  function showAuthModal(initialMode) {
+    setMode(initialMode === 'register' ? 'register' : 'login');
     el('authOverlay').classList.remove('hidden');
   }
 

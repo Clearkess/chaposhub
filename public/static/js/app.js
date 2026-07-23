@@ -377,6 +377,23 @@ function logoutUser() {
 let debounceT;
 document.addEventListener('input', e => { if (e.target.closest('.form-section')) { clearTimeout(debounceT); debounceT = setTimeout(() => refreshUI(), 200); } });
 
+// === LANDING PAGE / APP SHELL TOGGLE ===
+function showLandingPage() {
+  const landing = document.getElementById('landingPage');
+  const shell = document.getElementById('appShell');
+  if (landing) landing.classList.remove('hidden');
+  if (shell) shell.classList.add('hidden');
+  document.body.classList.add('landing-mode');
+}
+
+function showAppShell() {
+  const landing = document.getElementById('landingPage');
+  const shell = document.getElementById('appShell');
+  if (landing) landing.classList.add('hidden');
+  if (shell) shell.classList.remove('hidden');
+  document.body.classList.remove('landing-mode');
+}
+
 // === APP BOOTSTRAP ===
 async function initApp() {
   loadDraft();
@@ -389,15 +406,18 @@ async function initApp() {
   if (window.api.isAuthenticated()) {
     await onAuthenticated();
   } else {
-    window.ChapoAuth.showAuthModal();
+    // Not logged in: show the marketing landing page. The auth modal is only
+    // triggered explicitly via the landing page's "Get Started" / "Sign In" CTAs.
+    showLandingPage();
   }
 }
 
 async function onAuthenticated() {
+  showAppShell();
   await refreshUserAndPoints();
   await refreshHistory();
 }
 
-window.ChapoApp = { onAuthenticated };
+window.ChapoApp = { onAuthenticated, showLandingPage, showAppShell };
 
 initApp();
