@@ -5,7 +5,12 @@ export const APP_HTML = `<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Chapo'sHub</title>
+<title>Chapo'sHub — Branded Receipts, Points & AI Replies</title>
+<meta name="description" content="Generate branded receipts for 13+ platforms, draft AI-powered customer replies, and pay only for what you use with Chapo'sHub's points system. No subscriptions, no card required to start.">
+<meta name="theme-color" content="#0f0f14">
+<meta property="og:title" content="Chapo'sHub — Branded Receipts, Points & AI Replies">
+<meta property="og:description" content="Generate branded receipts for 13+ platforms, draft AI-powered customer replies, and pay only for what you use. No subscriptions, no card required.">
+<meta property="og:type" content="website">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A7%BE%3C/text%3E%3C/svg%3E">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
@@ -20,6 +25,11 @@ export const APP_HTML = `<!DOCTYPE html>
 <div class="landing-page" id="landingPage">
   <header class="landing-header">
     <div class="landing-logo">🧾 Chapo'sHub</div>
+    <nav class="landing-nav" aria-label="Page sections">
+      <a href="#landing-how-it-works">How it works</a>
+      <a href="#landing-pricing-section">Pricing</a>
+      <a href="#landing-faq-section">FAQ</a>
+    </nav>
     <button class="landing-signin-btn" onclick="window.ChapoAuth.showAuthModal('login')">Sign In</button>
   </header>
 
@@ -94,7 +104,7 @@ export const APP_HTML = `<!DOCTYPE html>
   </section>
 
   <!-- 6. How it works -->
-  <section class="landing-how" aria-label="How it works">
+  <section class="landing-how" id="landing-how-it-works" aria-label="How it works">
     <h2 class="landing-section-title">How it works</h2>
     <div class="landing-how-steps">
       <div class="landing-how-step">
@@ -116,7 +126,7 @@ export const APP_HTML = `<!DOCTYPE html>
   </section>
 
   <!-- 7. Pricing (real point costs from the actual app config) -->
-  <section class="landing-pricing" aria-label="Pricing">
+  <section class="landing-pricing" id="landing-pricing-section" aria-label="Pricing">
     <h2 class="landing-section-title">Simple, transparent pricing</h2>
     <p class="landing-pricing-sub">No subscriptions. Every new account starts with 245 free points.</p>
     <div class="landing-pricing-table">
@@ -136,7 +146,7 @@ export const APP_HTML = `<!DOCTYPE html>
   </section>
 
   <!-- 9. FAQ -->
-  <section class="landing-faq" aria-label="Frequently asked questions">
+  <section class="landing-faq" id="landing-faq-section" aria-label="Frequently asked questions">
     <h2 class="landing-section-title">Frequently asked questions</h2>
     <details class="landing-faq-item">
       <summary>What are these receipts for?</summary>
