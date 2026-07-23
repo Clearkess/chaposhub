@@ -221,16 +221,77 @@ body.landing-mode{padding-bottom:0}
 .landing-cta-secondary{width:100%;max-width:320px;padding:1rem;background:transparent;color:var(--text);border:1px solid var(--border);border-radius:14px;font-size:.95rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s}
 .landing-cta-secondary:hover{border-color:var(--border-hover)}
 .landing-hero-note{font-size:.75rem;color:var(--text-dim)}
-.landing-features{display:grid;grid-template-columns:1fr;gap:1rem;padding:1rem 1.5rem 2.5rem;max-width:640px;margin:0 auto}
+
+/* Section title used by problem/features/how/pricing/faq */
+.landing-section-title{font-size:1.4rem;font-weight:800;color:var(--text);text-align:center;margin:0 auto 1.5rem;max-width:640px;letter-spacing:-.01em}
+
+/* Platform support strip */
+.landing-platforms{padding:0 1.5rem 2.5rem;max-width:720px;margin:0 auto;text-align:center}
+.landing-platforms-label{font-size:.75rem;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.9rem}
+.landing-platforms-strip{display:flex;flex-wrap:wrap;gap:.6rem;justify-content:center}
+.landing-platform-chip{background:var(--bg-card);border:1px solid var(--border);color:var(--text-muted);font-size:.78rem;font-weight:600;padding:.45rem 1rem;border-radius:20px}
+
+/* Problem / solution */
+.landing-problem{padding:1rem 1.5rem 2.5rem;max-width:720px;margin:0 auto}
+.landing-problem-grid{display:grid;grid-template-columns:1fr;gap:1rem}
+.landing-problem-card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1.2rem}
+.landing-problem-pain{font-size:.88rem;color:var(--text);font-weight:600;line-height:1.5;margin-bottom:.6rem}
+.landing-problem-fix{font-size:.85rem;color:var(--accent-light);line-height:1.55}
+
+/* Features */
+.landing-features{padding:1rem 1.5rem 2.5rem;max-width:640px;margin:0 auto}
+.landing-feature-grid{display:grid;grid-template-columns:1fr;gap:1rem}
 .landing-feature-card{display:flex;gap:1rem;align-items:flex-start;background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1.2rem;transition:.2s}
 .landing-feature-card:hover{border-color:var(--border-hover)}
 .landing-feature-icon{width:44px;height:44px;flex-shrink:0;border-radius:12px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:1.3rem}
 .landing-feature-title{font-size:.95rem;font-weight:700;color:var(--text);margin-bottom:.3rem}
 .landing-feature-desc{font-size:.82rem;color:var(--text-muted);line-height:1.55}
+
+/* How it works */
+.landing-how{padding:1rem 1.5rem 2.5rem;max-width:640px;margin:0 auto}
+.landing-how-steps{display:grid;grid-template-columns:1fr;gap:1.2rem}
+.landing-how-step{text-align:center;padding:0 .5rem}
+.landing-how-num{width:36px;height:36px;line-height:36px;margin:0 auto .7rem;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-light));color:#fff;font-weight:800;font-size:.95rem}
+.landing-how-title{font-size:.9rem;font-weight:700;color:var(--text);margin-bottom:.35rem}
+.landing-how-desc{font-size:.82rem;color:var(--text-muted);line-height:1.55}
+
+/* Pricing */
+.landing-pricing{padding:1rem 1.5rem 2.5rem;max-width:640px;margin:0 auto;text-align:center}
+.landing-pricing-sub{font-size:.85rem;color:var(--text-muted);margin:-.6rem 0 1.5rem}
+.landing-pricing-table{border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:1.8rem;text-align:left}
+.landing-pricing-row{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.1rem;border-bottom:1px solid var(--border);font-size:.85rem;color:var(--text-muted)}
+.landing-pricing-row:last-child{border-bottom:none}
+.landing-pricing-row span:last-child{font-weight:700;color:var(--text)}
+.landing-pricing-head{background:var(--bg-card);font-weight:700;color:var(--text)}
+.landing-pricing-head span:last-child{color:var(--text)}
+.landing-pricing-packages{display:grid;grid-template-columns:1fr;gap:1rem}
+.landing-package-card{position:relative;background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1.4rem 1rem}
+.landing-package-card.best{border-color:var(--accent)}
+.landing-package-tag{position:absolute;top:-.6rem;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--accent),var(--accent-light));color:#fff;font-size:.65rem;font-weight:800;letter-spacing:.04em;padding:.25rem .7rem;border-radius:12px}
+.landing-package-points{font-size:1.15rem;font-weight:800;color:var(--text);margin-bottom:.2rem}
+.landing-package-price{font-size:1.5rem;font-weight:800;color:var(--accent-light);margin-bottom:.3rem}
+.landing-package-desc{font-size:.8rem;color:var(--text-muted)}
+
+/* FAQ */
+.landing-faq{padding:1rem 1.5rem 2.5rem;max-width:640px;margin:0 auto}
+.landing-faq-item{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:1rem 1.2rem;margin-bottom:.7rem}
+.landing-faq-item summary{cursor:pointer;font-size:.88rem;font-weight:700;color:var(--text);list-style:none}
+.landing-faq-item summary::-webkit-details-marker{display:none}
+.landing-faq-item summary::after{content:'+';float:right;color:var(--accent-light);font-weight:800}
+.landing-faq-item[open] summary::after{content:'−'}
+.landing-faq-item p{font-size:.82rem;color:var(--text-muted);line-height:1.6;margin-top:.7rem}
+
 .landing-final-cta{text-align:center;padding:2.5rem 1.5rem 3rem;max-width:480px;margin:0 auto}
 .landing-final-cta h2{font-size:1.4rem;font-weight:800;color:var(--text);margin-bottom:.5rem}
 .landing-final-cta p{font-size:.9rem;color:var(--text-muted);margin-bottom:1.3rem}
 .landing-final-cta .landing-cta-primary{margin:0 auto}
 .landing-footer{text-align:center;padding:1.5rem;border-top:1px solid var(--border)}
 .landing-footer p{font-size:.72rem;color:var(--text-dim)}
-@media(min-width:768px){.landing-page{max-width:100%}.landing-hero-title{font-size:2.3rem}.landing-features{grid-template-columns:1fr 1fr}}
+@media(min-width:768px){
+  .landing-page{max-width:100%}
+  .landing-hero-title{font-size:2.3rem}
+  .landing-feature-grid{grid-template-columns:1fr 1fr}
+  .landing-problem-grid{grid-template-columns:1fr 1fr 1fr}
+  .landing-how-steps{grid-template-columns:1fr 1fr 1fr}
+  .landing-pricing-packages{grid-template-columns:1fr 1fr 1fr}
+}

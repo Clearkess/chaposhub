@@ -23,44 +23,152 @@ export const APP_HTML = `<!DOCTYPE html>
     <button class="landing-signin-btn" onclick="window.ChapoAuth.showAuthModal('login')">Sign In</button>
   </header>
 
+  <!-- 1. Hero: problem-first headline + CTA -->
   <section class="landing-hero">
     <div class="landing-hero-badge">✨ Receipts · Points · AI</div>
-    <h1 class="landing-hero-title">Branded receipts, an AI reply assistant, and a pay-as-you-go points economy — all in one hub.</h1>
-    <p class="landing-hero-sub">Chapo'sHub gives you instant, polished receipts for 13+ platforms, a smart AI reply generator, and a flexible points system so you only pay for what you use.</p>
+    <h1 class="landing-hero-title">Stop losing time on messy receipts and slow customer replies</h1>
+    <p class="landing-hero-sub">Generate branded receipts for 13+ platforms, draft AI-powered customer replies in seconds, and pay only for what you use — no subscriptions, no card required to start.</p>
     <div class="landing-hero-cta">
-      <button class="landing-cta-primary" onclick="window.ChapoAuth.showAuthModal('register')">🚀 Get Started Free</button>
+      <button class="landing-cta-primary" onclick="window.ChapoAuth.showAuthModal('register')">🚀 Start My Free Account</button>
       <button class="landing-cta-secondary" onclick="window.ChapoAuth.showAuthModal('login')">Sign In</button>
     </div>
     <div class="landing-hero-note">No credit card required · 245 free points on signup</div>
   </section>
 
-  <section class="landing-features" aria-label="Features">
-    <div class="landing-feature-card">
-      <div class="landing-feature-icon">🧾</div>
-      <div class="landing-feature-text"><div class="landing-feature-title">Receipt Management</div><div class="landing-feature-desc">Create polished, branded receipts for PayPal, Binance, Cash App, OPay, Zelle and more — download, print, email, or share a short link in seconds.</div></div>
-    </div>
-    <div class="landing-feature-card">
-      <div class="landing-feature-icon">💎</div>
-      <div class="landing-feature-text"><div class="landing-feature-title">Points Economy</div><div class="landing-feature-desc">Pay-as-you-go points power every action. Top up anytime with crypto, card, or bank transfer — no subscriptions, no waste.</div></div>
-    </div>
-    <div class="landing-feature-card">
-      <div class="landing-feature-icon">🤖</div>
-      <div class="landing-feature-text"><div class="landing-feature-title">AI Reply Assistant</div><div class="landing-feature-desc">Paste any customer message and get a smart, tone-matched reply instantly — professional, friendly, casual, urgent, or apologetic.</div></div>
-    </div>
-    <div class="landing-feature-card">
-      <div class="landing-feature-icon">🛟</div>
-      <div class="landing-feature-text"><div class="landing-feature-title">Support Page Builder</div><div class="landing-feature-desc">Spin up a branded support contact page with your colors, WhatsApp, Telegram and email in one click.</div></div>
+  <!-- 2. Platform support strip (real, verifiable fact — not a fabricated stat) -->
+  <section class="landing-platforms" aria-label="Supported platforms">
+    <div class="landing-platforms-label">Generate branded receipts for</div>
+    <div class="landing-platforms-strip">
+      <span class="landing-platform-chip">PayPal</span>
+      <span class="landing-platform-chip">Binance</span>
+      <span class="landing-platform-chip">Cash App</span>
+      <span class="landing-platform-chip">OPay</span>
+      <span class="landing-platform-chip">Zelle</span>
+      <span class="landing-platform-chip">Venmo</span>
+      <span class="landing-platform-chip">Wise</span>
+      <span class="landing-platform-chip">Coinbase</span>
+      <span class="landing-platform-chip">+5 more</span>
     </div>
   </section>
 
+  <!-- 3. Problem/solution -->
+  <section class="landing-problem" aria-label="Problems we solve">
+    <h2 class="landing-section-title">Sound familiar?</h2>
+    <div class="landing-problem-grid">
+      <div class="landing-problem-card">
+        <div class="landing-problem-pain">😩 "It takes forever to format a receipt every time I make a sale."</div>
+        <div class="landing-problem-fix">→ Pick a platform preset, fill in the amount, download a branded receipt in under a minute.</div>
+      </div>
+      <div class="landing-problem-card">
+        <div class="landing-problem-pain">😩 "I never know how to word a reply to an annoyed customer."</div>
+        <div class="landing-problem-fix">→ Paste their message, pick a tone, get a ready-to-send AI reply instantly.</div>
+      </div>
+      <div class="landing-problem-card">
+        <div class="landing-problem-pain">😩 "I'm paying for tools I barely use."</div>
+        <div class="landing-problem-fix">→ Points-based pricing — top up when you need it, never pay a recurring fee for idle time.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. Features -->
+  <section class="landing-features" aria-label="Features">
+    <h2 class="landing-section-title">Everything in one hub</h2>
+    <div class="landing-feature-grid">
+      <div class="landing-feature-card">
+        <div class="landing-feature-icon">🧾</div>
+        <div class="landing-feature-text"><div class="landing-feature-title">Receipt Management</div><div class="landing-feature-desc">Create polished, branded receipts for PayPal, Binance, Cash App, OPay, Zelle and more — download, print, email, or share a short link in seconds.</div></div>
+      </div>
+      <div class="landing-feature-card">
+        <div class="landing-feature-icon">💎</div>
+        <div class="landing-feature-text"><div class="landing-feature-title">Points Economy</div><div class="landing-feature-desc">Pay-as-you-go points power every action. Top up anytime with crypto, card, or bank transfer — no subscriptions, no waste.</div></div>
+      </div>
+      <div class="landing-feature-card">
+        <div class="landing-feature-icon">🤖</div>
+        <div class="landing-feature-text"><div class="landing-feature-title">AI Reply Assistant</div><div class="landing-feature-desc">Paste any customer message and get a smart, tone-matched reply instantly — professional, friendly, casual, urgent, or apologetic.</div></div>
+      </div>
+      <div class="landing-feature-card">
+        <div class="landing-feature-icon">🛟</div>
+        <div class="landing-feature-text"><div class="landing-feature-title">Support Page Builder</div><div class="landing-feature-desc">Spin up a branded support contact page with your colors, WhatsApp, Telegram and email in one click.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. How it works -->
+  <section class="landing-how" aria-label="How it works">
+    <h2 class="landing-section-title">How it works</h2>
+    <div class="landing-how-steps">
+      <div class="landing-how-step">
+        <div class="landing-how-num">1</div>
+        <div class="landing-how-title">Pick a platform &amp; enter details</div>
+        <div class="landing-how-desc">Choose from 13+ presets or go generic, then add your store name, items and amounts.</div>
+      </div>
+      <div class="landing-how-step">
+        <div class="landing-how-num">2</div>
+        <div class="landing-how-title">Preview instantly</div>
+        <div class="landing-how-desc">Watch your branded receipt render live, complete with barcode and QR code.</div>
+      </div>
+      <div class="landing-how-step">
+        <div class="landing-how-num">3</div>
+        <div class="landing-how-title">Download, print, email or share</div>
+        <div class="landing-how-desc">Export as PNG, print directly, email it, or generate a short shareable link.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. Pricing (real point costs from the actual app config) -->
+  <section class="landing-pricing" aria-label="Pricing">
+    <h2 class="landing-section-title">Simple, transparent pricing</h2>
+    <p class="landing-pricing-sub">No subscriptions. Every new account starts with 245 free points.</p>
+    <div class="landing-pricing-table">
+      <div class="landing-pricing-row landing-pricing-head"><span>Action</span><span>Points Cost</span></div>
+      <div class="landing-pricing-row"><span>Download receipt</span><span>5 pts</span></div>
+      <div class="landing-pricing-row"><span>Print receipt</span><span>3 pts</span></div>
+      <div class="landing-pricing-row"><span>Email receipt</span><span>10 pts</span></div>
+      <div class="landing-pricing-row"><span>Short link</span><span>2 pts</span></div>
+      <div class="landing-pricing-row"><span>AI reply</span><span>3 pts</span></div>
+      <div class="landing-pricing-row"><span>Support page</span><span>15 pts</span></div>
+    </div>
+    <div class="landing-pricing-packages">
+      <div class="landing-package-card"><div class="landing-package-points">1,000 pts</div><div class="landing-package-price">$10</div><div class="landing-package-desc">Starter</div></div>
+      <div class="landing-package-card best"><div class="landing-package-tag">BEST VALUE</div><div class="landing-package-points">5,000 pts</div><div class="landing-package-price">$45</div><div class="landing-package-desc">Pro</div></div>
+      <div class="landing-package-card"><div class="landing-package-points">10,000 pts</div><div class="landing-package-price">$80</div><div class="landing-package-desc">Enterprise</div></div>
+    </div>
+  </section>
+
+  <!-- 9. FAQ -->
+  <section class="landing-faq" aria-label="Frequently asked questions">
+    <h2 class="landing-section-title">Frequently asked questions</h2>
+    <details class="landing-faq-item">
+      <summary>What are these receipts for?</summary>
+      <p>Chapo'sHub receipts are simulated, branded records for personal bookkeeping, invoicing your own customers, and demo/testing purposes. They are not issued by PayPal, Binance, or any platform they're styled after, and are not intended to be submitted as official proof of payment to a third party.</p>
+    </details>
+    <details class="landing-faq-item">
+      <summary>Do I need a credit card to sign up?</summary>
+      <p>No. Every new account gets 245 free points instantly, no card required. You only pay if/when you want to top up points.</p>
+    </details>
+    <details class="landing-faq-item">
+      <summary>Can I customize the receipt branding?</summary>
+      <p>Yes — pick a platform preset for instant styling, or use the generic template and set your own store name, currency, tax rate, and line items.</p>
+    </details>
+    <details class="landing-faq-item">
+      <summary>How does the points system work?</summary>
+      <p>Every account starts with 245 free points. Actions like downloading, printing, emailing, or generating an AI reply each cost a small number of points (shown in the pricing table above). Top up anytime — points never expire and there's no recurring subscription.</p>
+    </details>
+    <details class="landing-faq-item">
+      <summary>What does the AI reply tool do?</summary>
+      <p>Paste in a customer's message, choose a tone (professional, friendly, casual, urgent, or apologetic), and get an instantly generated reply you can copy and send.</p>
+    </details>
+  </section>
+
+  <!-- 10. Final CTA -->
   <section class="landing-final-cta">
     <h2>Ready to get started?</h2>
-    <p>Create your free account and get 245 points instantly.</p>
-    <button class="landing-cta-primary" onclick="window.ChapoAuth.showAuthModal('register')">Create Free Account</button>
+    <p>Create your free account and get 245 points instantly — no card required.</p>
+    <button class="landing-cta-primary" onclick="window.ChapoAuth.showAuthModal('register')">Start My Free Account</button>
   </section>
 
   <footer class="landing-footer">
-    <p>© 2026 Chapo'sHub · Simulated receipts for demo/testing purposes only.</p>
+    <p>© 2026 Chapo'sHub · Receipts are simulated records for personal/demo use, not official proof of payment.</p>
   </footer>
 </div>
 
