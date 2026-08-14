@@ -79,7 +79,16 @@ points.post('/deduct', authMiddleware, async (c) => {
   })
 })
 
-// Purchase points (Stripe integration, mock if not configured)
+// Purchase points via Stripe (legacy/optional path). Real purchases go
+// through the Whop checkout links (see WHOP_CHECKOUT_URLS on the frontend)
+// and are credited by /api/webhooks/whop, NOT this endpoint.
+//
+// IMPORTANT: this endpoint intentionally does NOT have a "mock mode" that
+// credits points without a real payment. It previously did (dev/demo
+// convenience), which meant any authenticated user could call this route
+// directly and receive free points with zero payment. That branch has been
+// removed. If STRIPE_SECRET_KEY is not configured, this route is simply
+// disabled rather than silently granting free points.
 points.post('/purchase', authMiddleware, async (c) => {
   const userId = c.get('userId')
   const body = await c.req.json().catch(() => ({}))
@@ -91,33 +100,9 @@ points.post('/purchase', authMiddleware, async (c) => {
   }
 
   if (!c.env.STRIPE_SECRET_KEY) {
-    // Mock mode: credit points immediately for dev/demo
-    const user = await c.env.DB.prepare('SELECT points FROM users WHERE id = ?')
-      .bind(userId).first<{ points: number }>()
-    if (!user) return c.json({ error: 'User not found' }, 404)
-
-    const newBalance = user.points + pkg.points
-    const now = new Date().toISOString()
-
-    await c.env.DB.batch([
-      c.env.DB.prepare('UPDATE users SET points = ? WHERE id = ?').bind(newBalance, userId),
-      c.env.DB.prepare(
-        `INSERT INTO points_transactions (id, user_id, type, amount, balance, description, action, payment_method, created_at)
-         VALUES (?, ?, 'purchase', ?, ?, ?, 'purchase', 'stripe', ?)`
-      ).bind(generateId('ptx'), userId, pkg.points, newBalance, `Purchased ${pkg.points} points ($${pkg.price})`, now),
-      c.env.DB.prepare(
-        `INSERT INTO activities (id, user_id, type, title, description, icon, color, created_at)
-         VALUES (?, ?, 'purchase', 'Points Purchase', ?, '💎', 'rgba(249,115,22,0.15)', ?)`
-      ).bind(generateId('act'), userId, `${pkg.points.toLocaleString()} pts · $${pkg.price}`, now)
-    ])
-
     return c.json({
-      success: true,
-      mock: true,
-      package: pkg,
-      newBalance,
-      message: 'Payment intent created (mock mode - Stripe not configured)'
-    })
+      error: 'Card checkout is not available right now. Please use the Whop checkout link instead.',
+    }, 501)
   }
 
   try {

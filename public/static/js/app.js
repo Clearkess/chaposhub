@@ -1,6 +1,12 @@
 // Chapo'sHub app logic - adapted from the monolithic prototype, wired to the real API.
 // === CONFIG ===
 const CONFIG = { points: { download: 5, print: 3, email: 10, link: 2, ai: 3, support: 15 }, app: { name: "Chapo'sHub", version: '2.0.0' } };
+// Real Whop-hosted checkout links. Only 'starter' has a live Whop plan today;
+// pro/enterprise packages are shown as "coming soon" in the UI until their
+// own Whop plans + WHOP_..._PLAN_ID bindings exist (see src/routes/webhooks.ts).
+const WHOP_CHECKOUT_URLS = {
+  starter: 'https://whop.com/checkout/plan_DZtaB5bXDuHOm'
+};
 // === END CONFIG ===
 
 // Server-backed user/points/history state (populated after auth)
@@ -331,16 +337,21 @@ async function generateAIReply() {
   }
 }
 
-async function buyPoints(packageId) {
-  try {
-    const res = await window.api.purchasePoints(packageId);
-    await refreshUserAndPoints();
-    if (res.clientSecret) {
-      showToast('💳 Payment intent created - complete checkout to receive points');
-    } else {
-      showToast('💰 ' + (res.package.points || '').toLocaleString() + ' points added!', 'success');
-    }
-  } catch (err) { handleAuthFailure(err); }
+function buyPoints(packageId) {
+  const checkoutUrl = WHOP_CHECKOUT_URLS[packageId];
+  if (!checkoutUrl) {
+    showToast('💡 This package is coming soon — grab the Starter pack for now!', 'info');
+    return;
+  }
+  // Prefill + lock the email field on Whop's checkout so the payment's
+  // buyer email matches this Chapo'sHub account, letting the webhook
+  // (POST /api/webhooks/whop) auto-credit points without any manual match.
+  let url = checkoutUrl;
+  if (user.email) {
+    url += (url.includes('?') ? '&' : '?') + 'email=' + encodeURIComponent(user.email) + '&email.disabled=1';
+  }
+  showToast('💳 Redirecting to secure Whop checkout…');
+  window.location.href = url;
 }
 
 function copyRefLink() {

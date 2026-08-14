@@ -143,6 +143,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .package-card:hover{border-color:var(--border-hover)}
 .package-card:active{transform:scale(.97)}
 .package-card.best{border-color:var(--accent)}
+.package-card.disabled{opacity:.5;cursor:not-allowed;pointer-events:none}
 .package-best-tag{position:absolute;top:-8px;left:50%;transform:translateX(-50%);background:var(--accent);color:white;font-size:.6rem;font-weight:700;padding:.15rem .5rem;border-radius:10px;white-space:nowrap}
 .package-points{font-size:1.3rem;font-weight:800;color:#818cf8}
 .package-price{font-size:.9rem;font-weight:700;margin-top:.3rem;color:var(--text)}

@@ -140,8 +140,8 @@ export const APP_HTML = `<!DOCTYPE html>
     </div>
     <div class="landing-pricing-packages">
       <div class="landing-package-card"><div class="landing-package-points">1,000 pts</div><div class="landing-package-price">$10</div><div class="landing-package-desc">Starter</div></div>
-      <div class="landing-package-card best"><div class="landing-package-tag">BEST VALUE</div><div class="landing-package-points">5,000 pts</div><div class="landing-package-price">$45</div><div class="landing-package-desc">Pro</div></div>
-      <div class="landing-package-card"><div class="landing-package-points">10,000 pts</div><div class="landing-package-price">$80</div><div class="landing-package-desc">Enterprise</div></div>
+      <div class="landing-package-card"><div class="landing-package-tag">COMING SOON</div><div class="landing-package-points">5,000 pts</div><div class="landing-package-price">$45</div><div class="landing-package-desc">Pro</div></div>
+      <div class="landing-package-card"><div class="landing-package-tag">COMING SOON</div><div class="landing-package-points">10,000 pts</div><div class="landing-package-price">$80</div><div class="landing-package-desc">Enterprise</div></div>
     </div>
   </section>
 
@@ -260,9 +260,8 @@ export const APP_HTML = `<!DOCTYPE html>
 <div class="receipt-page-header"><button class="back-btn" onclick="showPage('dashboard')" aria-label="Go back">←</button><div class="page-title-sm">💰 Chapo'sHub Points</div></div>
 <div class="points-card"><div class="points-amount" id="pointsAmount">0</div><div class="points-label">Available Points</div></div>
 <div class="section-title">Select Package</div>
-<div class="package-grid"><div class="package-card" onclick="buyPoints('starter')"><div class="package-points">1,000</div><div class="package-price">$10</div><div class="package-desc">Basic</div></div><div class="package-card best" onclick="buyPoints('pro')"><div class="package-best-tag">BEST</div><div class="package-points">5,000</div><div class="package-price">$45</div><div class="package-desc">Popular</div></div><div class="package-card" onclick="buyPoints('enterprise')"><div class="package-points">10,000</div><div class="package-price">$80</div><div class="package-desc">Pro</div></div></div>
-<div class="section-title">Payment Methods</div>
-<div class="payment-methods"><div class="payment-method" onclick="showToast('Bitcoin payment selected')"><span class="payment-method-icon">₿</span> Bitcoin (BTC)</div><div class="payment-method" onclick="showToast('Ethereum payment selected')"><span class="payment-method-icon">Ξ</span> Ethereum (ETH)</div><div class="payment-method" onclick="showToast('USDT payment selected')"><span class="payment-method-icon">💵</span> USDT (TRC20)</div><div class="payment-method" onclick="showToast('P2P transfer selected')"><span class="payment-method-icon">🏦</span> P2P Transfer</div><div class="payment-method" onclick="showToast('Bank transfer selected')"><span class="payment-method-icon">💳</span> Bank Transfer</div></div>
+<div class="package-grid"><div class="package-card" onclick="buyPoints('starter')"><div class="package-points">1,000</div><div class="package-price">$10</div><div class="package-desc">Basic</div></div><div class="package-card best disabled" onclick="buyPoints('pro')"><div class="package-best-tag">SOON</div><div class="package-points">5,000</div><div class="package-price">$45</div><div class="package-desc">Popular</div></div><div class="package-card disabled" onclick="buyPoints('enterprise')"><div class="package-points">10,000</div><div class="package-price">$80</div><div class="package-desc">Pro</div></div></div>
+<p style="font-size:.78rem;color:var(--muted,#94a3b8);padding:0 1rem;margin-top:.5rem">Purchases are processed securely by Whop. You'll be taken to Whop's checkout — points are credited to your account automatically once payment completes.</p>
 </div>
 
 <div class="page" id="page-services" role="main" aria-label="Services">
