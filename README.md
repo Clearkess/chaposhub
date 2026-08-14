@@ -12,13 +12,14 @@
   - Support page builder (branded contact page)
   - Referral link system
   - Points/activity history and basic analytics dashboard
+  - **Whop payment webhook** (`POST /api/webhooks/whop`, see below): a $10 Whop "Starter" plan purchase auto-credits 1,000 points to the matching Chapo'sHub account — ⚠️ **built and tested locally, not yet deployed to production** (pending Cloudflare secret setup, see Deployment section)
 
 ## URLs
 - **Production**: https://chaposhub.pages.dev *(deployment currently being re-verified — see Deployment section below)*
 - **GitHub**: _not yet connected in this session_
 
 ## Data Architecture
-- **Data Models**: `users` (auth + points balance + referral code), `receipts`/orders history, `activity_log` (points-consuming actions), `sessions`/JWT-based auth — see `migrations/` for exact schema.
+- **Data Models**: `users` (auth + points balance + referral code), `receipts`/orders history, `activity_log` (points-consuming actions), `sessions`/JWT-based auth, `webhook_events` + `whop_payments` (Whop webhook idempotency/audit trail, added `migrations/0002_whop_webhooks.sql`) — see `migrations/` for exact schema.
 - **Storage Services**: Cloudflare D1 (SQLite) for all persistent data; local development uses `--local` D1 via Wrangler.
 - **Data Flow**: Frontend (`public/static/js/*.js`) calls JSON API routes under `/api/*` (Hono, `src/routes/*.ts`) which read/write D1. The monolithic frontend markup lives in `src/lib/app-html.ts` and is served by `src/index.tsx`.
 
@@ -36,6 +37,18 @@ The public landing page (`src/lib/app-html.ts`, styles in `public/static/css/app
 **Intentionally not included**, per product/ethics review: fabricated testimonials or trust stats (no real users yet), and SEO content pages targeting "receipt generator" search intent (risk of facilitating payment-proof fraud).
 
 Sticky header nav (`#landing-how-it-works`, `#landing-pricing-section`, `#landing-faq-section`) appears on desktop widths; smooth-scrolls to sections, respecting `prefers-reduced-motion`.
+
+## Whop Payment Webhook
+`POST /api/webhooks/whop` (public, unauthenticated — verified via HMAC signature instead of a login session) receives Whop's `payment.succeeded` event and, on a successful `$10` / `plan_DZtaB5bXDuHOm` ("Starter") purchase, credits **1,000 points** to the Chapo'sHub account whose email matches the Whop buyer's email.
+
+- **Verification**: implements the [Standard Webhooks](https://www.standardwebhooks.com/) spec Whop uses — HMAC-SHA256 over `{webhook-id}.{webhook-timestamp}.{raw body}`, keyed by `WHOP_WEBHOOK_SECRET`, constant-time compared against each `v1,<sig>` candidate in the `webhook-signature` header (supports secret rotation). Requests older than 5 minutes are rejected (replay protection).
+- **Idempotency**: two independent guards — (1) `webhook_events` table short-circuits a redelivered `webhook-id` before any processing; (2) a `UNIQUE` constraint on `whop_payments.whop_payment_id` is the authoritative guard against double-crediting the same payment even across different webhook-ids.
+- **Plan mapping**: `WHOP_STARTER_PLAN_ID` env var → 1,000 points (see `resolvePlanPoints()` in `src/routes/webhooks.ts` — extend this map if more Whop plans are added later).
+- **Account matching**: by lowercased/trimmed email against `users.email`. If no account matches, the payment is recorded as `unmatched_email` in `whop_payments` (audit trail) but **no points are credited** — this needs manual reconciliation (the buyer likely used a different email than their Chapo'sHub account).
+- **Required Cloudflare env vars** (Workers & Pages → Chapo'sHub → Settings → Variables and Secrets):
+  - `WHOP_STARTER_PLAN_ID` = `plan_DZtaB5bXDuHOm` — plain variable
+  - `WHOP_WEBHOOK_SECRET` = *(Whop's webhook signing secret)* — **must be a Secret**, never plaintext
+- **Status**: ✅ implemented and passing a 21-assertion local test harness (`test/whop-webhook.test.mjs`) covering happy path, bad/wrong signature, replay, duplicate delivery, duplicate payment id, unrecognized plan, non-payment event, missing headers, and real end-to-end point crediting. ⚠️ **Not yet deployed** — awaiting confirmation that the two Cloudflare variables above are set correctly, and a production D1 migration run (`npx wrangler d1 migrations apply chaposhub-production --remote`).
 
 ## User Guide
 1. Visit the site — you land on the marketing page.

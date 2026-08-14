@@ -5,6 +5,9 @@ export type Bindings = {
   STRIPE_SECRET_KEY?: string
   RESEND_API_KEY?: string
   FROM_EMAIL?: string
+  // Whop payment webhook integration
+  WHOP_WEBHOOK_SECRET?: string   // secret, from Whop dashboard (ws_...)
+  WHOP_STARTER_PLAN_ID?: string  // plain var, e.g. plan_DZtaB5bXDuHOm
 }
 
 export type AppVariables = {
