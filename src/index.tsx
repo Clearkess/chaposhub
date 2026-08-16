@@ -27,6 +27,29 @@ app.get('/', (c) => {
   return c.html(APP_HTML)
 })
 
+// robots.txt / sitemap.xml — served directly by this Worker rather than as
+// static files under public/, since Cloudflare Pages' _routes.json only
+// excludes /static/* from Worker routing (root-level public/ files still hit
+// this app, where they'd otherwise 404 with no matching route).
+app.get('/robots.txt', (c) => {
+  return c.text('User-agent: *\nAllow: /\n\nSitemap: https://chaposhub.pages.dev/sitemap.xml\n')
+})
+
+app.get('/sitemap.xml', (c) => {
+  return c.body(
+    '<?xml version="1.0" encoding="UTF-8"?>\n' +
+      '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
+      '  <url>\n' +
+      '    <loc>https://chaposhub.pages.dev/</loc>\n' +
+      '    <changefreq>weekly</changefreq>\n' +
+      '    <priority>1.0</priority>\n' +
+      '  </url>\n' +
+      '</urlset>\n',
+    200,
+    { 'Content-Type': 'application/xml' }
+  )
+})
+
 // Mount feature routes
 app.route('/api/auth', auth)
 app.route('/api/receipts', receipts)

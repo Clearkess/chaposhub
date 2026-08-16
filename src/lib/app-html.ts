@@ -8,10 +8,23 @@ export const APP_HTML = `<!DOCTYPE html>
 <title>Chapo'sHub — Branded Receipts, Points & AI Replies</title>
 <meta name="description" content="Generate branded receipts for 13+ platforms, draft AI-powered customer replies, and pay only for what you use with Chapo'sHub's points system. No subscriptions, no card required to start.">
 <meta name="theme-color" content="#0f0f14">
+<link rel="canonical" href="https://chaposhub.pages.dev/">
 <meta property="og:title" content="Chapo'sHub — Branded Receipts, Points & AI Replies">
 <meta property="og:description" content="Generate branded receipts for 13+ platforms, draft AI-powered customer replies, and pay only for what you use. No subscriptions, no card required.">
 <meta property="og:type" content="website">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A7%BE%3C/text%3E%3C/svg%3E">
+<meta property="og:url" content="https://chaposhub.pages.dev/">
+<meta property="og:site_name" content="Chapo'sHub">
+<meta property="og:image" content="https://chaposhub.pages.dev/static/images/og-image.png">
+<meta property="og:image:width" content="1376">
+<meta property="og:image:height" content="768">
+<meta property="og:image:alt" content="Chapo'sHub — Branded Receipts, Points & AI Replies">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Chapo'sHub — Branded Receipts, Points & AI Replies">
+<meta name="twitter:description" content="Generate branded receipts for 13+ platforms, draft AI-powered customer replies, and pay only for what you use. No subscriptions, no card required.">
+<meta name="twitter:image" content="https://chaposhub.pages.dev/static/images/og-image.png">
+<link rel="icon" type="image/png" href="/static/images/logo.png">
+<link rel="apple-touch-icon" href="/static/images/logo.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"Chapo'sHub","url":"https://chaposhub.pages.dev/","logo":"https://chaposhub.pages.dev/static/images/logo.png","description":"Generate branded receipts for 13+ platforms, draft AI-powered customer replies, and pay only for what you use with Chapo'sHub's points system."}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
