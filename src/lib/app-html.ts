@@ -25,6 +25,7 @@ export const APP_HTML = `<!DOCTYPE html>
 <link rel="icon" type="image/png" href="/static/images/logo.png">
 <link rel="apple-touch-icon" href="/static/images/logo.png">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"Chapo'sHub","url":"https://chaposhub.pages.dev/","logo":"https://chaposhub.pages.dev/static/images/logo.png","description":"Generate branded receipts for 13+ platforms, draft AI-powered customer replies, and pay only for what you use with Chapo'sHub's points system."}</script>
+<script>(function(){try{var t=localStorage.getItem('chapo_theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}})();</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -41,9 +42,14 @@ export const APP_HTML = `<!DOCTYPE html>
     <nav class="landing-nav" aria-label="Page sections">
       <a href="#landing-how-it-works">How it works</a>
       <a href="#landing-pricing-section">Pricing</a>
-      <a href="#landing-faq-section">FAQ</a>
+      <a href="/help">Help</a>
+      <a href="/about">About</a>
+      <a href="/contact">Contact</a>
     </nav>
-    <button class="landing-signin-btn" onclick="window.ChapoAuth.showAuthModal('login')">Sign In</button>
+    <div class="landing-header-right">
+      <button class="landing-theme-btn" id="themeToggleBtn" onclick="window.ChapoTheme.toggle()" aria-label="Toggle dark/light theme" title="Toggle theme">🌙</button>
+      <button class="landing-signin-btn" onclick="window.ChapoAuth.showAuthModal('login')">Sign In</button>
+    </div>
   </header>
 
   <!-- 1. Hero: problem-first headline + CTA -->
@@ -56,6 +62,13 @@ export const APP_HTML = `<!DOCTYPE html>
       <button class="landing-cta-secondary" onclick="window.ChapoAuth.showAuthModal('login')">Sign In</button>
     </div>
     <div class="landing-hero-note">No credit card required · 245 free points on signup</div>
+  </section>
+
+  <!-- Trust badges: SSL/instant/worldwide — all real, verifiable claims -->
+  <section class="landing-trust" aria-label="Trust indicators">
+    <div class="landing-trust-item"><span class="trust-icon">🔒</span> SSL Encrypted</div>
+    <div class="landing-trust-item"><span class="trust-icon">⚡</span> Instant Delivery</div>
+    <div class="landing-trust-item"><span class="trust-icon">🌍</span> Available Worldwide</div>
   </section>
 
   <!-- 2. Platform support strip (real, verifiable fact — not a fabricated stat) -->
@@ -190,8 +203,30 @@ export const APP_HTML = `<!DOCTYPE html>
     <button class="landing-cta-primary" onclick="window.ChapoAuth.showAuthModal('register')">Start My Free Account</button>
   </section>
 
-  <footer class="landing-footer">
-    <p>© 2026 Chapo'sHub · Receipts are simulated records for personal/demo use, not official proof of payment.</p>
+  <footer class="site-footer">
+    <div class="site-footer-grid">
+      <div>
+        <div class="site-footer-brand">🧾 Chapo'sHub</div>
+        <p class="site-footer-tagline">A trusted points-based hub for generating branded receipts and digital tools. Simplify your workflow today.</p>
+      </div>
+      <div class="site-footer-col">
+        <div class="site-footer-col-title">Resources</div>
+        <a href="/help">Help Center</a>
+        <a href="/privacy-policy">Privacy Policy</a>
+        <a href="/terms">Terms &amp; Conditions</a>
+      </div>
+      <div class="site-footer-col">
+        <div class="site-footer-col-title">Company</div>
+        <a href="/about">About Us</a>
+        <a href="/contact">Contact Us</a>
+      </div>
+      <div class="site-footer-col">
+        <div class="site-footer-col-title">Contact Us</div>
+        <a href="mailto:support@chaposhub.com">support@chaposhub.com</a>
+        <a href="https://wa.me/2347056606129" target="_blank" rel="noopener">WhatsApp: +234 705 660 6129</a>
+      </div>
+    </div>
+    <div class="site-footer-bottom">© 2026 Chapo'sHub. Receipts are simulated records for personal/demo use, not official proof of payment.</div>
   </footer>
 </div>
 
@@ -232,7 +267,7 @@ export const APP_HTML = `<!DOCTYPE html>
 <!-- Main app shell (hidden until authenticated) -->
 <div class="app-shell hidden" id="appShell">
 <div class="page active" id="page-dashboard" role="main" aria-label="Dashboard">
-<div class="top-bar"><div class="top-left"><div class="top-avatar">CH</div><div class="top-user" id="topUser">guest<span>KE</span></div></div><div class="top-right"><div class="top-badge" id="topBadge">💎 0pts</div><div class="top-icon-btn" onclick="showToast('Theme toggle coming soon')" role="button" tabindex="0" aria-label="Toggle theme" title="Toggle theme">🌙</div></div></div>
+<div class="top-bar"><div class="top-left"><div class="top-avatar">CH</div><div class="top-user" id="topUser">guest<span>KE</span></div></div><div class="top-right"><div class="top-badge" id="topBadge">💎 0pts</div><div class="top-icon-btn" onclick="window.ChapoTheme.toggle()" role="button" tabindex="0" aria-label="Toggle theme" title="Toggle theme">🌙</div></div></div>
 <div class="ref-bar"><div class="ref-left">👤 Referral program</div><button class="ref-btn" onclick="copyRefLink()">Copy Ref Link</button></div>
 <div class="welcome"><div class="welcome-text">Welcome back,<br><strong id="welcomeName">guest 👋</strong></div><button class="buy-points-btn" onclick="showPage('points')">💰 Chapo'sHub Points</button></div>
 <div class="balance-card"><div class="balance-label">💳 TOTAL BALANCE</div><div class="balance-amount" id="balanceAmount">0 <span>pts</span></div><div class="balance-actions"><div class="balance-action" onclick="showPage('services')"><div class="balance-action-icon">→</div><div class="balance-action-label">Services</div></div><div class="balance-action" onclick="showPage('orders')"><div class="balance-action-icon">🛒</div><div class="balance-action-label">Orders</div></div><div class="balance-action" onclick="showPage('history')"><div class="balance-action-icon">🕐</div><div class="balance-action-label">History</div></div></div></div>
@@ -316,8 +351,24 @@ export const APP_HTML = `<!DOCTYPE html>
 </nav>
 </div>
 
+<script src="/static/js/theme.js"></script>
 <script src="/static/js/api-client.js"></script>
 <script src="/static/js/auth.js"></script>
 <script src="/static/js/app.js"></script>
+<script>
+// Deep-link support: /?auth=login or /?auth=register opens the auth modal
+// automatically (used by the Sign In / Get Started links on subpages like
+// /help, /about, /contact so they route back through the single-page app).
+(function () {
+  var params = new URLSearchParams(location.search);
+  var authMode = params.get('auth');
+  if (authMode === 'login' || authMode === 'register') {
+    document.addEventListener('DOMContentLoaded', function () {
+      if (window.ChapoAuth) window.ChapoAuth.showAuthModal(authMode);
+      history.replaceState(null, '', location.pathname);
+    });
+  }
+})();
+</script>
 </body>
 </html>`

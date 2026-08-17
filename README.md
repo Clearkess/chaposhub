@@ -13,6 +13,8 @@
   - Referral link system
   - Points/activity history and basic analytics dashboard
   - **Whop payment webhook** (`POST /api/webhooks/whop`, see below): a $10 Whop "Starter" plan purchase auto-credits 1,000 points to the matching Chapo'sHub account — ⚠️ **built and tested locally, not yet deployed to production** (pending Cloudflare secret setup, see Deployment section)
+  - **Static marketing subpages** with a persistent header/footer nav (Home/Help/About/Contact/Sign In, matching the pattern used by comparable receipt-generator sites like SlipCraft): `/about`, `/help` (searchable FAQ), `/contact` (WhatsApp + email + contact form), `/privacy-policy`, `/terms`
+  - **Dark/light theme toggle**, persisted in `localStorage`, working on the landing page, dashboard, and every static subpage
 
 ## URLs
 - **Production**: https://chaposhub.pages.dev — ✅ verified live 2026-08-17 (`/api/health` returns `{"status":"ok"}`, D1-backed `/api/auth/register` validation confirmed working)
@@ -21,22 +23,37 @@
 ## Data Architecture
 - **Data Models**: `users` (auth + points balance + referral code), `receipts`/orders history, `activity_log` (points-consuming actions), `sessions`/JWT-based auth, `webhook_events` + `whop_payments` (Whop webhook idempotency/audit trail, added `migrations/0002_whop_webhooks.sql`) — see `migrations/` for exact schema.
 - **Storage Services**: Cloudflare D1 (SQLite) for all persistent data; local development uses `--local` D1 via Wrangler.
-- **Data Flow**: Frontend (`public/static/js/*.js`) calls JSON API routes under `/api/*` (Hono, `src/routes/*.ts`) which read/write D1. The monolithic frontend markup lives in `src/lib/app-html.ts` and is served by `src/index.tsx`.
+- **Data Flow**: Frontend (`public/static/js/*.js`) calls JSON API routes under `/api/*` (Hono, `src/routes/*.ts`) which read/write D1. The monolithic app-shell markup lives in `src/lib/app-html.ts`; static marketing subpages live in `src/lib/pages/*.ts` and share chrome via `src/lib/site-chrome.ts`. All routed by `src/index.tsx`.
 
 ## Landing Page
 The public landing page (`src/lib/app-html.ts`, styles in `public/static/css/app.css`) is shown before login and covers, in order:
 1. Hero (problem-first headline + "Start My Free Account" / "Sign In" CTAs, no-card-required note)
-2. Supported platforms strip (real platform list, not a fabricated stat)
-3. Problem → solution cards
-4. Feature grid (Receipts, Points, AI Replies, Support Pages)
-5. How it works (3 steps)
-6. Transparent pricing (real per-action point costs + real package pricing pulled from `CONFIG.points` and `buyPoints()`)
-7. FAQ (including an explicit, honest disclaimer that receipts are simulated records, not official proof of payment)
-8. Final CTA + footer disclaimer
+2. Trust badges (SSL Encrypted / Instant Delivery / Available Worldwide — real, verifiable claims)
+3. Supported platforms strip (real platform list, not a fabricated stat)
+4. Problem → solution cards
+5. Feature grid (Receipts, Points, AI Replies, Support Pages)
+6. How it works (3 steps)
+7. Transparent pricing (real per-action point costs + real package pricing pulled from `CONFIG.points` and `buyPoints()`)
+8. FAQ (including an explicit, honest disclaimer that receipts are simulated records, not official proof of payment)
+9. Final CTA + rich footer (Resources/Company/Contact link columns)
 
 **Intentionally not included**, per product/ethics review: fabricated testimonials or trust stats (no real users yet), and SEO content pages targeting "receipt generator" search intent (risk of facilitating payment-proof fraud).
 
-Sticky header nav (`#landing-how-it-works`, `#landing-pricing-section`, `#landing-faq-section`) appears on desktop widths; smooth-scrolls to sections, respecting `prefers-reduced-motion`.
+Sticky header nav (`#landing-how-it-works`, `#landing-pricing-section`, plus persistent links to `/help`, `/about`, `/contact`) appears on desktop widths; smooth-scrolls to in-page anchor sections, respecting `prefers-reduced-motion`.
+
+## Marketing Subpages & Design Inspiration
+A competitive review of **SlipCraft** (slipcraft.net — a comparable points-based receipt-generator product) informed a set of legitimate UX/structure upgrades, implemented in `src/lib/site-chrome.ts` (shared header/footer) and `src/lib/pages/*.ts`:
+- **`/about`** — mission, "who we serve," and 4 value cards (Speed/Security/Accessibility/Honesty)
+- **`/help`** — expanded, client-side-searchable FAQ (10 questions) with a "still need help → contact" CTA
+- **`/contact`** — real WhatsApp (`+234 705 660 6129`, `wa.me` deep link) and email contact channels, a `mailto:`-based contact form, and honest response-time expectations
+- **`/privacy-policy`** and **`/terms`** — real policy pages (previously referenced nowhere and didn't exist — a genuine gap for a site that takes payments); Terms includes an explicit clause prohibiting using generated receipts as real proof of payment
+- **Persistent header/footer** (Home/Help/About/Contact/Sign In nav + Resources/Company/Contact footer columns) shared across landing + all subpages via `siteHeader()`/`siteFooter()`
+- **Working dark/light theme toggle** (`public/static/js/theme.js`, `localStorage`-persisted `chapo_theme`), replacing a dead "coming soon" button on both the landing page and the dashboard app shell
+- **Trust badge row** (SSL Encrypted / Instant Delivery / Available Worldwide) — all true today, unlike inflated stats
+
+**Deliberately NOT replicated from SlipCraft**, per the same ethics standard already applied to the landing page:
+- **Fabricated usage stats and testimonials** (e.g. "335,221+ users," scripted customer quotes) — dishonest, no real numbers exist yet
+- **"Login Page Builder"** — SlipCraft frames this as "phishing awareness testing," but it's a fake-login-page generator; SlipCraft itself is called out in public search results and social posts as a tool used to create fraudulent bank/payment screenshots. Building this would turn Chapo'sHub into a phishing kit — out of scope, permanently.
 
 ## Whop Payment Webhook
 `POST /api/webhooks/whop` (public, unauthenticated — verified via HMAC signature instead of a login session) receives Whop's `payment.succeeded` event and, on a successful `$10` / `plan_DZtaB5bXDuHOm` ("Starter") purchase, credits **1,000 points** to the Chapo'sHub account whose email matches the Whop buyer's email.
@@ -74,4 +91,4 @@ The single-page app (`src/lib/app-html.ts`) is server-rendered by Hono, so all S
 - **Status**: ✅ Live and verified in production (2026-08-17) — homepage, `/api/health`, and DB-backed API validation all confirmed working at https://chaposhub.pages.dev
 - **Tech Stack**: Hono + TypeScript + Vite + Wrangler, vanilla JS frontend, Cloudflare D1
 - **Local dev**: `npm run build && pm2 start ecosystem.config.cjs` (serves on port 3000 via `wrangler pages dev`)
-- **Last Updated**: 2026-08-17
+- **Last Updated**: 2026-08-17 (SlipCraft-inspired marketing subpages: /about, /help, /contact, /privacy-policy, /terms, theme toggle)
