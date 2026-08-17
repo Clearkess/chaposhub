@@ -15,7 +15,7 @@
   - **Whop payment webhook** (`POST /api/webhooks/whop`, see below): a $10 Whop "Starter" plan purchase auto-credits 1,000 points to the matching Chapo'sHub account — ⚠️ **built and tested locally, not yet deployed to production** (pending Cloudflare secret setup, see Deployment section)
 
 ## URLs
-- **Production**: https://chaposhub.pages.dev *(deployment currently being re-verified — see Deployment section below)*
+- **Production**: https://chaposhub.pages.dev — ✅ verified live 2026-08-17 (`/api/health` returns `{"status":"ok"}`, D1-backed `/api/auth/register` validation confirmed working)
 - **GitHub**: _not yet connected in this session_
 
 ## Data Architecture
@@ -71,7 +71,7 @@ The single-page app (`src/lib/app-html.ts`) is server-rendered by Hono, so all S
 
 ## Deployment
 - **Platform**: Cloudflare Pages (Hono + D1)
-- **Status**: ⚠️ Currently being re-verified — the last known-live deployment returned 404s; a fresh deploy is pending resolution of Cloudflare API token access (see project history for details).
+- **Status**: ✅ Live and verified in production (2026-08-17) — homepage, `/api/health`, and DB-backed API validation all confirmed working at https://chaposhub.pages.dev
 - **Tech Stack**: Hono + TypeScript + Vite + Wrangler, vanilla JS frontend, Cloudflare D1
 - **Local dev**: `npm run build && pm2 start ecosystem.config.cjs` (serves on port 3000 via `wrangler pages dev`)
-- **Last Updated**: 2026-07-23
+- **Last Updated**: 2026-08-17
