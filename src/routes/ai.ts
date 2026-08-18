@@ -39,13 +39,6 @@ ai.post('/reply', authMiddleware, async (c) => {
   // Falls back to OpenAI if NoMask isn't configured/fails, then to a canned
   // template if neither is configured/available. The API key never leaves
   // this server-side route — the browser only ever calls POST /api/ai/reply.
-  // TEMPORARY diagnostic: pass ?debug=1 to surface exactly why the NoMask
-  // call didn't succeed (HTTP status + response body / network error),
-  // without ever revealing the key itself. Remove once NoMask is confirmed
-  // working in production.
-  const debug = c.req.query('debug') === '1'
-  let nomaskDebug: any = null
-
   if (c.env.NOMASK_API_KEY) {
     try {
       const res = await fetch('https://nomask.ai/api/v1/chat/completions', {
@@ -64,10 +57,7 @@ ai.post('/reply', authMiddleware, async (c) => {
           temperature: 0.7
         })
       })
-      const rawText = await res.text()
-      let data: any = null
-      try { data = JSON.parse(rawText) } catch {}
-      if (debug) nomaskDebug = { status: res.status, ok: res.ok, body: rawText.slice(0, 500) }
+      const data: any = await res.json()
       if (res.ok && data?.choices?.[0]?.message?.content) {
         return c.json({
           reply: data.choices[0].message.content,
@@ -77,12 +67,9 @@ ai.post('/reply', authMiddleware, async (c) => {
         })
       }
       // fall through to OpenAI/template below on API error or unexpected shape
-    } catch (error: any) {
-      if (debug) nomaskDebug = { networkError: String(error?.message || error) }
+    } catch (error) {
       // fall through to OpenAI/template below on network error
     }
-  } else if (debug) {
-    nomaskDebug = { error: 'NOMASK_API_KEY not set in this environment' }
   }
 
   if (!c.env.OPENAI_API_KEY) {
@@ -90,8 +77,7 @@ ai.post('/reply', authMiddleware, async (c) => {
       reply: TEMPLATES[tone](message),
       tone,
       source: 'template',
-      tokensUsed: 0,
-      ...(debug ? { nomaskDebug } : {})
+      tokensUsed: 0
     })
   }
 
@@ -112,18 +98,10 @@ ai.post('/reply', authMiddleware, async (c) => {
         temperature: 0.7
       })
     })
-    const openaiRawText = await res.text()
-    let data: any = null
-    try { data = JSON.parse(openaiRawText) } catch {}
+    const data: any = await res.json()
     if (!res.ok) {
       // fall back to template on API error
-      return c.json({
-        reply: TEMPLATES[tone](message),
-        tone,
-        source: 'template-fallback',
-        tokensUsed: 0,
-        ...(debug ? { nomaskDebug, openaiDebug: { status: res.status, body: openaiRawText.slice(0, 500) } } : {})
-      })
+      return c.json({ reply: TEMPLATES[tone](message), tone, source: 'template-fallback', tokensUsed: 0 })
     }
     return c.json({
       reply: data.choices[0].message.content,
@@ -131,14 +109,8 @@ ai.post('/reply', authMiddleware, async (c) => {
       source: 'openai',
       tokensUsed: data.usage?.total_tokens || 0
     })
-  } catch (error: any) {
-    return c.json({
-      reply: TEMPLATES[tone](message),
-      tone,
-      source: 'template-fallback',
-      tokensUsed: 0,
-      ...(debug ? { nomaskDebug, openaiDebug: { networkError: String(error?.message || error) } } : {})
-    })
+  } catch (error) {
+    return c.json({ reply: TEMPLATES[tone](message), tone, source: 'template-fallback', tokensUsed: 0 })
   }
 })
 
