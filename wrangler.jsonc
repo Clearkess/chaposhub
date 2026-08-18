@@ -10,7 +10,7 @@
     {
       "binding": "DB",
       "database_name": "chaposhub-production",
-      "database_id": "local-placeholder-will-be-replaced-on-deploy"
+      "database_id": "9c73c479-1782-4a29-a13a-597bb2faa9f3"
     }
   ]
 }
