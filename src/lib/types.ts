@@ -2,6 +2,7 @@ export type Bindings = {
   DB: D1Database
   JWT_SECRET: string
   OPENAI_API_KEY?: string
+  NOMASK_API_KEY?: string
   STRIPE_SECRET_KEY?: string
   RESEND_API_KEY?: string
   FROM_EMAIL?: string

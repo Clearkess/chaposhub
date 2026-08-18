@@ -8,7 +8,7 @@
   - Email/password auth (login + register) via a modal triggered from the landing page
   - Receipt generator with 13+ platform presets (PayPal, Binance, Cash App, OPay, Zelle, Venmo, Wise, Coinbase, etc.), barcode + QR code rendering, download/print/email/short-link actions
   - Points economy: every account starts with 245 free points; actions (download, print, email, short link, AI reply, support page) each cost a small number of points; users top up via package purchases
-  - AI Reply Assistant: paste a customer message, pick a tone, get an instant reply
+  - AI Reply Assistant: paste a customer message, pick a tone, get an instant reply — powered by NoMask/Nemotron 3 Ultra (falls back to OpenAI, then a canned template, if unconfigured)
   - Support page builder (branded contact page)
   - Referral link system
   - Points/activity history and basic analytics dashboard
@@ -17,8 +17,8 @@
   - **Dark/light theme toggle**, persisted in `localStorage`, working on the landing page, dashboard, and every static subpage
 
 ## URLs
-- **Production**: https://chaposhub.pages.dev — ✅ verified live 2026-08-17 (`/api/health` returns `{"status":"ok"}`, D1-backed `/api/auth/register` validation confirmed working)
-- **GitHub**: _not yet connected in this session_
+- **Production**: https://chaposhub.pages.dev — ✅ verified live 2026-08-18, deployed via GitHub → Cloudflare Pages git integration (`/api/health` returns `{"status":"ok"}`, all marketing subpages + D1-backed API confirmed working)
+- **GitHub**: https://github.com/Clearkess/chaposhub (connected to Cloudflare Pages — every push to `main` auto-deploys to production)
 
 ## Data Architecture
 - **Data Models**: `users` (auth + points balance + referral code), `receipts`/orders history, `activity_log` (points-consuming actions), `sessions`/JWT-based auth, `webhook_events` + `whop_payments` (Whop webhook idempotency/audit trail, added `migrations/0002_whop_webhooks.sql`) — see `migrations/` for exact schema.
@@ -55,6 +55,22 @@ A competitive review of **SlipCraft** (slipcraft.net — a comparable points-bas
 - **Fabricated usage stats and testimonials** (e.g. "335,221+ users," scripted customer quotes) — dishonest, no real numbers exist yet
 - **"Login Page Builder"** — SlipCraft frames this as "phishing awareness testing," but it's a fake-login-page generator; SlipCraft itself is called out in public search results and social posts as a tool used to create fraudulent bank/payment screenshots. Building this would turn Chapo'sHub into a phishing kit — out of scope, permanently.
 
+## AI Reply Provider (NoMask / Nemotron 3 Ultra)
+`POST /api/ai/reply` (auth required, `src/routes/ai.ts`) generates the AI Reply Assistant's message. It tries providers in this order, never exposing any key to the browser — the frontend only ever calls this one same-origin endpoint:
+
+1. **NoMask (Nemotron 3 Ultra)** — used if `NOMASK_API_KEY` is set. Calls `https://nomask.ai/api/v1/chat/completions` (OpenAI-compatible chat-completions format) with `model: "nemotron-3-ultra_free"`, `Authorization: Bearer ${NOMASK_API_KEY}`.
+2. **OpenAI** — used if NoMask isn't configured, or its call fails/returns something unexpected. Calls `https://api.openai.com/v1/chat/completions` with `model: "gpt-3.5-turbo"`, `Authorization: Bearer ${OPENAI_API_KEY}`.
+3. **Canned template** — used if neither key is configured, or both calls fail. Returns a static tone-matched reply so the feature always works, even fully unconfigured.
+
+Response shape is identical across all three sources: `{ reply, tone, source, tokensUsed }`, where `source` is `"nomask"`, `"openai"`, `"template"`, or `"template-fallback"` — useful for confirming in production which provider actually served a given reply.
+
+- **Required Cloudflare env var** (Workers & Pages → chaposhub → Settings → Variables and Secrets):
+  - `NOMASK_API_KEY` = *(your NoMask API key from the Playground → Keys tab)* — **must be added as a Secret**, never a plain variable, so it isn't readable from the dashboard UI after saving and never ends up in any client-side bundle.
+- **Local dev**: add `NOMASK_API_KEY=...` to `.dev.vars` (already gitignored, never committed) to test the real NoMask call locally with `npm run build && pm2 start ecosystem.config.cjs`.
+- **Security note**: this key is only ever read server-side via `c.env.NOMASK_API_KEY` inside the Hono route running on Cloudflare's edge — it is never sent to or readable by the browser, matching the same pattern already used for `OPENAI_API_KEY`, `STRIPE_SECRET_KEY`, and `WHOP_WEBHOOK_SECRET`.
+- **Status**: ✅ Code deployed (2026-08-18) with automatic fallback to OpenAI/template. Actually switches to NoMask/Nemotron output only once `NOMASK_API_KEY` is added as a Cloudflare secret — until then it keeps serving `source: "template"` replies exactly as before, so this is a safe, zero-downtime rollout.
+- **Not yet wired**: point-deduction-*before*-AI-call race protection (currently the frontend deducts points via a separate `/api/points/deduct` call after receiving the AI reply, so a request could theoretically fail the AI call after deduction — low risk since the template fallback always succeeds, but worth tightening if usage volume grows).
+
 ## Whop Payment Webhook
 `POST /api/webhooks/whop` (public, unauthenticated — verified via HMAC signature instead of a login session) receives Whop's `payment.succeeded` event and, on a successful `$10` / `plan_DZtaB5bXDuHOm` ("Starter") purchase, credits **1,000 points** to the Chapo'sHub account whose email matches the Whop buyer's email.
 
@@ -88,7 +104,7 @@ The single-page app (`src/lib/app-html.ts`) is server-rendered by Hono, so all S
 
 ## Deployment
 - **Platform**: Cloudflare Pages (Hono + D1)
-- **Status**: ✅ Live and verified in production (2026-08-17) — homepage, `/api/health`, and DB-backed API validation all confirmed working at https://chaposhub.pages.dev
+- **Status**: ✅ Live and verified in production (2026-08-18) — homepage, all marketing subpages, `/api/health`, and DB-backed API validation all confirmed working at https://chaposhub.pages.dev. Deploys automatically on every push to `main` via the GitHub → Cloudflare Pages git integration (build command `npm run build`, output `dist`).
 - **Tech Stack**: Hono + TypeScript + Vite + Wrangler, vanilla JS frontend, Cloudflare D1
 - **Local dev**: `npm run build && pm2 start ecosystem.config.cjs` (serves on port 3000 via `wrangler pages dev`)
-- **Last Updated**: 2026-08-17 (SlipCraft-inspired marketing subpages: /about, /help, /contact, /privacy-policy, /terms, theme toggle)
+- **Last Updated**: 2026-08-18 (NoMask/Nemotron 3 Ultra wired into `/api/ai/reply` as the preferred AI provider, ahead of OpenAI, ahead of the canned template; GitHub → Cloudflare Pages git integration fixed and confirmed auto-deploying)

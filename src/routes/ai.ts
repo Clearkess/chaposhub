@@ -33,6 +33,45 @@ ai.post('/reply', authMiddleware, async (c) => {
     return c.json({ error: 'Validation failed', details: `tone must be one of: ${VALID_TONES.join(', ')}` }, 400)
   }
 
+  const systemPrompt = `You are a helpful assistant. ${TONE_INSTRUCTIONS[tone]} Keep responses concise (2-3 sentences max).`
+
+  // Preferred provider: NoMask (Nemotron 3 Ultra), OpenAI-compatible chat-completions.
+  // Falls back to OpenAI if NoMask isn't configured/fails, then to a canned
+  // template if neither is configured/available. The API key never leaves
+  // this server-side route — the browser only ever calls POST /api/ai/reply.
+  if (c.env.NOMASK_API_KEY) {
+    try {
+      const res = await fetch('https://nomask.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${c.env.NOMASK_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'nemotron-3-ultra_free',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: message }
+          ],
+          max_tokens: 150,
+          temperature: 0.7
+        })
+      })
+      const data: any = await res.json()
+      if (res.ok && data?.choices?.[0]?.message?.content) {
+        return c.json({
+          reply: data.choices[0].message.content,
+          tone,
+          source: 'nomask',
+          tokensUsed: data.usage?.total_tokens || 0
+        })
+      }
+      // fall through to OpenAI/template below on API error or unexpected shape
+    } catch (error) {
+      // fall through to OpenAI/template below on network error
+    }
+  }
+
   if (!c.env.OPENAI_API_KEY) {
     return c.json({
       reply: TEMPLATES[tone](message),
@@ -52,7 +91,7 @@ ai.post('/reply', authMiddleware, async (c) => {
       body: JSON.stringify({
         model: 'gpt-3.5-turbo',
         messages: [
-          { role: 'system', content: `You are a helpful assistant. ${TONE_INSTRUCTIONS[tone]} Keep responses concise (2-3 sentences max).` },
+          { role: 'system', content: systemPrompt },
           { role: 'user', content: message }
         ],
         max_tokens: 150,
