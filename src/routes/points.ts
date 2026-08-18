@@ -30,7 +30,15 @@ const ACTION_META: Record<string, { icon: string; color: string; type: string; t
   email: { icon: '📧', color: 'rgba(34,197,94,0.15)', type: 'email', title: 'Email Sent' },
   link: { icon: '🔗', color: 'rgba(59,130,246,0.15)', type: 'link', title: 'Short Link' },
   ai: { icon: '🤖', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Reply' },
-  support: { icon: '🛟', color: 'rgba(59,130,246,0.15)', type: 'support', title: 'Support Page' }
+  support: { icon: '🛟', color: 'rgba(59,130,246,0.15)', type: 'support', title: 'Support Page' },
+  ai_content: { icon: '✍️', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Content' },
+  ai_social: { icon: '📱', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Social Caption' },
+  ai_product: { icon: '🛍️', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Product Description' },
+  ai_email: { icon: '📧', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Email' },
+  ai_rewrite: { icon: '🔄', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Rewrite' },
+  ai_chat: { icon: '🧠', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Chat' },
+  ai_longform: { icon: '📄', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Long-Form Content' },
+  ai_code: { icon: '💻', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Coding Assistant' }
 }
 
 // Deduct points for action

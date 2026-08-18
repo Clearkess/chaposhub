@@ -137,6 +137,13 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .ai-output{margin-top:1rem;padding:1rem;background:var(--bg);border:1px solid var(--border);border-radius:12px;font-size:.85rem;line-height:1.6;display:none;animation:fadeIn .3s ease}
 .ai-output.show{display:block}
 .ai-output-actions{display:flex;gap:.5rem;margin-top:.8rem}
+.ai-output-actions .action-btn{flex:1}
+.ai-tool-scroll{display:flex;gap:.6rem;overflow-x:auto;padding:.8rem 1rem;scrollbar-width:none;-ms-overflow-style:none}
+.ai-tool-scroll::-webkit-scrollbar{display:none}
+.ai-tool-chip{flex-shrink:0;display:flex;align-items:center;gap:.4rem;background:var(--bg-card);border:1.5px solid var(--border);border-radius:24px;padding:.5rem 1rem;font-size:.8rem;font-weight:600;cursor:pointer;transition:.2s;color:var(--text-muted);white-space:nowrap}
+.ai-tool-chip:hover{border-color:var(--border-hover);color:var(--text)}
+.ai-tool-chip.active{border-color:var(--accent);background:var(--accent-glow);color:var(--accent)}
+.ai-extra-field{width:100%;padding:.7rem;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-size:.85rem;font-family:inherit;margin-bottom:.8rem;-webkit-appearance:none;appearance:none}
 .points-card{background:linear-gradient(135deg,#4f46e5,#6366f1);border-radius:20px;margin:1rem;padding:1.5rem;text-align:center;color:white;box-shadow:0 8px 32px rgba(99,102,241,.2);position:relative;overflow:hidden}
 .points-card::before{content:'';position:absolute;top:-30px;right:-30px;width:100px;height:100px;background:rgba(255,255,255,.1);border-radius:50%}
 .points-amount{font-size:3rem;font-weight:800;position:relative;z-index:1}

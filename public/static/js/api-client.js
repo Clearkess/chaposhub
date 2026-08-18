@@ -112,6 +112,13 @@
       return this.request('/ai/reply', { method: 'POST', body: { message, tone } });
     }
 
+    // Generalized Chapo'sHub AI Hub endpoint (content, social, product,
+    // email, rewrite, chat, longform, code). opts may include tone,
+    // platform, style, language depending on the tool.
+    async generateAIContent(tool, input, opts) {
+      return this.request('/ai/generate', { method: 'POST', body: Object.assign({ tool, input }, opts || {}) });
+    }
+
     // --- Email ---
     async sendReceiptEmail(to, subject, receiptData) {
       return this.request('/email/send-receipt', { method: 'POST', body: { to, subject, receiptData } });

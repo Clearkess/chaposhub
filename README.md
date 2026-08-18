@@ -8,7 +8,7 @@
   - Email/password auth (login + register) via a modal triggered from the landing page
   - Receipt generator with 13+ platform presets (PayPal, Binance, Cash App, OPay, Zelle, Venmo, Wise, Coinbase, etc.), barcode + QR code rendering, download/print/email/short-link actions
   - Points economy: every account starts with 245 free points; actions (download, print, email, short link, AI reply, support page) each cost a small number of points; users top up via package purchases
-  - AI Reply Assistant: paste a customer message, pick a tone, get an instant reply — powered by NoMask/Nemotron 3 Ultra (falls back to OpenAI, then a canned template, if unconfigured)
+  - **Chapo'sHub AI Hub**: 9 AI tools in one page (tab/chip selector) — 💬 Customer Reply, ✍️ Content Generator, 📱 Social-Media Captions, 🛍️ Product Descriptions, 📧 Email Generator, 🔄 Rewrite/Improve Text, 🧠 General AI Chat, 📄 Long-Form Content, 💻 Coding Assistant — each powered by NoMask/Nemotron 3 Ultra (falls back to OpenAI, then a canned template, if unconfigured), each consuming its own point cost per generation
   - Support page builder (branded contact page)
   - Referral link system
   - Points/activity history and basic analytics dashboard
@@ -55,7 +55,7 @@ A competitive review of **SlipCraft** (slipcraft.net — a comparable points-bas
 - **Fabricated usage stats and testimonials** (e.g. "335,221+ users," scripted customer quotes) — dishonest, no real numbers exist yet
 - **"Login Page Builder"** — SlipCraft frames this as "phishing awareness testing," but it's a fake-login-page generator; SlipCraft itself is called out in public search results and social posts as a tool used to create fraudulent bank/payment screenshots. Building this would turn Chapo'sHub into a phishing kit — out of scope, permanently.
 
-## AI Reply Provider (NoMask / Nemotron 3 Ultra)
+## Chapo'sHub AI Hub (NoMask / Nemotron 3 Ultra)
 `POST /api/ai/reply` (auth required, `src/routes/ai.ts`) generates the AI Reply Assistant's message. It tries providers in this order, never exposing any key to the browser — the frontend only ever calls this one same-origin endpoint:
 
 1. **NoMask (Nemotron 3 Ultra)** — used if `NOMASK_API_KEY` is set. Calls `https://nomask.ai/api/v1/chat/completions` (OpenAI-compatible chat-completions format) with `model: "nemotron-3-ultra_free"`, `Authorization: Bearer ${NOMASK_API_KEY}`.
@@ -68,8 +68,28 @@ Response shape is identical across all three sources: `{ reply, tone, source, to
   - `NOMASK_API_KEY` = *(your NoMask API key from the Playground → Keys tab)* — **must be added as a Secret**, never a plain variable, so it isn't readable from the dashboard UI after saving and never ends up in any client-side bundle.
 - **Local dev**: add `NOMASK_API_KEY=...` to `.dev.vars` (already gitignored, never committed) to test the real NoMask call locally with `npm run build && pm2 start ecosystem.config.cjs`.
 - **Security note**: this key is only ever read server-side via `c.env.NOMASK_API_KEY` inside the Hono route running on Cloudflare's edge — it is never sent to or readable by the browser, matching the same pattern already used for `OPENAI_API_KEY`, `STRIPE_SECRET_KEY`, and `WHOP_WEBHOOK_SECRET`.
-- **Status**: ✅ **Live and confirmed working in production** (2026-08-18) — `NOMASK_API_KEY` is set as a Cloudflare secret and `/api/ai/reply` responses now come back with `source: "nomask"` and real Nemotron 3 Ultra-generated text (verified via a live request returning a genuine, context-aware customer-support reply, not a template).
+- **Status**: ✅ **`/api/ai/reply` live and confirmed working in production** (2026-08-18) — `NOMASK_API_KEY` is set as a Cloudflare secret and responses come back with `source: "nomask"` and real Nemotron 3 Ultra-generated text (verified via a live request returning a genuine, context-aware customer-support reply, not a template). The new `/api/ai/generate` AI Hub tools (Step 7) reuse the same provider chain and are built/tested locally (template-fallback path confirmed end-to-end with points deduction); production verification of live NoMask/OpenAI responses for the 8 new tools is the next step after deploy.
 - **Not yet wired**: point-deduction-*before*-AI-call race protection (currently the frontend deducts points via a separate `/api/points/deduct` call after receiving the AI reply, so a request could theoretically fail the AI call after deduction — low risk since the template fallback always succeeds, but worth tightening if usage volume grows).
+
+### AI Hub tools (`POST /api/ai/generate`)
+Beyond the original tone-based `/api/ai/reply` endpoint, Chapo'sHub AI now exposes a generalized `POST /api/ai/generate` route (auth required, `src/routes/ai.ts`) that powers 8 additional tools, all sharing the exact same NoMask → OpenAI → canned-template fallback chain described above (via a shared `callAIProvider()` helper):
+
+| Tool (`tool` value) | UI label | Point cost | Extra option(s) sent |
+|---|---|---|---|
+| `content` | ✍️ Content Generator | 5 | `tone` |
+| `social` | 📱 Social-Media Captions | 3 | `platform` |
+| `product` | 🛍️ Product Descriptions | 4 | — |
+| `email_gen` | 📧 Email Generator | 5 | `tone` |
+| `rewrite` | 🔄 Rewrite/Improve Text | 3 | `style` |
+| `chat` | 🧠 General AI Chat | 2 | — |
+| `longform` | 📄 Long-Form Content | 10 | `tone` |
+| `code` | 💻 Coding Assistant | 6 | `language` |
+
+(The original `reply` tool — 💬 Customer Reply, 3 points, `tone` — still uses the dedicated `/api/ai/reply` endpoint and tone-based templates; all 9 tools share one page in the UI via a tool-chip switcher.)
+
+Request shape: `POST /api/ai/generate { tool, input, tone?, platform?, style?, language? }` → `{ reply, tool, source, tokensUsed }`, where `source` is `"nomask"`, `"openai"`, `"template"`, or `"template-fallback"` (same semantics as `/api/ai/reply`).
+
+**Credit flow (per the original Step 7 plan)**: for every tool, the frontend (`generateAIContent()` in `public/static/js/app.js`) checks the user has enough points client-side, calls the AI endpoint, then calls `POST /api/points/deduct` with the tool's dedicated action key (e.g. `ai_content`, `ai_social`, ...) which is validated server-side against `POINTS_COSTS` (`src/lib/types.ts`) before decrementing the balance and logging an activity row — mirroring the existing `ai`/download/print/email/link/support action pattern, just with 8 new action keys.
 
 ## Whop Payment Webhook
 `POST /api/webhooks/whop` (public, unauthenticated — verified via HMAC signature instead of a login session) receives Whop's `payment.succeeded` event and, on a successful `$10` / `plan_DZtaB5bXDuHOm` ("Starter") purchase, credits **1,000 points** to the Chapo'sHub account whose email matches the Whop buyer's email.
@@ -107,4 +127,4 @@ The single-page app (`src/lib/app-html.ts`) is server-rendered by Hono, so all S
 - **Status**: ✅ Live and verified in production (2026-08-18) — homepage, all marketing subpages, `/api/health`, and DB-backed API validation all confirmed working at https://chaposhub.pages.dev. Deploys automatically on every push to `main` via the GitHub → Cloudflare Pages git integration (build command `npm run build`, output `dist`).
 - **Tech Stack**: Hono + TypeScript + Vite + Wrangler, vanilla JS frontend, Cloudflare D1
 - **Local dev**: `npm run build && pm2 start ecosystem.config.cjs` (serves on port 3000 via `wrangler pages dev`)
-- **Last Updated**: 2026-08-18 (NoMask/Nemotron 3 Ultra wired into `/api/ai/reply` as the preferred AI provider, ahead of OpenAI, ahead of the canned template; GitHub → Cloudflare Pages git integration fixed and confirmed auto-deploying)
+- **Last Updated**: 2026-08-18 (Step 7: expanded the single AI Reply Assistant into the full **Chapo'sHub AI Hub** — 8 new tools behind a generalized `/api/ai/generate` endpoint sharing the NoMask→OpenAI→template fallback chain, each with its own point cost, wired into a tool-chip UI on the existing AI page; NoMask/Nemotron 3 Ultra already confirmed live in production for `/api/ai/reply`; GitHub → Cloudflare Pages git integration confirmed auto-deploying)

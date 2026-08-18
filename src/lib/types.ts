@@ -95,5 +95,15 @@ export const POINTS_COSTS: Record<string, number> = {
   email: 10,
   link: 2,
   ai: 3,
-  support: 15
+  support: 15,
+  // Chapo'sHub AI Hub tools (Step 7) - each consumes points before calling
+  // the NoMask/Nemotron backend via POST /api/ai/generate.
+  ai_content: 5,
+  ai_social: 3,
+  ai_product: 4,
+  ai_email: 5,
+  ai_rewrite: 3,
+  ai_chat: 2,
+  ai_longform: 10,
+  ai_code: 6
 }

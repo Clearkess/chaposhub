@@ -301,7 +301,19 @@ export const APP_HTML = `<!DOCTYPE html>
 
 <div class="page" id="page-ai" role="main" aria-label="AI Assistant">
 <div class="receipt-page-header"><button class="back-btn" onclick="showPage('dashboard')" aria-label="Go back">←</button><div class="page-title-sm">🤖 Chapo'sHub AI</div></div>
-<div style="padding:1rem"><div class="ai-card"><div style="font-size:.85rem;font-weight:700;margin-bottom:.8rem">✨ Paste a message to get a smart reply</div><textarea class="ai-input" id="aiInput" placeholder="e.g. 'Hey, did you send me that payment? I haven't received it yet.'" required maxlength="500"></textarea><select class="ai-tone-select" id="aiTone"><option value="professional">Professional</option><option value="friendly">Friendly</option><option value="casual">Casual</option><option value="urgent">Urgent</option><option value="apologetic">Apologetic</option></select><button class="ai-generate-btn" onclick="generateAIReply()">✨ Generate Reply</button><div class="ai-output" id="aiOutput"></div></div></div>
+<div class="ai-tool-scroll" id="aiToolScroll" role="tablist" aria-label="AI tools"></div>
+<div style="padding:0 1rem 1rem"><div class="ai-card">
+<div style="font-size:.85rem;font-weight:700;margin-bottom:.8rem" id="aiToolPrompt">💬 Paste a customer message to get a smart reply</div>
+<textarea class="ai-input" id="aiInput" placeholder="e.g. 'Hey, did you send me that payment? I haven't received it yet.'" required maxlength="500" oninput="updateAICharCount()"></textarea>
+<div id="aiExtraOptions"></div>
+<div style="font-size:.72rem;color:var(--text-muted);text-align:right;margin:-.5rem 0 .6rem" id="aiCharCount">0 / 500</div>
+<button class="ai-generate-btn" id="aiGenerateBtn" onclick="generateAIContent()">✨ Generate Reply</button>
+<div class="ai-output" id="aiOutput"></div>
+<div class="ai-output-actions" id="aiOutputActions" style="display:none">
+<button class="action-btn secondary" onclick="copyAIOutput()">📋 Copy</button>
+<button class="action-btn secondary" onclick="clearAIOutput()">🗑️ Clear</button>
+</div>
+</div></div>
 </div>
 
 <div class="page" id="page-points" role="main" aria-label="Points Store">

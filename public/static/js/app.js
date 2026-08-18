@@ -1,6 +1,14 @@
 // Chapo'sHub app logic - adapted from the monolithic prototype, wired to the real API.
 // === CONFIG ===
-const CONFIG = { points: { download: 5, print: 3, email: 10, link: 2, ai: 3, support: 15 }, app: { name: "Chapo'sHub", version: '2.0.0' } };
+const CONFIG = {
+  points: {
+    download: 5, print: 3, email: 10, link: 2, ai: 3, support: 15,
+    // Chapo'sHub AI Hub tools (Step 7)
+    ai_content: 5, ai_social: 3, ai_product: 4, ai_email: 5,
+    ai_rewrite: 3, ai_chat: 2, ai_longform: 10, ai_code: 6
+  },
+  app: { name: "Chapo'sHub", version: '2.0.0' }
+};
 // Real Whop-hosted checkout links. Only 'starter' has a live Whop plan today;
 // pro/enterprise packages are shown as "coming soon" in the UI until their
 // own Whop plans + WHOP_..._PLAN_ID bindings exist (see src/routes/webhooks.ts).
@@ -315,27 +323,176 @@ async function generateShortLink() {
   } catch (err) { handleAuthFailure(err); }
 }
 
-async function generateAIReply() {
-  if ((user.points || 0) < CONFIG.points.ai) { showToast('❌ Need ' + CONFIG.points.ai + ' points for AI reply', 'error'); return; }
+// === CHAPO'SHUB AI HUB (Step 7) ===
+// Each tool defines: id, icon/label for the chip, the placeholder + prompt
+// label shown above the textarea, the input char limit, the point-cost key
+// (matches CONFIG.points / server POINTS_COSTS), the button label, and an
+// optional set of "extra" fields (tone/platform/style/language selects)
+// rendered above the Generate button.
+const AI_TOOLS = {
+  reply: {
+    icon: '💬', label: 'Customer Reply', prompt: '💬 Paste a customer message to get a smart reply',
+    placeholder: "e.g. 'Hey, did you send me that payment? I haven't received it yet.'",
+    maxLen: 500, costKey: 'ai', btnLabel: '✨ Generate Reply',
+    extras: [{ id: 'aiTone', type: 'select', options: ['professional', 'friendly', 'casual', 'urgent', 'apologetic'] }]
+  },
+  content: {
+    icon: '✍️', label: 'Content Generator', prompt: '✍️ Describe the topic or brief for your content',
+    placeholder: "e.g. 'Write a short intro paragraph about the benefits of online shopping.'",
+    maxLen: 500, costKey: 'ai_content', btnLabel: '✨ Generate Content',
+    extras: [{ id: 'aiTone2', type: 'select', options: ['professional', 'friendly', 'casual', 'persuasive', 'informative'] }]
+  },
+  social: {
+    icon: '📱', label: 'Social Captions', prompt: '📱 What is the post about?',
+    placeholder: "e.g. 'New summer collection just dropped, 20% off this weekend.'",
+    maxLen: 300, costKey: 'ai_social', btnLabel: '✨ Generate Caption',
+    extras: [{ id: 'aiPlatform', type: 'select', options: ['Instagram', 'Twitter/X', 'TikTok', 'Facebook', 'LinkedIn'] }]
+  },
+  product: {
+    icon: '🛍️', label: 'Product Descriptions', prompt: '🛍️ Describe the product (name, features, materials, etc.)',
+    placeholder: "e.g. 'Handmade leather wallet, slim design, RFID-blocking, 6 card slots.'",
+    maxLen: 400, costKey: 'ai_product', btnLabel: '✨ Generate Description',
+    extras: []
+  },
+  email_gen: {
+    icon: '📧', label: 'Email Generator', prompt: '📧 What should the email say?',
+    placeholder: "e.g. 'Follow up with a customer whose order shipped late, apologize and offer 10% off.'",
+    maxLen: 500, costKey: 'ai_email', btnLabel: '✨ Generate Email',
+    extras: [{ id: 'aiTone3', type: 'select', options: ['professional', 'friendly', 'apologetic', 'formal'] }]
+  },
+  rewrite: {
+    icon: '🔄', label: 'Rewrite / Improve', prompt: '🔄 Paste the text you want rewritten or improved',
+    placeholder: "Paste any text here and AI will improve clarity, grammar, and flow.",
+    maxLen: 2000, costKey: 'ai_rewrite', btnLabel: '✨ Rewrite Text',
+    extras: [{ id: 'aiStyle', type: 'select', options: ['clear and polished', 'more concise', 'more formal', 'more casual', 'more persuasive'] }]
+  },
+  chat: {
+    icon: '🧠', label: 'General Chat', prompt: '🧠 Ask me anything',
+    placeholder: "e.g. 'What are some good ideas for a small business loyalty program?'",
+    maxLen: 1000, costKey: 'ai_chat', btnLabel: '✨ Ask AI',
+    extras: []
+  },
+  longform: {
+    icon: '📄', label: 'Long-Form Content', prompt: '📄 Describe the article or blog post topic',
+    placeholder: "e.g. 'Write a blog post about how small businesses can improve customer retention.'",
+    maxLen: 500, costKey: 'ai_longform', btnLabel: '✨ Generate Article',
+    extras: [{ id: 'aiTone4', type: 'select', options: ['professional', 'friendly', 'informative', 'persuasive'] }]
+  },
+  code: {
+    icon: '💻', label: 'Coding Assistant', prompt: '💻 Describe what you need help coding',
+    placeholder: "e.g. 'Write a JavaScript function that validates an email address.'",
+    maxLen: 2000, costKey: 'ai_code', btnLabel: '✨ Generate Code',
+    extras: [{ id: 'aiLanguage', type: 'select', options: ['JavaScript', 'Python', 'TypeScript', 'HTML/CSS', 'SQL', 'Other'] }]
+  }
+};
+
+let currentAITool = 'reply';
+
+function renderAIToolChips() {
+  const scroll = document.getElementById('aiToolScroll');
+  if (!scroll) return;
+  scroll.innerHTML = Object.keys(AI_TOOLS).map(key => {
+    const t = AI_TOOLS[key];
+    return `<div class="ai-tool-chip ${key === currentAITool ? 'active' : ''}" data-tool="${key}" onclick="setAITool('${key}')" role="tab" aria-selected="${key === currentAITool}">${t.icon} ${t.label}</div>`;
+  }).join('');
+}
+
+function setAITool(toolKey) {
+  const tool = AI_TOOLS[toolKey];
+  if (!tool) return;
+  currentAITool = toolKey;
+  renderAIToolChips();
+
+  document.getElementById('aiToolPrompt').textContent = tool.prompt;
+  const input = document.getElementById('aiInput');
+  input.placeholder = tool.placeholder;
+  input.maxLength = tool.maxLen;
+  input.value = '';
+  document.getElementById('aiCharCount').textContent = '0 / ' + tool.maxLen;
+
+  const extraWrap = document.getElementById('aiExtraOptions');
+  extraWrap.innerHTML = tool.extras.map(f =>
+    `<select class="ai-extra-field" id="${f.id}">${f.options.map(o => `<option value="${o}">${o.charAt(0).toUpperCase() + o.slice(1)}</option>`).join('')}</select>`
+  ).join('');
+
+  const btn = document.getElementById('aiGenerateBtn');
+  const cost = CONFIG.points[tool.costKey] || 0;
+  btn.textContent = tool.btnLabel + ' (' + cost + ' pts)';
+
+  clearAIOutput();
+}
+
+function updateAICharCount() {
+  const tool = AI_TOOLS[currentAITool];
+  const input = document.getElementById('aiInput');
+  const counter = document.getElementById('aiCharCount');
+  if (input && counter && tool) counter.textContent = input.value.length + ' / ' + tool.maxLen;
+}
+
+function clearAIOutput() {
+  const output = document.getElementById('aiOutput');
+  const actions = document.getElementById('aiOutputActions');
+  output.textContent = '';
+  output.classList.remove('show');
+  actions.style.display = 'none';
+}
+
+function copyAIOutput() {
+  const output = document.getElementById('aiOutput');
+  const text = output.textContent || '';
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => showToast('📋 Copied to clipboard!', 'success')).catch(() => showToast('❌ Could not copy'));
+}
+
+async function generateAIContent() {
+  const tool = AI_TOOLS[currentAITool];
+  const cost = CONFIG.points[tool.costKey] || 0;
+  if ((user.points || 0) < cost) { showToast('❌ Need ' + cost + ' points for ' + tool.label, 'error'); return; }
+
   const input = document.getElementById('aiInput').value.trim();
   const output = document.getElementById('aiOutput');
-  if (!input) { showToast('Please enter a message'); return; }
-  const tone = document.getElementById('aiTone').value;
-  const btn = document.querySelector('.ai-generate-btn');
+  const actions = document.getElementById('aiOutputActions');
+  if (!input) { showToast('Please enter some input'); return; }
+
+  const opts = {};
+  tool.extras.forEach(f => {
+    const el = document.getElementById(f.id);
+    if (!el) return;
+    if (f.id.startsWith('aiTone')) opts.tone = el.value;
+    else if (f.id === 'aiPlatform') opts.platform = el.value;
+    else if (f.id === 'aiStyle') opts.style = el.value;
+    else if (f.id === 'aiLanguage') opts.language = el.value;
+  });
+
+  const btn = document.getElementById('aiGenerateBtn');
+  const originalLabel = btn.textContent;
   try {
-    if (btn) { btn.disabled = true; btn.textContent = '✨ Generating...'; }
-    const res = await window.api.generateAIReply(input, tone);
+    btn.disabled = true; btn.textContent = '✨ Generating...';
+
+    let res;
+    let description;
+    if (currentAITool === 'reply') {
+      res = await window.api.generateAIReply(input, opts.tone || 'professional');
+      description = (opts.tone || 'professional').charAt(0).toUpperCase() + (opts.tone || 'professional').slice(1) + ' tone';
+    } else {
+      res = await window.api.generateAIContent(currentAITool, input, opts);
+      description = tool.label;
+    }
+
     output.textContent = res.reply;
     output.classList.add('show');
-    await window.api.deductPoints(CONFIG.points.ai, 'ai', tone.charAt(0).toUpperCase() + tone.slice(1) + ' tone');
+    actions.style.display = 'flex';
+
+    await window.api.deductPoints(cost, tool.costKey, description);
     await refreshUserAndPoints();
-    showToast('✨ AI reply generated! (-' + CONFIG.points.ai + ' pts)', 'success');
+    showToast('✨ ' + tool.label + ' generated! (-' + cost + ' pts)', 'success');
   } catch (err) {
     handleAuthFailure(err);
   } finally {
-    if (btn) { btn.disabled = false; btn.textContent = '✨ Generate Reply'; }
+    btn.disabled = false; btn.textContent = originalLabel;
   }
 }
+
 
 function buyPoints(packageId) {
   const checkoutUrl = WHOP_CHECKOUT_URLS[packageId];
@@ -411,6 +568,8 @@ async function initApp() {
   renderAllServices();
   renderPlatformChips();
   renderServicesGrid();
+  renderAIToolChips();
+  setAITool(currentAITool);
   document.getElementById('receiptDate').value = state.dateTime.toISOString().slice(0, 16);
   refreshUI(false);
 
