@@ -307,6 +307,13 @@ export const APP_HTML = `<!DOCTYPE html>
 <div class="form-field"><label>Sender Phone</label><input type="tel" id="opaySenderPhone" placeholder="e.g. 0803 123 4567" required maxlength="20"></div>
 <div class="form-field"><label>Recipient Name</label><input type="text" id="opayRecipientName" placeholder="e.g. Jane Smith" required maxlength="60"></div>
 <div class="form-field"><label>Recipient Phone</label><input type="tel" id="opayRecipientPhone" placeholder="e.g. 0810 987 6543" required maxlength="20"></div>
+<div class="opay-bank-lookup" id="opayBankLookup">
+<div class="opay-bank-lookup-title">🏦 Verify Recipient Bank Account <span class="opay-real-badge">REAL LOOKUP</span></div>
+<div class="opay-bank-lookup-note">Optional. Pulls today's actual Nigerian bank list and confirms the account name via Paystack — this check is real, but no money moves and no OPay wallet is touched.</div>
+<div class="form-field"><label>Recipient Bank</label><select id="opayBank"><option value="">Loading banks…</option></select></div>
+<div class="form-row"><div class="form-field"><label>Account Number</label><input type="text" id="opayAccountNumber" placeholder="10-digit NUBAN" maxlength="10" inputmode="numeric"></div><div class="form-field" style="display:flex;align-items:flex-end"><button type="button" class="action-btn secondary" id="opayVerifyBtn" onclick="resolveOpayBankAccount()" style="width:100%">🔍 Verify Account</button></div></div>
+<div id="opayResolvedAccount" class="opay-resolved-account" style="display:none"></div>
+</div>
 <div class="form-row"><div class="form-field"><label>Amount (₦)</label><input type="number" id="opayAmount" placeholder="10000" min="1" step="0.01" required></div><div class="form-field"><label>Status</label><select id="opayStatus"><option value="Successful">Successful</option><option value="Pending">Pending</option><option value="Failed">Failed</option></select></div></div>
 <div class="form-row"><div class="form-field"><label>Transaction Date</label><input type="date" id="opayDate"></div><div class="form-field"><label>Transaction Time</label><input type="time" id="opayTime"></div></div>
 <div class="form-field"><label>Reference (optional)</label><input type="text" id="opayReference" placeholder="Auto-generated if left blank" maxlength="40"></div>

@@ -516,7 +516,81 @@ function initOpayForm() {
   }
   ['opaySenderName', 'opaySenderPhone', 'opayRecipientName', 'opayRecipientPhone', 'opayAmount', 'opayStatus', 'opayDate', 'opayTime', 'opayReference', 'opayNote', 'opayTemplate']
     .forEach(id => { const el = document.getElementById(id); if (el && !el.dataset.opayBound) { el.addEventListener('input', updateOpayPreview); el.addEventListener('change', updateOpayPreview); el.dataset.opayBound = '1'; } });
+  // Clear any stale "verified" state + reset account number/select bindings
+  // whenever the bank/account number changes, so a resolved name can never
+  // silently survive an edit to the fields it was resolved from.
+  const bankEl = document.getElementById('opayBank');
+  const acctEl = document.getElementById('opayAccountNumber');
+  [bankEl, acctEl].forEach(el => { if (el && !el.dataset.opayBankBound) { el.addEventListener('change', clearOpayResolvedAccount); el.addEventListener('input', clearOpayResolvedAccount); el.dataset.opayBankBound = '1'; } });
+  loadOpayBanks();
   updateOpayPreview();
+}
+
+// --- Real bank list + account-name resolution (Paystack passthrough) ---
+// This is the ONLY part of the OPay demo backed by a live third-party API;
+// the wallet balance, transaction list, and the receipt/transfer itself
+// remain fully simulated. See src/routes/banks.ts for the server side.
+let opayBanksCache = null;
+
+async function loadOpayBanks() {
+  const select = document.getElementById('opayBank');
+  if (!select) return;
+  if (opayBanksCache) { renderOpayBankOptions(select, opayBanksCache); return; }
+  select.innerHTML = '<option value="">Loading banks…</option>';
+  try {
+    const res = await window.api.getBanks();
+    const list = (res && res.data) || [];
+    if (!list.length) throw new Error('empty');
+    opayBanksCache = list;
+    renderOpayBankOptions(select, list);
+  } catch (err) {
+    select.innerHTML = '<option value="">Unable to load banks — check Paystack setup</option>';
+  }
+}
+
+function renderOpayBankOptions(select, list) {
+  select.innerHTML = '<option value="">Select bank</option>' +
+    list.map(b => `<option value="${escHtml(b.code)}">${escHtml(b.name)}</option>`).join('');
+}
+
+function clearOpayResolvedAccount() {
+  const box = document.getElementById('opayResolvedAccount');
+  if (box) { box.style.display = 'none'; box.textContent = ''; box.className = 'opay-resolved-account'; }
+}
+
+async function resolveOpayBankAccount() {
+  const bankCode = document.getElementById('opayBank').value;
+  const accountNumber = document.getElementById('opayAccountNumber').value.trim();
+  const box = document.getElementById('opayResolvedAccount');
+  const btn = document.getElementById('opayVerifyBtn');
+
+  if (!bankCode) { showToast('❌ Select a bank first', 'error'); return; }
+  if (!/^\d{10}$/.test(accountNumber)) { showToast('❌ Enter a valid 10-digit account number', 'error'); return; }
+
+  const originalLabel = btn.textContent;
+  try {
+    btn.disabled = true; btn.textContent = '🔍 Verifying…';
+    const res = await window.api.resolveBankAccount({ bank_code: bankCode, account_number: accountNumber });
+    const name = res && res.data && res.data.account_name;
+    if (res && res.success && name) {
+      box.className = 'opay-resolved-account success';
+      box.textContent = '✓ ' + name;
+      box.style.display = 'block';
+      // Convenience: auto-fill the recipient name field with the real
+      // resolved name if the user hasn't typed one yet.
+      const recipientEl = document.getElementById('opayRecipientName');
+      if (recipientEl && !recipientEl.value.trim()) { recipientEl.value = name; updateOpayPreview(); }
+      showToast('✓ Account verified', 'success');
+    } else {
+      throw new Error((res && res.message) || 'Could not resolve account');
+    }
+  } catch (err) {
+    box.className = 'opay-resolved-account error';
+    box.textContent = '❌ ' + (err && err.message ? err.message : 'Could not verify account');
+    box.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = originalLabel;
+  }
 }
 
 function updateOpayPreview() {

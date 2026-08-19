@@ -9,6 +9,9 @@ export type Bindings = {
   // Whop payment webhook integration
   WHOP_WEBHOOK_SECRET?: string   // secret, from Whop dashboard (ws_...)
   WHOP_STARTER_PLAN_ID?: string  // plain var, e.g. plan_DZtaB5bXDuHOm
+  // Paystack: real bank list + account-name resolution for the OPay demo's
+  // "Bank Transfer" tab (wallet balance / transfer itself remain simulated).
+  PAYSTACK_SECRET_KEY?: string   // secret, from Paystack dashboard (sk_live_... / sk_test_...)
 }
 
 export type AppVariables = {

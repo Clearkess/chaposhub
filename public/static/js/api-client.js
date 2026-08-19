@@ -132,6 +132,14 @@
       return this.request('/services/opay/receipt/' + id);
     }
 
+    // --- Real bank data (Paystack passthrough, for the OPay Bank Transfer tab) ---
+    async getBanks() {
+      return this.request('/banks');
+    }
+    async resolveBankAccount(payload) {
+      return this.request('/banks/resolve', { method: 'POST', body: payload });
+    }
+
     // --- Email ---
     async sendReceiptEmail(to, subject, receiptData) {
       return this.request('/email/send-receipt', { method: 'POST', body: { to, subject, receiptData } });
