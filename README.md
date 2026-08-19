@@ -13,6 +13,7 @@
   - Referral link system
   - Points/activity history and basic analytics dashboard
   - **Whop payment webhook** (`POST /api/webhooks/whop`, see below): a $10 Whop "Starter" plan purchase auto-credits 1,000 points to the matching Chapo'sHub account — ⚠️ **built and tested locally, not yet deployed to production** (pending Cloudflare secret setup, see Deployment section)
+  - **Dedicated OPay Transaction Receipt service** (`/services/opay`, see below): a purpose-built (not copied) receipt flow with server-side-enforced credit protection, plus an optional **real** Nigerian bank list + account-name lookup via Paystack — ⚠️ **built and tested locally, not yet deployed to production** (pending Cloudflare D1 migration + optional `PAYSTACK_SECRET_KEY` secret, see Deployment section)
   - **Static marketing subpages** with a persistent header/footer nav (Home/Help/About/Contact/Sign In, matching the pattern used by comparable receipt-generator sites like SlipCraft): `/about`, `/help` (searchable FAQ), `/contact` (WhatsApp + email + contact form), `/privacy-policy`, `/terms`
   - **Dark/light theme toggle**, persisted in `localStorage`, working on the landing page, dashboard, and every static subpage
 
@@ -21,7 +22,7 @@
 - **GitHub**: https://github.com/Clearkess/chaposhub (connected to Cloudflare Pages — every push to `main` auto-deploys to production)
 
 ## Data Architecture
-- **Data Models**: `users` (auth + points balance + referral code), `receipts`/orders history, `activity_log` (points-consuming actions), `sessions`/JWT-based auth, `webhook_events` + `whop_payments` (Whop webhook idempotency/audit trail, added `migrations/0002_whop_webhooks.sql`) — see `migrations/` for exact schema.
+- **Data Models**: `users` (auth + points balance + referral code), `receipts`/orders history, `activity_log` (points-consuming actions), `sessions`/JWT-based auth, `webhook_events` + `whop_payments` (Whop webhook idempotency/audit trail, added `migrations/0002_whop_webhooks.sql`), `opay_receipts` (dedicated OPay receipt records, added `migrations/0003_opay_service.sql`) — see `migrations/` for exact schema.
 - **Storage Services**: Cloudflare D1 (SQLite) for all persistent data; local development uses `--local` D1 via Wrangler.
 - **Data Flow**: Frontend (`public/static/js/*.js`) calls JSON API routes under `/api/*` (Hono, `src/routes/*.ts`) which read/write D1. The monolithic app-shell markup lives in `src/lib/app-html.ts`; static marketing subpages live in `src/lib/pages/*.ts` and share chrome via `src/lib/site-chrome.ts`. All routed by `src/index.tsx`.
 
@@ -91,6 +92,42 @@ Request shape: `POST /api/ai/generate { tool, input, tone?, platform?, style?, l
 
 **Credit flow (per the original Step 7 plan)**: for every tool, the frontend (`generateAIContent()` in `public/static/js/app.js`) checks the user has enough points client-side, calls the AI endpoint, then calls `POST /api/points/deduct` with the tool's dedicated action key (e.g. `ai_content`, `ai_social`, ...) which is validated server-side against `POINTS_COSTS` (`src/lib/types.ts`) before decrementing the balance and logging an activity row — mirroring the existing `ai`/download/print/email/link/support action pattern, just with 8 new action keys.
 
+## OPay Transaction Receipt Service (`/services/opay`)
+A dedicated, purpose-built receipt flow for OPay-style transactions — deliberately **not** a copy of any third-party site's implementation (a competitor's actual authenticated logic isn't public; this was built from an original architecture proposal, translated to Chapo'sHub's real Hono/D1/Workers stack). It is intentionally separate from the existing generic multi-platform receipt builder (`receipts` table, `src/routes/receipts.ts`) — the dashboard/services "OPay" card was re-routed to this dedicated page via a `dedicated: true` flag on `allServices`, while the generic receipt builder's own OPay preset is untouched and still reachable independently.
+
+### Endpoints (`src/routes/opay.ts`, mounted at `/api/services/opay`, all auth required)
+| Endpoint | Purpose |
+|---|---|
+| `POST /generate` | Validates every field server-side, atomically deducts points, creates the receipt + audit trail, refunds automatically on failure |
+| `GET /history` | The authenticated user's own OPay receipts (newest first) |
+| `GET /receipt/:id` | A single receipt, owner-only (contains phone numbers) |
+
+**Credit protection ("don't trust the browser to deduct credits")**: the balance check + deduction is a single **atomic conditional `UPDATE`** — `UPDATE users SET points = points - ? WHERE id = ? AND points >= ?` — never a separate read-then-write. Two concurrent requests from the same account cannot both pass a stale balance check (the classic check-then-act race). `deduction.meta.changes === 0` means insufficient balance, and no receipt is created. If the receipt/audit-trail insert (`D1Database.batch()`) fails for any reason afterward (e.g. a duplicate `reference` hitting the `UNIQUE` constraint), the already-deducted points are **immediately refunded** before returning an error — a user is never charged for a receipt that wasn't actually created. Point cost: **8 points** (`opay_receipt` in `POINTS_COSTS`, `src/lib/types.ts`).
+
+**Ethical guardrail**: this tool creates a *formatted, simulated* receipt from user-entered details — it never verifies, initiates, or confirms a real OPay transaction. A prominent disclaimer banner sits at the top of `/services/opay`, and the same disclaimer text is baked into the rendered receipt image itself (`This is a simulated receipt, not proof of a real OPay transaction.`), so it travels with any downloaded/screenshotted copy, not just the page chrome.
+
+**Generation flow**: sender/recipient name+phone, amount, date/time, optional reference/note/receipt template → live HTML/CSS preview (no server-side PDF rendering — not possible on Cloudflare Workers) → Generate (server validates + deducts + saves) → Download as PNG via `html2canvas` (mobile users can "Print → Save as PDF" from their browser). "My OPay Receipts" lists past receipts with relative timestamps.
+
+### Real bank list + account-name resolution (Paystack passthrough)
+A **hybrid model**, matching the explicit requirement that the demo stay non-transactional: only the bank data is real, nothing about the receipt/wallet/transfer itself is.
+
+| Component | Behavior |
+|---|---|
+| Receipt / simulated wallet / transfer | Simulated (unchanged) |
+| Bank dropdown + bank codes | **Real**, live from Paystack |
+| Account number | User input |
+| Account name | **Real** provider lookup (Paystack) |
+| Actual bank transfer | **Not enabled** — no transfer capability exists anywhere in this app |
+
+- `GET /api/banks` (`src/routes/banks.ts`, auth required) — fetches Nigeria's current active bank list from Paystack (`GET https://api.paystack.co/bank?country=nigeria&currency=NGN&perPage=100`), filters to `active && !is_deleted`, and returns only `{ name, code, slug }` per bank. Verified live: returns **278 real active Nigerian banks**.
+- `POST /api/banks/resolve` (auth required) — resolves `{ account_number, bank_code }` to a real account name via `GET https://api.paystack.co/bank/resolve`. Server-side validation: `account_number` must be exactly 10 digits (NUBAN format), `bank_code` must be numeric. Paystack's own error message (e.g. `"Invalid key"`, `"Could not resolve account name"`) is surfaced to the caller instead of a generic failure, so a misconfigured/wrong key is easy to diagnose.
+- On the `/services/opay` page, this is a clearly-labeled **"Verify Recipient Bank Account · REAL LOOKUP"** section (bank dropdown + account number + Verify button), visually separate from the disclaimer-covered simulated fields. A successful lookup auto-fills the Recipient Name field if it's still empty; changing the bank or account number after a successful lookup clears the "verified" state so a stale name can never silently survive an edit.
+- **Required Cloudflare env var** (Workers & Pages → chaposhub → Settings and Secrets):
+  - `PAYSTACK_SECRET_KEY` = *(your Paystack secret key, `sk_live_...` or `sk_test_...`)* — **must be a Secret**, never plain text. Optional: if unset, `/api/banks` and `/api/banks/resolve` return `500 { success:false, message:"Bank service is not configured." }` and the bank dropdown shows "Unable to load banks" — the rest of the OPay receipt flow (generation/history/download) works fully without it.
+  - Note: Paystack's `/bank` list endpoint is actually public and returns data even with no/invalid key; `/bank/resolve` (the real value-add — an actual account-name check) does require a valid key, so that's the one gated behind this secret in practice.
+- **Local dev**: add `PAYSTACK_SECRET_KEY=sk_test_...` to `.dev.vars` (already gitignored) to test the real Paystack calls locally.
+- **Status**: ✅ Built and verified locally against Paystack's live API (bank list confirmed returning 278 real banks; resolve endpoint confirmed correctly requiring a valid key and surfacing Paystack's real error messages) — ⚠️ not yet deployed to production (pending `PAYSTACK_SECRET_KEY` Cloudflare secret + the `opay_receipts` D1 migration, see Deployment section).
+
 ## Whop Payment Webhook
 `POST /api/webhooks/whop` (public, unauthenticated — verified via HMAC signature instead of a login session) receives Whop's `payment.succeeded` event and, on a successful `$10` / `plan_DZtaB5bXDuHOm` ("Starter") purchase, credits **1,000 points** to the Chapo'sHub account whose email matches the Whop buyer's email.
 
@@ -125,6 +162,10 @@ The single-page app (`src/lib/app-html.ts`) is server-rendered by Hono, so all S
 ## Deployment
 - **Platform**: Cloudflare Pages (Hono + D1)
 - **Status**: ✅ Live and verified in production (2026-08-18) — homepage, all marketing subpages, `/api/health`, and DB-backed API validation all confirmed working at https://chaposhub.pages.dev. Deploys automatically on every push to `main` via the GitHub → Cloudflare Pages git integration (build command `npm run build`, output `dist`).
+- **⚠️ Pending production steps (code pushed to `main`, not yet fully live)**:
+  1. Apply the `opay_receipts` migration to the **production** D1 database: `npx wrangler d1 migrations apply chaposhub-production` (no `--local`) — required before `/api/services/opay/generate` will work in production; the frontend page will render either way.
+  2. (Optional) Add `PAYSTACK_SECRET_KEY` as a Cloudflare **Secret** (Workers & Pages → chaposhub → Settings → Variables and Secrets) to enable the real bank list + account resolution on `/services/opay`. Without it, the rest of the OPay flow (generate/history/download) still works — only the bank-verification section degrades to "Unable to load banks."
+  3. Re-verify both endpoints against `https://chaposhub.pages.dev` after the above (mirroring the local curl test suite already run: generate success, history, 402 insufficient-points, 409 duplicate-reference-with-refund, and — once `PAYSTACK_SECRET_KEY` is set — a real `/api/banks` + `/api/banks/resolve` round trip).
 - **Tech Stack**: Hono + TypeScript + Vite + Wrangler, vanilla JS frontend, Cloudflare D1
 - **Local dev**: `npm run build && pm2 start ecosystem.config.cjs` (serves on port 3000 via `wrangler pages dev`)
-- **Last Updated**: 2026-08-18 (Step 7: expanded the single AI Reply Assistant into the full **Chapo'sHub AI Hub** — 8 new tools behind a generalized `/api/ai/generate` endpoint sharing the NoMask→OpenAI→template fallback chain, each with its own point cost, wired into a tool-chip UI on the existing AI page; NoMask/Nemotron 3 Ultra already confirmed live in production for `/api/ai/reply`; GitHub → Cloudflare Pages git integration confirmed auto-deploying)
+- **Last Updated**: 2026-08-19 — Added the dedicated **OPay Transaction Receipt service** (`/services/opay`): atomic race-safe credit deduction with automatic refund-on-failure, a purpose-built receipt form/preview/history, and a real Paystack-backed bank list + account-name resolution section (hybrid model — only bank data is real, receipt/transfer stays simulated). All tested locally end-to-end (including live Paystack API calls returning 278 real banks); production D1 migration + optional `PAYSTACK_SECRET_KEY` secret still pending (see above).
