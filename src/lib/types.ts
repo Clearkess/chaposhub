@@ -58,6 +58,25 @@ export interface ReceiptRow {
   updated_at: string
 }
 
+export interface OpayReceiptRow {
+  id: string
+  user_id: string
+  sender_name: string
+  sender_phone: string
+  recipient_name: string
+  recipient_phone: string
+  amount: number
+  reference: string
+  transaction_date: string
+  transaction_time: string
+  note: string | null
+  status: string
+  template: string
+  points_charged: number
+  created_at: string
+  updated_at: string
+}
+
 export interface PointsTransactionRow {
   id: string
   user_id: string
@@ -105,5 +124,7 @@ export const POINTS_COSTS: Record<string, number> = {
   ai_rewrite: 3,
   ai_chat: 2,
   ai_longform: 10,
-  ai_code: 6
+  ai_code: 6,
+  // Dedicated OPay transaction receipt service (/services/opay)
+  opay_receipt: 8
 }

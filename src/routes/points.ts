@@ -38,7 +38,8 @@ const ACTION_META: Record<string, { icon: string; color: string; type: string; t
   ai_rewrite: { icon: '🔄', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Rewrite' },
   ai_chat: { icon: '🧠', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Chat' },
   ai_longform: { icon: '📄', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Long-Form Content' },
-  ai_code: { icon: '💻', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Coding Assistant' }
+  ai_code: { icon: '💻', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Coding Assistant' },
+  opay_receipt: { icon: '🟢', color: 'rgba(29,198,119,0.15)', type: 'opay', title: 'OPay Receipt' }
 }
 
 // Deduct points for action

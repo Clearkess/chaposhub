@@ -123,7 +123,9 @@ document.addEventListener('keydown', function (e) {
 });
 
 const platforms = { generic: { name: 'FreshMart', color: '#2c2c2c', badge: 'RECEIPT', taxRate: 8.25, currency: '$', items: [{ description: 'Organic Avocado', quantity: 2, price: 2.49 }, { description: 'Whole Wheat Bread', quantity: 1, price: 3.79 }, { description: 'Almond Milk 1L', quantity: 1, price: 4.29 }] }, binance: { name: 'Binance', color: '#f0b90b', badge: 'BINANCE', taxRate: 0, currency: '$', items: [{ description: 'BTC Purchase', quantity: 0.0025, price: 28450 }, { description: 'Network Fee', quantity: 1, price: 2.5 }] }, bybit: { name: 'Bybit', color: '#f7a600', badge: 'BYBIT', taxRate: 0, currency: '$', items: [{ description: 'ETH/USDT Perp', quantity: 0.5, price: 1850 }, { description: 'Trading Fee', quantity: 1, price: 1.85 }] }, coinbase: { name: 'Coinbase', color: '#0052ff', badge: 'COINBASE', taxRate: 0, currency: '$', items: [{ description: 'ETH Purchase', quantity: 0.1, price: 1850 }, { description: 'Coinbase Fee', quantity: 1, price: 18.5 }] }, paypal: { name: 'PayPal', color: '#003087', badge: 'PAYPAL', taxRate: 0, currency: '$', items: [{ description: 'Payment Received', quantity: 1, price: 150 }, { description: 'PayPal Fee', quantity: 1, price: -4.65 }] }, cashapp: { name: 'Cash App', color: '#00d632', badge: 'CASHAPP', taxRate: 0, currency: '$', items: [{ description: 'Cash Transfer', quantity: 1, price: 75 }, { description: 'Instant Fee', quantity: 1, price: -1.5 }] }, crypto: { name: 'Crypto.com', color: '#002d72', badge: 'CRYPTO', taxRate: 0, currency: '$', items: [{ description: 'CRO Stake', quantity: 1000, price: 0.065 }, { description: 'Card Fee', quantity: 1, price: 0 }] }, opay: { name: 'OPay', color: '#1dc677', badge: 'OPAY', taxRate: 0, currency: '₦', items: [{ description: 'Airtime Purchase', quantity: 1, price: 1000 }, { description: 'Cashback', quantity: 1, price: -50 }] }, kuda: { name: 'Kuda', color: '#40196d', badge: 'KUDA', taxRate: 0, currency: '₦', items: [{ description: 'Transfer Sent', quantity: 1, price: 5000 }, { description: 'Transfer Fee', quantity: 1, price: 0 }] }, wise: { name: 'Wise', color: '#00b9ff', badge: 'WISE', taxRate: 0, currency: '€', items: [{ description: 'Transfer to EUR', quantity: 1, price: 500 }, { description: 'Wise Fee', quantity: 1, price: -3.75 }] }, venmo: { name: 'Venmo', color: '#008CFF', badge: 'VENMO', taxRate: 0, currency: '$', items: [{ description: 'Payment Sent', quantity: 1, price: 50 }, { description: 'Venmo Fee', quantity: 1, price: 0 }] }, trustwallet: { name: 'Trust Wallet', color: '#3375BB', badge: 'TRUST', taxRate: 0, currency: '$', items: [{ description: 'BNB Swap', quantity: 1, price: 250 }, { description: 'Network Fee', quantity: 1, price: 0.5 }] }, zelle: { name: 'Zelle', color: '#6d1ed4', badge: 'ZELLE', taxRate: 0, currency: '$', items: [{ description: 'Transfer Sent', quantity: 1, price: 200 }, { description: 'Zelle Fee', quantity: 1, price: 0 }] } };
-const allServices = [{ key: 'crypto', name: 'Crypto Receipts', icon: '📄', new: true }, { key: 'paypal', name: 'Paypal', icon: 'P', color: '#003087' }, { key: 'kuda', name: 'Kuda', icon: 'K', color: '#40196d' }, { key: 'cashapp', name: 'Cash App', icon: '$', color: '#00d632' }, { key: 'zelle', name: 'Zelle', icon: 'Z', color: '#6d1ed4', new: true }, { key: 'venmo', name: 'Venmo', icon: 'V', color: '#008CFF', new: true }, { key: 'trustwallet', name: 'Trust Wallet', icon: 'T', color: '#3375BB', new: true }, { key: 'wise', name: 'Wise', icon: 'W', color: '#00b9ff', new: true }, { key: 'opay', name: 'OPay', icon: 'O', color: '#1dc677' }, { key: 'binance', name: 'Binance', icon: 'B', color: '#f0b90b' }];
+// `dedicated: true` routes the card to its own full-service page (showPage('opay'))
+// instead of the generic multi-platform receipt builder (showPage('receipts')).
+const allServices = [{ key: 'crypto', name: 'Crypto Receipts', icon: '📄', new: true }, { key: 'paypal', name: 'Paypal', icon: 'P', color: '#003087' }, { key: 'kuda', name: 'Kuda', icon: 'K', color: '#40196d' }, { key: 'cashapp', name: 'Cash App', icon: '$', color: '#00d632' }, { key: 'zelle', name: 'Zelle', icon: 'Z', color: '#6d1ed4', new: true }, { key: 'venmo', name: 'Venmo', icon: 'V', color: '#008CFF', new: true }, { key: 'trustwallet', name: 'Trust Wallet', icon: 'T', color: '#3375BB', new: true }, { key: 'wise', name: 'Wise', icon: 'W', color: '#00b9ff', new: true }, { key: 'opay', name: 'OPay', icon: 'O', color: '#1dc677', dedicated: true }, { key: 'binance', name: 'Binance', icon: 'B', color: '#f0b90b' }];
 
 function formatDate(date) { return date.toLocaleString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }); }
 function formatCurrency(val) { return state.currency + parseFloat(val).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
@@ -150,11 +152,13 @@ function showPage(pageId) {
   if (pageId === 'dashboard') idx = 2; else if (pageId === 'services') idx = 1;
   if (idx >= 0) { const btn = document.querySelectorAll('.nav-item-btm')[idx]; btn.classList.add('active'); btn.setAttribute('aria-current', 'page'); }
   if (pageId === 'history') refreshHistory();
+  if (pageId === 'opay') { initOpayForm(); refreshOpayHistory(); }
 }
 
-function renderAllServices() { const grid = document.getElementById('allServicesGrid'); grid.innerHTML = allServices.map(s => `<div class="all-service" onclick="showPage('receipts');setPlatform('${s.key}')"><div class="all-service-logo" style="background:${s.color || 'var(--bg-card)'};color:white">${s.icon}</div><div class="all-service-name">${s.name}</div>${s.new ? '<div class="all-service-new">New</div>' : ''}</div>`).join(''); }
+function serviceNavAction(s) { return s.dedicated ? `showPage('${s.key}')` : `showPage('receipts');setPlatform('${s.key}')`; }
+function renderAllServices() { const grid = document.getElementById('allServicesGrid'); grid.innerHTML = allServices.map(s => `<div class="all-service" onclick="${serviceNavAction(s)}"><div class="all-service-logo" style="background:${s.color || 'var(--bg-card)'};color:white">${s.icon}</div><div class="all-service-name">${s.name}</div>${s.new ? '<div class="all-service-new">New</div>' : ''}</div>`).join(''); }
 function renderPlatformChips() { const scroll = document.getElementById('platformScroll'); const platformKeys = Object.keys(platforms); scroll.innerHTML = platformKeys.map(key => { const p = platforms[key]; const isDark = key === 'binance' || key === 'bybit'; return `<div class="platform-chip ${key === state.platform ? 'active' : ''}" data-platform="${key}" onclick="setPlatform('${key}')"><div class="chip-logo" style="background:${p.color};color:${isDark ? '#1a1a1a' : 'white'}">${key === 'generic' ? '🛒' : p.name[0]}</div>${p.name}</div>`; }).join(''); }
-function renderServicesGrid() { const grid = document.getElementById('servicesGrid'); grid.innerHTML = `<div class="service-grid">` + allServices.map(s => `<div class="service-card" onclick="showPage('receipts');setPlatform('${s.key}')"><div class="service-logo" style="background:${s.color || 'linear-gradient(135deg,#f97316,#fb923c)'};color:white">${s.icon}</div><div class="service-name">${s.name}</div>${s.new ? '<div class="service-new">New</div>' : ''}</div>`).join('') + `</div>`; }
+function renderServicesGrid() { const grid = document.getElementById('servicesGrid'); grid.innerHTML = `<div class="service-grid">` + allServices.map(s => `<div class="service-card" onclick="${serviceNavAction(s)}"><div class="service-logo" style="background:${s.color || 'linear-gradient(135deg,#f97316,#fb923c)'};color:white">${s.icon}</div><div class="service-name">${s.name}</div>${s.new ? '<div class="service-new">New</div>' : ''}</div>`).join('') + `</div>`; }
 
 function setPlatform(platformKey) {
   state.platform = platformKey;
@@ -493,6 +497,143 @@ async function generateAIContent() {
   }
 }
 
+
+// === OPAY DEDICATED RECEIPT SERVICE (/services/opay) ===
+// Unlike the generic multi-platform receipt builder, this is a purpose-built
+// flow: fixed field set, its own point cost (CONFIG.points.opay_receipt),
+// and its own backend table/route (POST /api/services/opay/generate). The
+// server does the balance check + deduction atomically - this frontend
+// code never decides whether a request is "allowed", it just reflects
+// whatever the server returns.
+
+function initOpayForm() {
+  const dateEl = document.getElementById('opayDate');
+  const timeEl = document.getElementById('opayTime');
+  if (dateEl && !dateEl.value) {
+    const now = new Date();
+    dateEl.value = now.toISOString().slice(0, 10);
+    timeEl.value = now.toTimeString().slice(0, 5);
+  }
+  ['opaySenderName', 'opaySenderPhone', 'opayRecipientName', 'opayRecipientPhone', 'opayAmount', 'opayStatus', 'opayDate', 'opayTime', 'opayReference', 'opayNote', 'opayTemplate']
+    .forEach(id => { const el = document.getElementById(id); if (el && !el.dataset.opayBound) { el.addEventListener('input', updateOpayPreview); el.addEventListener('change', updateOpayPreview); el.dataset.opayBound = '1'; } });
+  updateOpayPreview();
+}
+
+function updateOpayPreview() {
+  const preview = document.getElementById('opayReceiptPreview');
+  if (!preview) return;
+  const senderName = document.getElementById('opaySenderName').value.trim() || 'Sender Name';
+  const senderPhone = document.getElementById('opaySenderPhone').value.trim() || '—';
+  const recipientName = document.getElementById('opayRecipientName').value.trim() || 'Recipient Name';
+  const recipientPhone = document.getElementById('opayRecipientPhone').value.trim() || '—';
+  const amount = parseFloat(document.getElementById('opayAmount').value) || 0;
+  const status = document.getElementById('opayStatus').value || 'Successful';
+  const dateVal = document.getElementById('opayDate').value;
+  const timeVal = document.getElementById('opayTime').value;
+  const reference = document.getElementById('opayReference').value.trim() || 'Will be auto-generated';
+  const note = document.getElementById('opayNote').value.trim();
+
+  preview.innerHTML = `
+    <div class="opay-receipt-header"><div class="opay-receipt-logo">O</div><div class="opay-receipt-brand">OPay</div></div>
+    <div class="opay-receipt-status"><span class="opay-receipt-status-badge ${status.toLowerCase()}">${status === 'Successful' ? '✓ ' : ''}${escHtml(status)}</span></div>
+    <div class="opay-receipt-amount">₦${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+    <hr>
+    <div class="opay-receipt-row"><span class="label">From</span><span class="value">${escHtml(senderName)}<br>${escHtml(senderPhone)}</span></div>
+    <div class="opay-receipt-row"><span class="label">To</span><span class="value">${escHtml(recipientName)}<br>${escHtml(recipientPhone)}</span></div>
+    <hr>
+    <div class="opay-receipt-row"><span class="label">Date</span><span class="value">${escHtml(dateVal || '—')}</span></div>
+    <div class="opay-receipt-row"><span class="label">Time</span><span class="value">${escHtml(timeVal || '—')}</span></div>
+    <div class="opay-receipt-row"><span class="label">Reference</span><span class="value">${escHtml(reference)}</span></div>
+    ${note ? `<div class="opay-receipt-row"><span class="label">Note</span><span class="value">${escHtml(note)}</span></div>` : ''}
+    <div class="opay-receipt-footer">This is a simulated receipt, not proof of a real OPay transaction.</div>
+  `;
+}
+
+function validateOpayForm() {
+  const senderName = document.getElementById('opaySenderName');
+  const senderPhone = document.getElementById('opaySenderPhone');
+  const recipientName = document.getElementById('opayRecipientName');
+  const recipientPhone = document.getElementById('opayRecipientPhone');
+  const amount = document.getElementById('opayAmount');
+  if (!senderName.value.trim()) { showToast('❌ Sender name required', 'error'); senderName.focus(); return false; }
+  if (!senderPhone.value.trim()) { showToast('❌ Sender phone required', 'error'); senderPhone.focus(); return false; }
+  if (!recipientName.value.trim()) { showToast('❌ Recipient name required', 'error'); recipientName.focus(); return false; }
+  if (!recipientPhone.value.trim()) { showToast('❌ Recipient phone required', 'error'); recipientPhone.focus(); return false; }
+  if (!amount.value || parseFloat(amount.value) <= 0) { showToast('❌ Enter a valid amount', 'error'); amount.focus(); return false; }
+  return true;
+}
+
+async function generateOpayReceipt() {
+  if (!validateOpayForm()) return;
+  const cost = CONFIG.points.opay_receipt;
+  if ((user.points || 0) < cost) { showToast('❌ Need ' + cost + ' points for an OPay receipt', 'error'); return; }
+
+  const btn = document.getElementById('opayGenerateBtn');
+  const originalLabel = btn.textContent;
+  const payload = {
+    senderName: document.getElementById('opaySenderName').value.trim(),
+    senderPhone: document.getElementById('opaySenderPhone').value.trim(),
+    recipientName: document.getElementById('opayRecipientName').value.trim(),
+    recipientPhone: document.getElementById('opayRecipientPhone').value.trim(),
+    amount: parseFloat(document.getElementById('opayAmount').value),
+    reference: document.getElementById('opayReference').value.trim() || undefined,
+    transactionDate: document.getElementById('opayDate').value,
+    transactionTime: document.getElementById('opayTime').value,
+    note: document.getElementById('opayNote').value.trim() || undefined,
+    status: document.getElementById('opayStatus').value,
+    template: document.getElementById('opayTemplate').value
+  };
+
+  try {
+    btn.disabled = true; btn.textContent = '🚀 Generating...';
+    const res = await window.api.generateOpayReceipt(payload);
+    document.getElementById('opayReference').value = res.reference;
+    updateOpayPreview();
+    await refreshUserAndPoints();
+    await refreshOpayHistory();
+    showToast('🟢 OPay receipt generated! (-' + res.pointsCharged + ' pts)', 'success');
+  } catch (err) {
+    if (err && err.status === 402) {
+      showToast('❌ Insufficient points for this receipt', 'error');
+    } else if (err && err.status === 409) {
+      showToast('❌ That reference is already in use, try another', 'error');
+    } else {
+      handleAuthFailure(err);
+    }
+  } finally {
+    btn.disabled = false; btn.textContent = originalLabel;
+  }
+}
+
+async function downloadOpayReceipt() {
+  const element = document.getElementById('opayReceiptPreview');
+  try {
+    const canvas = await html2canvas(element, { scale: 2, backgroundColor: '#ffffff' });
+    const link = document.createElement('a');
+    const ref = document.getElementById('opayReference').value.trim() || 'opay_receipt';
+    link.download = 'opay_' + ref.replace(/[^a-z0-9]/gi, '_') + '.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    showToast('📸 Receipt image downloaded');
+  } catch (err) {
+    showToast('❌ Download failed', 'error');
+  }
+}
+
+async function refreshOpayHistory() {
+  const list = document.getElementById('opayHistoryList');
+  if (!list) return;
+  try {
+    const items = await window.api.getOpayHistory();
+    if (!items.length) {
+      list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🟢</div><div class="empty-state-title">No OPay receipts yet</div><div class="empty-state-desc">Generate your first receipt above.</div></div>';
+      return;
+    }
+    list.innerHTML = items.map(r => `<div class="history-item"><div class="history-icon" style="background:rgba(29,198,119,0.15)">🟢</div><div class="history-info"><div class="history-title">₦${Number(r.amount).toLocaleString()} · ${escHtml(r.status)}</div><div class="history-desc">#${escHtml(r.reference)} · ${escHtml(r.recipientName)}</div></div><div class="history-time">${relativeTime(r.createdAt)}</div></div>`).join('');
+  } catch (err) {
+    handleAuthFailure(err);
+  }
+}
 
 function buyPoints(packageId) {
   const checkoutUrl = WHOP_CHECKOUT_URLS[packageId];

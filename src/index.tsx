@@ -15,6 +15,7 @@ import email from './routes/email'
 import users from './routes/users'
 import analytics from './routes/analytics'
 import webhooks from './routes/webhooks'
+import opay from './routes/opay'
 
 const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>()
 
@@ -77,6 +78,7 @@ app.route('/api/email', email)
 app.route('/api/users', users)
 app.route('/api/analytics', analytics)
 app.route('/api/webhooks', webhooks)
+app.route('/api/services/opay', opay)
 
 // Note: static frontend assets in public/ (index.html, /static/*) are served
 // automatically by Cloudflare Pages' built-in asset handler per _routes.json

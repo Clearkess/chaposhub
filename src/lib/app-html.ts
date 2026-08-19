@@ -278,7 +278,7 @@ export const APP_HTML = `<!DOCTYPE html>
 <div class="service-grid">
 <div class="service-card" onclick="showToast('Articles coming soon!')" role="button" tabindex="0" aria-label="Articles"><div class="service-logo" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:white;font-size:1.2rem">📖</div><div class="service-name">Articles(FMT)</div><div class="service-desc">Buy & read</div></div>
 <div class="service-card" onclick="showPage('support')" role="button" tabindex="0" aria-label="Support sites"><div class="service-logo" style="background:linear-gradient(135deg,#3b82f6,#60a5fa);color:white;font-size:1.2rem">🎧</div><div class="service-name">Support Sites</div><div class="service-desc">Build pages</div></div>
-<div class="service-card" onclick="showPage('receipts');setPlatform('opay')" role="button" tabindex="0" aria-label="OPay receipts"><div class="service-logo" style="background:#1dc677;color:white">O</div><div class="service-name">Opay</div><div class="service-desc">Bank slips</div></div>
+<div class="service-card" onclick="showPage('opay')" role="button" tabindex="0" aria-label="OPay receipts"><div class="service-logo" style="background:#1dc677;color:white">O</div><div class="service-name">Opay</div><div class="service-desc">Bank slips</div></div>
 </div>
 <div class="section-title">All Services <a href="#" onclick="showPage('services')">View All →</a></div>
 <div class="all-services-grid" id="allServicesGrid"></div>
@@ -296,6 +296,27 @@ export const APP_HTML = `<!DOCTYPE html>
 </div>
 <div class="receipt-preview-card" role="region" aria-label="Receipt preview"><div style="font-size:.8rem;font-weight:700;color:var(--text-muted);margin-bottom:.8rem;text-align:center">👁️ Live Preview</div><div id="receipt" class="receipt" role="img" aria-label="Generated receipt preview"></div></div>
 <div class="action-buttons" role="group" aria-label="Receipt actions"><button class="action-btn primary" onclick="downloadReceipt()">📸 Download</button><button class="action-btn secondary" onclick="printReceipt()">🖨️ Print</button><button class="action-btn success" onclick="sendEmailReceipt()">📧 Email</button><button class="action-btn secondary" onclick="generateShortLink()">🔗 Link</button></div>
+<div style="height:20px"></div>
+</div>
+
+<div class="page" id="page-opay" role="main" aria-label="OPay Receipt Service">
+<div class="receipt-page-header"><button class="back-btn" onclick="showPage('dashboard')" aria-label="Go back">←</button><div class="page-title-sm">🟢 OPay Transaction Receipt</div></div>
+<div class="opay-disclaimer">⚠️ <strong>Sample/simulated receipt only.</strong> This tool creates a formatted receipt from the details you enter — it does not verify, initiate, or confirm any real OPay transaction. Do not present a generated receipt as proof of an actual payment.</div>
+<div class="form-section">
+<div class="form-field"><label>Sender Name</label><input type="text" id="opaySenderName" placeholder="e.g. John Doe" required maxlength="60"></div>
+<div class="form-field"><label>Sender Phone</label><input type="tel" id="opaySenderPhone" placeholder="e.g. 0803 123 4567" required maxlength="20"></div>
+<div class="form-field"><label>Recipient Name</label><input type="text" id="opayRecipientName" placeholder="e.g. Jane Smith" required maxlength="60"></div>
+<div class="form-field"><label>Recipient Phone</label><input type="tel" id="opayRecipientPhone" placeholder="e.g. 0810 987 6543" required maxlength="20"></div>
+<div class="form-row"><div class="form-field"><label>Amount (₦)</label><input type="number" id="opayAmount" placeholder="10000" min="1" step="0.01" required></div><div class="form-field"><label>Status</label><select id="opayStatus"><option value="Successful">Successful</option><option value="Pending">Pending</option><option value="Failed">Failed</option></select></div></div>
+<div class="form-row"><div class="form-field"><label>Transaction Date</label><input type="date" id="opayDate"></div><div class="form-field"><label>Transaction Time</label><input type="time" id="opayTime"></div></div>
+<div class="form-field"><label>Reference (optional)</label><input type="text" id="opayReference" placeholder="Auto-generated if left blank" maxlength="40"></div>
+<div class="form-field"><label>Note (optional)</label><textarea id="opayNote" placeholder="Add a short description" maxlength="200"></textarea></div>
+<div class="form-field"><label>Receipt Template</label><select id="opayTemplate"><option value="classic">Classic</option><option value="modern">Modern</option><option value="minimal">Minimal</option></select></div>
+</div>
+<div class="receipt-preview-card" role="region" aria-label="OPay receipt preview"><div style="font-size:.8rem;font-weight:700;color:var(--text-muted);margin-bottom:.8rem;text-align:center">👁️ Live Preview</div><div id="opayReceiptPreview" class="opay-receipt" role="img" aria-label="Generated OPay receipt preview"></div></div>
+<div class="action-buttons" role="group" aria-label="OPay receipt actions"><button class="action-btn primary" id="opayGenerateBtn" onclick="generateOpayReceipt()">🚀 Generate Receipt</button><button class="action-btn secondary" onclick="downloadOpayReceipt()">📸 Download</button></div>
+<div class="section-title" style="margin-top:1.5rem">My OPay Receipts <a href="#" onclick="refreshOpayHistory();return false;">↻ Refresh</a></div>
+<div class="opay-history-list" id="opayHistoryList"></div>
 <div style="height:20px"></div>
 </div>
 

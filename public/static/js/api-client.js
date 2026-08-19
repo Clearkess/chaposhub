@@ -119,6 +119,19 @@
       return this.request('/ai/generate', { method: 'POST', body: Object.assign({ tool, input }, opts || {}) });
     }
 
+    // --- OPay dedicated receipt service ---
+    async generateOpayReceipt(payload) {
+      return this.request('/services/opay/generate', { method: 'POST', body: payload });
+    }
+
+    async getOpayHistory() {
+      return this.request('/services/opay/history');
+    }
+
+    async getOpayReceipt(id) {
+      return this.request('/services/opay/receipt/' + id);
+    }
+
     // --- Email ---
     async sendReceiptEmail(to, subject, receiptData) {
       return this.request('/email/send-receipt', { method: 'POST', body: { to, subject, receiptData } });
