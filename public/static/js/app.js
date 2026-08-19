@@ -805,17 +805,147 @@ const OpayWallet = (function () {
     }
   }
 
-  // ---- History ----
+  // ---- History (full-featured: summary totals, filter chips, search, date grouping, receipt modal) ----
+  let allTxns = [];
+  let historyFilter = 'all';
+  let historySearchTerm = '';
+
+  const OW_CATEGORY_META = {
+    transfer: { icon: 'fa-solid fa-arrow-right-arrow-left', color: '#1DC677', label: 'Send Money' },
+    bank_transfer: { icon: 'fa-solid fa-building-columns', color: '#3B82F6', label: 'Bank Transfer' },
+    default: { icon: 'fa-solid fa-receipt', color: '#6B7280', label: 'Transaction' }
+  };
+  function owCategoryMeta(cat) { return OW_CATEGORY_META[cat] || OW_CATEGORY_META.default; }
+
+  function owTxnTitle(t) {
+    if (t.category === 'bank_transfer') return 'To ' + (t.bankName || 'Bank') + (t.counterpartyName ? ' · ' + t.counterpartyName : '');
+    return 'To ' + (t.counterpartyName || 'Someone');
+  }
+
+  function owGroupDateLabel(iso) {
+    if (!iso) return 'Earlier';
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return 'Earlier';
+    const now = new Date();
+    const sameDay = (a, b) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+    if (sameDay(d, now)) return 'Today';
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    if (sameDay(d, yesterday)) return 'Yesterday';
+    return 'Earlier';
+  }
+
   async function openHistory() {
     showView('history');
-    const list = document.getElementById('owHistoryList');
-    list.innerHTML = '<div class="ow-skeleton"></div>';
+    historyFilter = 'all';
+    historySearchTerm = '';
+    document.querySelectorAll('#owFilterChips .ow-filter-chip').forEach(c => c.classList.toggle('active', c.dataset.filter === 'all'));
+    const searchInput = document.getElementById('owHistorySearch');
+    if (searchInput) searchInput.value = '';
+    const container = document.getElementById('owHistoryContainer');
+    if (container) container.innerHTML = '<div class="ow-skeleton" style="height:64px;margin:16px;"></div>';
     try {
-      const txns = await window.api.getOpayTransactions(200);
-      renderTxnList(list, txns);
+      allTxns = await window.api.getOpayTransactions(200);
     } catch (err) {
+      allTxns = [];
       handleAuthFailure(err);
+      if (container) container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-title">Could not load transaction history</div></div>';
+      return;
     }
+    renderHistorySummary(allTxns);
+    applyHistoryFiltersAndRender();
+  }
+
+  function renderHistorySummary(txns) {
+    const totalIn = txns.filter(t => t.type === 'credit' && t.status === 'completed').reduce((s, t) => s + Number(t.amount || 0), 0);
+    const totalOut = txns.filter(t => t.type === 'debit' && t.status === 'completed').reduce((s, t) => s + Number(t.amount || 0), 0);
+    const inEl = document.getElementById('owTotalIn');
+    const outEl = document.getElementById('owTotalOut');
+    if (inEl) inEl.textContent = fmtNaira(totalIn);
+    if (outEl) outEl.textContent = fmtNaira(totalOut);
+  }
+
+  function owMatchesFilter(t) {
+    if (historyFilter === 'all') return true;
+    if (historyFilter === 'credit' || historyFilter === 'debit') return t.type === historyFilter;
+    if (historyFilter === 'completed' || historyFilter === 'pending' || historyFilter === 'failed') return t.status === historyFilter;
+    return t.category === historyFilter;
+  }
+
+  function owMatchesSearch(t) {
+    if (!historySearchTerm) return true;
+    const hay = [t.counterpartyName, t.bankName, t.note, t.category].filter(Boolean).join(' ').toLowerCase();
+    return hay.includes(historySearchTerm);
+  }
+
+  function applyHistoryFiltersAndRender() {
+    const filtered = allTxns.filter(t => owMatchesFilter(t) && owMatchesSearch(t));
+    const container = document.getElementById('owHistoryContainer');
+    if (!container) return;
+    container.innerHTML = '';
+    if (!filtered.length) {
+      container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🧾</div><div class="empty-state-title">No transactions match your filters</div></div>';
+      return;
+    }
+    const groups = {};
+    const order = [];
+    filtered.forEach(t => {
+      const label = owGroupDateLabel(t.createdAt);
+      if (!groups[label]) { groups[label] = []; order.push(label); }
+      groups[label].push(t);
+    });
+    order.forEach(label => {
+      const heading = document.createElement('div');
+      heading.className = 'ow-date-group-label';
+      heading.textContent = label;
+      container.appendChild(heading);
+      const listWrap = document.createElement('div');
+      listWrap.className = 'ow-txn-list';
+      groups[label].forEach(t => listWrap.appendChild(renderHistoryTxnItem(t)));
+      container.appendChild(listWrap);
+    });
+  }
+
+  function renderHistoryTxnItem(t) {
+    const meta = owCategoryMeta(t.category);
+    const el = document.createElement('div');
+    el.className = 'ow-txn-item';
+    el.innerHTML = `<div class="ow-txn-icon" style="background:${meta.color}"><i class="${meta.icon}"></i></div><div class="ow-txn-info"><div class="ow-txn-title">${escHtml(owTxnTitle(t))}</div><div class="ow-txn-sub">${escHtml(relativeTime(t.createdAt))}${t.note ? ' · ' + escHtml(t.note) : ''}</div></div><div class="ow-txn-right"><div class="ow-txn-amount out">-${fmtNaira(t.amount)}</div><span class="ow-status-tag ow-status-${escHtml(t.status)}">${escHtml(t.status)}</span></div>`;
+    el.addEventListener('click', () => openTxnReceipt(t));
+    return el;
+  }
+
+  function openTxnReceipt(t) {
+    const overlay = document.getElementById('owReceiptOverlay');
+    if (!overlay) return;
+    const meta = owCategoryMeta(t.category);
+    const statusColor = t.status === 'completed' ? 'var(--ow-mint)' : (t.status === 'pending' ? '#eab308' : 'var(--ow-accent-red)');
+    const dateStr = (() => { const d = new Date(t.createdAt); return isNaN(d.getTime()) ? (t.createdAt || '-') : d.toLocaleString(); })();
+    overlay.innerHTML = `
+      <div class="ow-modal-sheet">
+        <div class="ow-modal-handle"></div>
+        <div class="ow-receipt-icon-wrap"><div class="ow-r-icon" style="background:${meta.color}"><i class="${meta.icon}"></i></div></div>
+        <div class="ow-receipt-amount">-${fmtNaira(t.amount)}</div>
+        <div class="ow-receipt-status" style="color:${statusColor}"><i class="fa-solid fa-circle" style="font-size:8px"></i> ${escHtml((t.status || '').charAt(0).toUpperCase() + (t.status || '').slice(1))}</div>
+        <div class="ow-receipt-rows">
+          <div class="ow-receipt-row"><span class="label">To</span><span class="value">${escHtml(t.counterpartyName || '-')}</span></div>
+          ${t.counterpartyPhone ? `<div class="ow-receipt-row"><span class="label">Phone</span><span class="value">${escHtml(t.counterpartyPhone)}</span></div>` : ''}
+          ${t.bankName ? `<div class="ow-receipt-row"><span class="label">Bank</span><span class="value">${escHtml(t.bankName)}</span></div>` : ''}
+          ${t.accountNumber ? `<div class="ow-receipt-row"><span class="label">Account No.</span><span class="value">${escHtml(t.accountNumber)}</span></div>` : ''}
+          <div class="ow-receipt-row"><span class="label">Category</span><span class="value">${escHtml(meta.label)}</span></div>
+          <div class="ow-receipt-row"><span class="label">Date</span><span class="value">${escHtml(dateStr)}</span></div>
+          <div class="ow-receipt-row"><span class="label">Note</span><span class="value">${escHtml(t.note || '-')}</span></div>
+          <div class="ow-receipt-row"><span class="label">Points Charged</span><span class="value">${Number(t.pointsCharged || 0)}</span></div>
+          <div class="ow-receipt-row"><span class="label">Reference</span><span class="value">${escHtml(t.reference || '-')}</span></div>
+        </div>
+        <button class="action-btn primary" style="width:100%;margin-top:1rem" onclick="OpayWallet.closeReceipt()">Close</button>
+      </div>`;
+    overlay.classList.add('open');
+  }
+
+  function closeReceipt() {
+    const overlay = document.getElementById('owReceiptOverlay');
+    if (overlay) overlay.classList.remove('open');
   }
 
   // ---- Wire up amount inputs / quick-amounts / keypads (once, at module load) ----
@@ -884,6 +1014,21 @@ const OpayWallet = (function () {
       updateBalanceDisplay();
       eyeToggle.querySelector('i').className = balanceVisible ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye';
     });
+
+    const filterChips = document.getElementById('owFilterChips');
+    if (filterChips) filterChips.addEventListener('click', (e) => {
+      const chip = e.target.closest('.ow-filter-chip');
+      if (!chip) return;
+      filterChips.querySelectorAll('.ow-filter-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      historyFilter = chip.dataset.filter;
+      applyHistoryFiltersAndRender();
+    });
+    const historySearch = document.getElementById('owHistorySearch');
+    if (historySearch) historySearch.addEventListener('input', (e) => {
+      historySearchTerm = e.target.value.trim().toLowerCase();
+      applyHistoryFiltersAndRender();
+    });
   }
 
   document.addEventListener('DOMContentLoaded', bindOnce);
@@ -893,7 +1038,7 @@ const OpayWallet = (function () {
     openDashboard, loadDashboard,
     openSend, backFromSend, sendGoToAmount, sendGoToConfirm, sendGoToPin,
     openTransfer, backFromTransfer, resolveBankAccount, bankGoToAmount, bankGoToConfirm, bankGoToPin,
-    openHistory
+    openHistory, closeReceipt
   };
 })();
 

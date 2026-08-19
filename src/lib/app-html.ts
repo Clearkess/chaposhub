@@ -442,12 +442,30 @@ export const APP_HTML = `<!DOCTYPE html>
 <!-- ============ HISTORY VIEW ============ -->
 <div class="ow-view" id="ow-view-history">
 <div class="receipt-page-header"><button class="back-btn" onclick="OpayWallet.openDashboard()" aria-label="Go back">←</button><div class="page-title-sm">Transaction History</div></div>
-<div class="ow-txn-list" id="owHistoryList" style="padding:1rem"><div class="ow-skeleton"></div></div>
+<div class="ow-summary-row">
+<div class="ow-summary-box"><div class="ow-summary-label">Total In</div><div class="ow-summary-value ow-in" id="owTotalIn">₦0.00</div></div>
+<div class="ow-summary-box"><div class="ow-summary-label">Total Out</div><div class="ow-summary-value ow-out" id="owTotalOut">₦0.00</div></div>
+</div>
+<div class="ow-filter-chips" id="owFilterChips">
+<button class="ow-filter-chip active" data-filter="all">All</button>
+<button class="ow-filter-chip" data-filter="credit">Money In</button>
+<button class="ow-filter-chip" data-filter="debit">Money Out</button>
+<button class="ow-filter-chip" data-filter="transfer">Send</button>
+<button class="ow-filter-chip" data-filter="bank_transfer">Bank Transfer</button>
+<button class="ow-filter-chip" data-filter="completed">Completed</button>
+<button class="ow-filter-chip" data-filter="pending">Pending</button>
+<button class="ow-filter-chip" data-filter="failed">Failed</button>
+</div>
+<div class="ow-search-box"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="owHistorySearch" placeholder="Search by name or note"></div>
+<div id="owHistoryContainer"><div class="ow-skeleton" style="height:64px;margin:16px;"></div></div>
 <div style="height:20px"></div>
 </div>
 
 </div>
 </div>
+
+<!-- OPay Wallet Demo — transaction receipt modal (History view) -->
+<div class="ow-modal-overlay" id="owReceiptOverlay" onclick="if(event.target===this) OpayWallet.closeReceipt()"></div>
 
 <div class="page" id="page-ai" role="main" aria-label="AI Assistant">
 <div class="receipt-page-header"><button class="back-btn" onclick="showPage('dashboard')" aria-label="Go back">←</button><div class="page-title-sm">🤖 Chapo'sHub AI</div></div>
