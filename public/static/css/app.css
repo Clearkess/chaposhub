@@ -145,31 +145,114 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .ai-tool-chip.active{border-color:var(--accent);background:var(--accent-glow);color:var(--accent)}
 .ai-extra-field{width:100%;padding:.7rem;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-size:.85rem;font-family:inherit;margin-bottom:.8rem;-webkit-appearance:none;appearance:none}
 
-/* OPay dedicated service (/services/opay) */
-.opay-disclaimer{margin:0 1rem 1rem;padding:.7rem .9rem;background:rgba(29,198,119,0.08);border:1px solid rgba(29,198,119,0.3);border-radius:12px;font-size:.75rem;line-height:1.5;color:var(--text-muted)}
-.opay-receipt{width:100%;max-width:320px;margin:0 auto;background:#fff;padding:20px 18px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:12px;line-height:1.5;border-radius:8px;color:#1a1a1a;box-shadow:0 4px 20px rgba(0,0,0,.08)}
-.opay-receipt-header{display:flex;align-items:center;justify-content:center;gap:.4rem;margin-bottom:12px}
-.opay-receipt-logo{width:28px;height:28px;border-radius:50%;background:#1dc677;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px}
-.opay-receipt-brand{font-weight:800;font-size:15px;color:#1dc677}
-.opay-receipt-status{text-align:center;margin-bottom:10px}
-.opay-receipt-status-badge{display:inline-block;padding:.3rem .9rem;border-radius:20px;font-size:11px;font-weight:700}
-.opay-receipt-status-badge.successful{background:rgba(29,198,119,.12);color:#1dc677}
-.opay-receipt-status-badge.pending{background:rgba(245,158,11,.12);color:#d97706}
-.opay-receipt-status-badge.failed{background:rgba(239,68,68,.12);color:#dc2626}
-.opay-receipt-amount{text-align:center;font-size:22px;font-weight:800;margin-bottom:14px;color:#1a1a1a}
-.opay-receipt hr{border:none;border-top:1px dashed #ddd;margin:10px 0}
-.opay-receipt-row{display:flex;justify-content:space-between;gap:1rem;padding:4px 0;font-size:11.5px}
-.opay-receipt-row .label{color:#888}
-.opay-receipt-row .value{font-weight:600;text-align:right;word-break:break-word}
-.opay-receipt-footer{text-align:center;font-size:9px;color:#999;margin-top:12px}
-.opay-history-list{padding:0 1rem 1rem}
-.opay-bank-lookup{margin:0 1rem 1rem;padding:.9rem;background:var(--card-bg,rgba(255,255,255,.03));border:1px solid rgba(29,198,119,0.25);border-radius:14px}
-.opay-bank-lookup-title{font-size:.82rem;font-weight:700;margin-bottom:.3rem;display:flex;align-items:center;gap:.4rem;flex-wrap:wrap}
-.opay-real-badge{font-size:.6rem;font-weight:800;letter-spacing:.03em;padding:.15rem .45rem;border-radius:20px;background:rgba(29,198,119,.15);color:#1dc677}
-.opay-bank-lookup-note{font-size:.72rem;color:var(--text-muted);line-height:1.5;margin-bottom:.7rem}
-.opay-resolved-account{margin-top:.6rem;padding:.6rem .8rem;border-radius:10px;font-size:.8rem;font-weight:600}
-.opay-resolved-account.success{background:rgba(29,198,119,.12);color:#1dc677}
-.opay-resolved-account.error{background:rgba(239,68,68,.12);color:#dc2626}
+/* ============================================================
+   OPay Wallet Demo (/services/opay) — replaces the old form-based
+   OPay receipt generator. Scoped entirely under .ow-app so its own
+   dark theme (ported from the uploaded OPay Clone UI/UX prototype)
+   never leaks into or clashes with Chapo'sHub's global --bg/--text/
+   --border variables used elsewhere in the app.
+   ============================================================ */
+.ow-app{
+  --ow-mint:#10E3A0; --ow-mint-dark:#06B583; --ow-mint-deep:#0B3B2E;
+  --ow-bg:#121212; --ow-card:#1E1E1E; --ow-card-alt:#262626;
+  --ow-text-light:#FFFFFF; --ow-text-dim:#9E9E9E; --ow-text-faint:#6E6E6E;
+  --ow-border:#2C2C2C;
+  --ow-accent-purple:#8B5CF6; --ow-accent-blue:#3B82F6; --ow-accent-red:#EF4444;
+  background:var(--ow-bg); color:var(--ow-text-light); border-radius:0 0 16px 16px; overflow:hidden;
+}
+.ow-app .receipt-page-header{background:var(--ow-bg); border-bottom:1px solid var(--ow-border)}
+.ow-app .back-btn{background:var(--ow-card); border-color:var(--ow-border); color:var(--ow-text-light)}
+.ow-app .page-title-sm{color:var(--ow-text-light)}
+.ow-view{display:none}
+.ow-view.active{display:block}
+.ow-disclaimer{margin:0 1rem 1rem;padding:.7rem .9rem;background:rgba(16,227,160,0.08);border:1px solid rgba(16,227,160,0.25);border-radius:12px;font-size:.75rem;line-height:1.5;color:var(--ow-text-dim)}
+.ow-real-note{margin:0 1rem 1rem;padding:.8rem .9rem;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.25);border-radius:12px;font-size:.72rem;line-height:1.5;color:var(--ow-text-dim)}
+.ow-real-note strong{color:var(--ow-text-light)}
+
+/* Balance card */
+.ow-balance-card{margin:0 1rem 1rem;padding:1.2rem;border-radius:18px;background:linear-gradient(135deg,var(--ow-mint) 0%,var(--ow-mint-dark) 100%);color:#04231A}
+.ow-balance-top-row{display:flex;align-items:center;justify-content:space-between;font-size:.8rem;font-weight:700;opacity:.85}
+.ow-icon-btn{background:rgba(255,255,255,.25);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#04231A}
+.ow-balance-amount{font-size:1.9rem;font-weight:800;margin-top:.4rem}
+.ow-balance-sub{font-size:.7rem;opacity:.75;margin-top:.2rem}
+
+/* Transfer row */
+.ow-transfer-row{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin:0 1rem 1rem}
+.ow-transfer-item{background:var(--ow-card);border:1px solid var(--ow-border);border-radius:14px;padding:.9rem .4rem;display:flex;flex-direction:column;align-items:center;gap:.5rem;cursor:pointer;font-size:.72rem;font-weight:600;color:var(--ow-text-light);transition:.2s}
+.ow-transfer-item:hover{border-color:var(--ow-mint)}
+.ow-transfer-icon{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1rem}
+
+.ow-section-title{padding:0 1rem .5rem;font-size:.85rem;font-weight:700;color:var(--ow-text-light);display:flex;justify-content:space-between}
+.ow-section-title a{color:var(--ow-mint);font-size:.72rem;font-weight:600;text-decoration:none}
+
+/* Transaction list */
+.ow-txn-list{padding:0 1rem}
+.ow-txn-item{display:flex;align-items:center;gap:.7rem;background:var(--ow-card);border:1px solid var(--ow-border);border-radius:14px;padding:.7rem .9rem;margin-bottom:.5rem}
+.ow-txn-icon{width:36px;height:36px;border-radius:50%;background:var(--ow-card-alt);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+.ow-txn-info{flex:1;min-width:0}
+.ow-txn-title{font-size:.85rem;font-weight:600;color:var(--ow-text-light);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ow-txn-sub{font-size:.7rem;color:var(--ow-text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ow-txn-right{text-align:right;flex-shrink:0}
+.ow-txn-amount{font-size:.85rem;font-weight:700}
+.ow-txn-amount.out{color:var(--ow-accent-red)}
+.ow-txn-amount.in{color:var(--ow-mint)}
+.ow-txn-time{font-size:.65rem;color:var(--ow-text-faint)}
+.ow-skeleton{height:64px;border-radius:14px;background:linear-gradient(90deg,var(--ow-card) 25%,var(--ow-card-alt) 50%,var(--ow-card) 75%);background-size:200% 100%;animation:owShimmer 1.4s infinite;margin:0 1rem}
+@keyframes owShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* Step progress bar */
+.ow-step-progress{display:flex;gap:.3rem;padding:0 1rem;margin-bottom:1rem}
+.ow-seg{flex:1;height:4px;border-radius:4px;background:var(--ow-border)}
+.ow-seg.done{background:var(--ow-mint)}
+
+/* Steps */
+.ow-step{display:none;padding:0 0 1rem}
+.ow-step.active{display:block}
+.ow-btn-row{padding:0 1rem;margin-top:1rem}
+
+/* Amount entry */
+.ow-amount-display{display:flex;align-items:center;justify-content:center;gap:.3rem;padding:1.5rem 1rem .5rem;font-size:2.2rem;font-weight:800;color:var(--ow-text-light)}
+.ow-amount-display input{background:transparent;border:none;color:var(--ow-text-light);font-size:2.2rem;font-weight:800;width:60%;text-align:left;outline:none;font-family:inherit}
+.ow-balance-hint{text-align:center;font-size:.75rem;color:var(--ow-text-dim);margin-bottom:1rem}
+.ow-quick-amounts{display:flex;gap:.5rem;padding:0 1rem;flex-wrap:wrap;justify-content:center}
+.ow-quick-amounts button{background:var(--ow-card);border:1px solid var(--ow-border);color:var(--ow-text-light);border-radius:20px;padding:.5rem 1rem;font-size:.78rem;font-weight:600;cursor:pointer;transition:.2s}
+.ow-quick-amounts button:hover{border-color:var(--ow-mint)}
+
+/* Confirm card */
+.ow-confirm-card{margin:0 1rem;background:var(--ow-card);border:1px solid var(--ow-border);border-radius:16px;padding:1rem}
+.ow-confirm-row{display:flex;justify-content:space-between;gap:1rem;padding:.5rem 0;font-size:.82rem;border-bottom:1px solid var(--ow-border)}
+.ow-confirm-row:last-child{border-bottom:none}
+.ow-confirm-row span{color:var(--ow-text-dim)}
+.ow-confirm-row strong{color:var(--ow-text-light);text-align:right;word-break:break-word}
+
+/* PIN + keypad */
+.ow-pin-wrap{text-align:center;padding:1.5rem 1rem;color:var(--ow-text-dim);font-size:.85rem}
+.ow-pin-dots{display:flex;justify-content:center;gap:.8rem;margin-top:1rem}
+.ow-dot{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--ow-border);background:transparent}
+.ow-dot.filled{background:var(--ow-mint);border-color:var(--ow-mint)}
+.ow-keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:.7rem;padding:0 2rem}
+.ow-keypad button{background:var(--ow-card);border:1px solid var(--ow-border);color:var(--ow-text-light);border-radius:50%;aspect-ratio:1;font-size:1.2rem;font-weight:600;cursor:pointer;transition:.2s}
+.ow-keypad button:hover:not(.ow-key-empty):not(:disabled){border-color:var(--ow-mint)}
+.ow-keypad button:disabled{opacity:.5;cursor:default}
+.ow-keypad .ow-key-empty{background:transparent;border:none;cursor:default}
+
+/* Success */
+.ow-success-wrap{text-align:center;padding:2rem 1.2rem}
+.ow-success-icon{font-size:3.5rem;color:var(--ow-mint);margin-bottom:.6rem}
+.ow-success-title{font-size:1.1rem;font-weight:700;color:var(--ow-text-light)}
+.ow-success-amount{font-size:1.8rem;font-weight:800;color:var(--ow-mint);margin:.4rem 0 1rem}
+.ow-success-detail-card{background:var(--ow-card);border:1px solid var(--ow-border);border-radius:16px;padding:1rem;text-align:left}
+
+/* Bank resolve status */
+.ow-resolved-account{margin:0 1rem .6rem;padding:.6rem .8rem;border-radius:10px;font-size:.8rem;font-weight:600}
+.ow-resolved-account.success{background:rgba(16,227,160,.12);color:var(--ow-mint)}
+.ow-resolved-account.error{background:rgba(239,68,68,.12);color:var(--ow-accent-red)}
+
+.ow-app .form-field label{color:var(--ow-text-dim)}
+.ow-app .form-field input,.ow-app .form-field select,.ow-app .form-field textarea{background:var(--ow-card);border-color:var(--ow-border);color:var(--ow-text-light)}
+.ow-app .action-btn.primary{background:var(--ow-mint);color:#04231A;border:none}
+.ow-app .action-btn.primary:disabled{opacity:.5;cursor:default}
+.ow-app .action-btn.secondary{background:var(--ow-card);color:var(--ow-text-light);border:1px solid var(--ow-border)}
 .points-card{background:linear-gradient(135deg,#4f46e5,#6366f1);border-radius:20px;margin:1rem;padding:1.5rem;text-align:center;color:white;box-shadow:0 8px 32px rgba(99,102,241,.2);position:relative;overflow:hidden}
 .points-card::before{content:'';position:absolute;top:-30px;right:-30px;width:100px;height:100px;background:rgba(255,255,255,.1);border-radius:50%}
 .points-amount{font-size:3rem;font-weight:800;position:relative;z-index:1}

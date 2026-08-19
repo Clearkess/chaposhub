@@ -16,6 +16,7 @@ import users from './routes/users'
 import analytics from './routes/analytics'
 import webhooks from './routes/webhooks'
 import opay from './routes/opay'
+import opayWallet from './routes/opay-wallet'
 import banks from './routes/banks'
 
 const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>()
@@ -80,6 +81,7 @@ app.route('/api/users', users)
 app.route('/api/analytics', analytics)
 app.route('/api/webhooks', webhooks)
 app.route('/api/services/opay', opay)
+app.route('/api/services/opay', opayWallet)
 app.route('/api/banks', banks)
 
 // Note: static frontend assets in public/ (index.html, /static/*) are served

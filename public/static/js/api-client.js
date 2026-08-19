@@ -140,6 +140,20 @@
       return this.request('/banks/resolve', { method: 'POST', body: payload });
     }
 
+    // --- OPay wallet-app demo (private per-user simulated wallet) ---
+    async getOpayWallet() {
+      return this.request('/services/opay/wallet');
+    }
+    async getOpayTransactions(limit) {
+      return this.request('/services/opay/transactions' + (limit ? '?limit=' + limit : ''));
+    }
+    async opaySendMoney(payload) {
+      return this.request('/services/opay/send', { method: 'POST', body: payload });
+    }
+    async opayBankTransfer(payload) {
+      return this.request('/services/opay/transfer', { method: 'POST', body: payload });
+    }
+
     // --- Email ---
     async sendReceiptEmail(to, subject, receiptData) {
       return this.request('/email/send-receipt', { method: 'POST', body: { to, subject, receiptData } });

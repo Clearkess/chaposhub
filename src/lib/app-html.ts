@@ -9,6 +9,7 @@ export const APP_HTML = `<!DOCTYPE html>
 <meta name="description" content="Generate branded receipts for 13+ platforms, draft AI-powered customer replies, and pay only for what you use with Chapo'sHub's points system. No subscriptions, no card required to start.">
 <meta name="theme-color" content="#0f0f14">
 <link rel="canonical" href="https://chaposhub.pages.dev/">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
 <meta property="og:title" content="Chapo'sHub — Branded Receipts, Points & AI Replies">
 <meta property="og:description" content="Generate branded receipts for 13+ platforms, draft AI-powered customer replies, and pay only for what you use. No subscriptions, no card required.">
 <meta property="og:type" content="website">
@@ -278,7 +279,7 @@ export const APP_HTML = `<!DOCTYPE html>
 <div class="service-grid">
 <div class="service-card" onclick="showToast('Articles coming soon!')" role="button" tabindex="0" aria-label="Articles"><div class="service-logo" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:white;font-size:1.2rem">📖</div><div class="service-name">Articles(FMT)</div><div class="service-desc">Buy & read</div></div>
 <div class="service-card" onclick="showPage('support')" role="button" tabindex="0" aria-label="Support sites"><div class="service-logo" style="background:linear-gradient(135deg,#3b82f6,#60a5fa);color:white;font-size:1.2rem">🎧</div><div class="service-name">Support Sites</div><div class="service-desc">Build pages</div></div>
-<div class="service-card" onclick="showPage('opay')" role="button" tabindex="0" aria-label="OPay receipts"><div class="service-logo" style="background:#1dc677;color:white">O</div><div class="service-name">Opay</div><div class="service-desc">Bank slips</div></div>
+<div class="service-card" onclick="showPage('opay')" role="button" tabindex="0" aria-label="OPay wallet demo"><div class="service-logo" style="background:#1dc677;color:white">O</div><div class="service-name">Opay</div><div class="service-desc">Wallet demo</div></div>
 </div>
 <div class="section-title">All Services <a href="#" onclick="showPage('services')">View All →</a></div>
 <div class="all-services-grid" id="allServicesGrid"></div>
@@ -299,32 +300,153 @@ export const APP_HTML = `<!DOCTYPE html>
 <div style="height:20px"></div>
 </div>
 
-<div class="page" id="page-opay" role="main" aria-label="OPay Receipt Service">
-<div class="receipt-page-header"><button class="back-btn" onclick="showPage('dashboard')" aria-label="Go back">←</button><div class="page-title-sm">🟢 OPay Transaction Receipt</div></div>
-<div class="opay-disclaimer">⚠️ <strong>Sample/simulated receipt only.</strong> This tool creates a formatted receipt from the details you enter — it does not verify, initiate, or confirm any real OPay transaction. Do not present a generated receipt as proof of an actual payment.</div>
-<div class="form-section">
-<div class="form-field"><label>Sender Name</label><input type="text" id="opaySenderName" placeholder="e.g. John Doe" required maxlength="60"></div>
-<div class="form-field"><label>Sender Phone</label><input type="tel" id="opaySenderPhone" placeholder="e.g. 0803 123 4567" required maxlength="20"></div>
-<div class="form-field"><label>Recipient Name</label><input type="text" id="opayRecipientName" placeholder="e.g. Jane Smith" required maxlength="60"></div>
-<div class="form-field"><label>Recipient Phone</label><input type="tel" id="opayRecipientPhone" placeholder="e.g. 0810 987 6543" required maxlength="20"></div>
-<div class="opay-bank-lookup" id="opayBankLookup">
-<div class="opay-bank-lookup-title">🏦 Verify Recipient Bank Account <span class="opay-real-badge">REAL LOOKUP</span></div>
-<div class="opay-bank-lookup-note">Optional. Pulls today's actual Nigerian bank list and confirms the account name via Paystack — this check is real, but no money moves and no OPay wallet is touched.</div>
-<div class="form-field"><label>Recipient Bank</label><select id="opayBank"><option value="">Loading banks…</option></select></div>
-<div class="form-row"><div class="form-field"><label>Account Number</label><input type="text" id="opayAccountNumber" placeholder="10-digit NUBAN" maxlength="10" inputmode="numeric"></div><div class="form-field" style="display:flex;align-items:flex-end"><button type="button" class="action-btn secondary" id="opayVerifyBtn" onclick="resolveOpayBankAccount()" style="width:100%">🔍 Verify Account</button></div></div>
-<div id="opayResolvedAccount" class="opay-resolved-account" style="display:none"></div>
+<div class="page" id="page-opay" role="main" aria-label="OPay Wallet Demo">
+<div class="ow-app">
+
+<!-- ============ DASHBOARD VIEW ============ -->
+<div class="ow-view active" id="ow-view-dashboard">
+<div class="receipt-page-header"><button class="back-btn" onclick="showPage('dashboard')" aria-label="Go back">←</button><div class="page-title-sm">🟢 OPay Wallet (Demo)</div></div>
+<div class="ow-disclaimer">⚠️ <strong>Simulated demo wallet.</strong> This is a private play-money wallet for UI/UX demo purposes only — no real OPay account, bank account, or payment rail is ever touched. Sending money here costs Chapo'sHub points.</div>
+<div class="ow-balance-card">
+<div class="ow-balance-top-row"><span>Wallet Balance</span><button class="ow-icon-btn ow-eye-toggle" id="owEyeToggle" aria-label="Toggle balance visibility"><i class="fa-regular fa-eye"></i></button></div>
+<div class="ow-balance-amount" id="owBalanceAmount">₦••••••</div>
+<div class="ow-balance-sub" id="owBalanceSub">Loading…</div>
 </div>
-<div class="form-row"><div class="form-field"><label>Amount (₦)</label><input type="number" id="opayAmount" placeholder="10000" min="1" step="0.01" required></div><div class="form-field"><label>Status</label><select id="opayStatus"><option value="Successful">Successful</option><option value="Pending">Pending</option><option value="Failed">Failed</option></select></div></div>
-<div class="form-row"><div class="form-field"><label>Transaction Date</label><input type="date" id="opayDate"></div><div class="form-field"><label>Transaction Time</label><input type="time" id="opayTime"></div></div>
-<div class="form-field"><label>Reference (optional)</label><input type="text" id="opayReference" placeholder="Auto-generated if left blank" maxlength="40"></div>
-<div class="form-field"><label>Note (optional)</label><textarea id="opayNote" placeholder="Add a short description" maxlength="200"></textarea></div>
-<div class="form-field"><label>Receipt Template</label><select id="opayTemplate"><option value="classic">Classic</option><option value="modern">Modern</option><option value="minimal">Minimal</option></select></div>
+<div class="ow-transfer-row">
+<div class="ow-transfer-item" onclick="OpayWallet.openSend()"><div class="ow-transfer-icon" style="background:var(--ow-mint)"><i class="fa-solid fa-arrow-up"></i></div><span>Send Money</span></div>
+<div class="ow-transfer-item" onclick="OpayWallet.openTransfer()"><div class="ow-transfer-icon" style="background:var(--ow-accent-blue)"><i class="fa-solid fa-building-columns"></i></div><span>To Bank</span></div>
+<div class="ow-transfer-item" onclick="OpayWallet.openHistory()"><div class="ow-transfer-icon" style="background:var(--ow-accent-purple)"><i class="fa-solid fa-clock-rotate-left"></i></div><span>History</span></div>
 </div>
-<div class="receipt-preview-card" role="region" aria-label="OPay receipt preview"><div style="font-size:.8rem;font-weight:700;color:var(--text-muted);margin-bottom:.8rem;text-align:center">👁️ Live Preview</div><div id="opayReceiptPreview" class="opay-receipt" role="img" aria-label="Generated OPay receipt preview"></div></div>
-<div class="action-buttons" role="group" aria-label="OPay receipt actions"><button class="action-btn primary" id="opayGenerateBtn" onclick="generateOpayReceipt()">🚀 Generate Receipt</button><button class="action-btn secondary" onclick="downloadOpayReceipt()">📸 Download</button></div>
-<div class="section-title" style="margin-top:1.5rem">My OPay Receipts <a href="#" onclick="refreshOpayHistory();return false;">↻ Refresh</a></div>
-<div class="opay-history-list" id="opayHistoryList"></div>
+<div class="ow-section-title">Recent Activity <a href="#" onclick="OpayWallet.loadDashboard();return false;">↻ Refresh</a></div>
+<div class="ow-txn-list" id="owRecentTxnList"><div class="ow-skeleton"></div></div>
 <div style="height:20px"></div>
+</div>
+
+<!-- ============ SEND MONEY VIEW ============ -->
+<div class="ow-view" id="ow-view-send">
+<div class="receipt-page-header"><button class="back-btn" onclick="OpayWallet.backFromSend()" aria-label="Go back">←</button><div class="page-title-sm" id="owSendStepTitle">Send Money</div></div>
+<div class="ow-step-progress" id="owSendProgress"><span class="ow-seg"></span><span class="ow-seg"></span><span class="ow-seg"></span><span class="ow-seg"></span></div>
+
+<div class="ow-step active" id="ow-send-step-recipient">
+<div class="form-section">
+<div class="form-field"><label>Recipient Name</label><input type="text" id="owSendName" placeholder="e.g. Jane Smith" maxlength="60"></div>
+<div class="form-field"><label>Recipient Phone</label><input type="tel" id="owSendPhone" placeholder="e.g. 0810 987 6543" maxlength="20"></div>
+</div>
+<div class="ow-btn-row"><button class="action-btn primary" style="width:100%" onclick="OpayWallet.sendGoToAmount()">Continue</button></div>
+</div>
+
+<div class="ow-step" id="ow-send-step-amount">
+<div class="ow-amount-display"><span>₦</span><input type="text" id="owSendAmountInput" inputmode="numeric" placeholder="0"></div>
+<div class="ow-balance-hint" id="owSendBalanceHint">Available balance: —</div>
+<div class="ow-quick-amounts"><button data-amt="1000">₦1,000</button><button data-amt="5000">₦5,000</button><button data-amt="10000">₦10,000</button><button data-amt="20000">₦20,000</button></div>
+<div class="form-field" style="margin-top:1rem"><label>Note (optional)</label><input type="text" id="owSendNarration" placeholder="What's this for?" maxlength="200"></div>
+<div class="ow-btn-row"><button class="action-btn primary" style="width:100%" id="owSendToConfirmBtn" disabled onclick="OpayWallet.sendGoToConfirm()">Continue</button></div>
+</div>
+
+<div class="ow-step" id="ow-send-step-confirm">
+<div class="ow-confirm-card">
+<div class="ow-confirm-row"><span>Amount</span><strong id="owSendConfirmAmount">₦0</strong></div>
+<div class="ow-confirm-row"><span>To</span><strong id="owSendConfirmName">—</strong></div>
+<div class="ow-confirm-row"><span>Phone</span><strong id="owSendConfirmPhone">—</strong></div>
+<div class="ow-confirm-row"><span>Note</span><strong id="owSendConfirmNote">—</strong></div>
+<div class="ow-confirm-row"><span>Points Cost</span><strong id="owSendConfirmPoints">—</strong></div>
+</div>
+<div class="ow-btn-row"><button class="action-btn primary" style="width:100%" onclick="OpayWallet.sendGoToPin()">Confirm & Continue</button></div>
+</div>
+
+<div class="ow-step" id="ow-send-step-pin">
+<div class="ow-pin-wrap"><p>Enter any 4 digits to confirm (demo)</p><div class="ow-pin-dots" id="owSendPinDots"><span class="ow-dot"></span><span class="ow-dot"></span><span class="ow-dot"></span><span class="ow-dot"></span></div></div>
+<div class="ow-keypad" id="owSendKeypad">
+<button data-key="1">1</button><button data-key="2">2</button><button data-key="3">3</button>
+<button data-key="4">4</button><button data-key="5">5</button><button data-key="6">6</button>
+<button data-key="7">7</button><button data-key="8">8</button><button data-key="9">9</button>
+<button class="ow-key-empty"></button><button data-key="0">0</button><button data-key="del"><i class="fa-solid fa-delete-left"></i></button>
+</div>
+</div>
+
+<div class="ow-step" id="ow-send-step-success">
+<div class="ow-success-wrap">
+<div class="ow-success-icon"><i class="fa-solid fa-circle-check"></i></div>
+<div class="ow-success-title">Money Sent!</div>
+<div class="ow-success-amount" id="owSendSuccessAmount">₦0</div>
+<div class="ow-success-detail-card">
+<div class="ow-confirm-row"><span>To</span><strong id="owSendSuccessName">—</strong></div>
+<div class="ow-confirm-row"><span>Reference</span><strong id="owSendSuccessRef">—</strong></div>
+<div class="ow-confirm-row"><span>Date</span><strong id="owSendSuccessDate">—</strong></div>
+</div>
+<button class="action-btn primary" style="width:100%;margin-top:1rem" onclick="OpayWallet.openDashboard()">Done</button>
+</div>
+</div>
+</div>
+
+<!-- ============ TRANSFER TO BANK VIEW ============ -->
+<div class="ow-view" id="ow-view-tobank">
+<div class="receipt-page-header"><button class="back-btn" onclick="OpayWallet.backFromTransfer()" aria-label="Go back">←</button><div class="page-title-sm" id="owBankStepTitle">Transfer To Bank</div></div>
+<div class="ow-step-progress" id="owBankProgress"><span class="ow-seg"></span><span class="ow-seg"></span><span class="ow-seg"></span><span class="ow-seg"></span></div>
+
+<div class="ow-step active" id="ow-bank-step-recipient">
+<div class="ow-real-note">🏦 <strong>Verify Recipient Bank Account · REAL LOOKUP</strong><br>Pulls today's actual Nigerian bank list and confirms the account name via Paystack — this check is real, but no money moves and no bank account is touched.</div>
+<div class="form-section">
+<div class="form-field"><label>Recipient Bank</label><select id="owBankSelect"><option value="">Loading banks…</option></select></div>
+<div class="form-row"><div class="form-field"><label>Account Number</label><input type="text" id="owBankAccountNumber" placeholder="10-digit NUBAN" maxlength="10" inputmode="numeric"></div><div class="form-field" style="display:flex;align-items:flex-end"><button type="button" class="action-btn secondary" id="owBankVerifyBtn" style="width:100%" onclick="OpayWallet.resolveBankAccount()">🔍 Verify</button></div></div>
+<div id="owBankResolvedAccount" class="ow-resolved-account" style="display:none"></div>
+</div>
+<div class="ow-btn-row"><button class="action-btn primary" style="width:100%" id="owBankToAmountBtn" disabled onclick="OpayWallet.bankGoToAmount()">Continue</button></div>
+</div>
+
+<div class="ow-step" id="ow-bank-step-amount">
+<div class="ow-amount-display"><span>₦</span><input type="text" id="owBankAmountInput" inputmode="numeric" placeholder="0"></div>
+<div class="ow-balance-hint" id="owBankBalanceHint">Available balance: —</div>
+<div class="ow-quick-amounts"><button data-amt="1000">₦1,000</button><button data-amt="5000">₦5,000</button><button data-amt="10000">₦10,000</button><button data-amt="20000">₦20,000</button></div>
+<div class="form-field" style="margin-top:1rem"><label>Note (optional)</label><input type="text" id="owBankNarration" placeholder="What's this for?" maxlength="200"></div>
+<div class="ow-btn-row"><button class="action-btn primary" style="width:100%" id="owBankToConfirmBtn" disabled onclick="OpayWallet.bankGoToConfirm()">Continue</button></div>
+</div>
+
+<div class="ow-step" id="ow-bank-step-confirm">
+<div class="ow-confirm-card">
+<div class="ow-confirm-row"><span>Amount</span><strong id="owBankConfirmAmount">₦0</strong></div>
+<div class="ow-confirm-row"><span>Bank</span><strong id="owBankConfirmBank">—</strong></div>
+<div class="ow-confirm-row"><span>Account Name</span><strong id="owBankConfirmName">—</strong></div>
+<div class="ow-confirm-row"><span>Account Number</span><strong id="owBankConfirmNumber">—</strong></div>
+<div class="ow-confirm-row"><span>Points Cost</span><strong id="owBankConfirmPoints">—</strong></div>
+</div>
+<div class="ow-btn-row"><button class="action-btn primary" style="width:100%" onclick="OpayWallet.bankGoToPin()">Confirm & Continue</button></div>
+</div>
+
+<div class="ow-step" id="ow-bank-step-pin">
+<div class="ow-pin-wrap"><p>Enter any 4 digits to confirm (demo)</p><div class="ow-pin-dots" id="owBankPinDots"><span class="ow-dot"></span><span class="ow-dot"></span><span class="ow-dot"></span><span class="ow-dot"></span></div></div>
+<div class="ow-keypad" id="owBankKeypad">
+<button data-key="1">1</button><button data-key="2">2</button><button data-key="3">3</button>
+<button data-key="4">4</button><button data-key="5">5</button><button data-key="6">6</button>
+<button data-key="7">7</button><button data-key="8">8</button><button data-key="9">9</button>
+<button class="ow-key-empty"></button><button data-key="0">0</button><button data-key="del"><i class="fa-solid fa-delete-left"></i></button>
+</div>
+</div>
+
+<div class="ow-step" id="ow-bank-step-success">
+<div class="ow-success-wrap">
+<div class="ow-success-icon"><i class="fa-solid fa-circle-check"></i></div>
+<div class="ow-success-title">Transfer Successful!</div>
+<div class="ow-success-amount" id="owBankSuccessAmount">₦0</div>
+<div class="ow-success-detail-card">
+<div class="ow-confirm-row"><span>To</span><strong id="owBankSuccessName">—</strong></div>
+<div class="ow-confirm-row"><span>Bank</span><strong id="owBankSuccessBank">—</strong></div>
+<div class="ow-confirm-row"><span>Reference</span><strong id="owBankSuccessRef">—</strong></div>
+<div class="ow-confirm-row"><span>Date</span><strong id="owBankSuccessDate">—</strong></div>
+</div>
+<button class="action-btn primary" style="width:100%;margin-top:1rem" onclick="OpayWallet.openDashboard()">Done</button>
+</div>
+</div>
+</div>
+
+<!-- ============ HISTORY VIEW ============ -->
+<div class="ow-view" id="ow-view-history">
+<div class="receipt-page-header"><button class="back-btn" onclick="OpayWallet.openDashboard()" aria-label="Go back">←</button><div class="page-title-sm">Transaction History</div></div>
+<div class="ow-txn-list" id="owHistoryList" style="padding:1rem"><div class="ow-skeleton"></div></div>
+<div style="height:20px"></div>
+</div>
+
+</div>
 </div>
 
 <div class="page" id="page-ai" role="main" aria-label="AI Assistant">

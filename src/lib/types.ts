@@ -80,6 +80,33 @@ export interface OpayReceiptRow {
   updated_at: string
 }
 
+export interface OpayDemoWalletRow {
+  id: string
+  user_id: string
+  balance: number
+  currency: string
+  created_at: string
+  updated_at: string
+}
+
+export interface OpayDemoTransactionRow {
+  id: string
+  user_id: string
+  type: string
+  category: string
+  amount: number
+  counterparty_name: string | null
+  counterparty_phone: string | null
+  bank_name: string | null
+  account_number: string | null
+  note: string | null
+  status: string
+  balance_after: number
+  points_charged: number
+  reference: string
+  created_at: string
+}
+
 export interface PointsTransactionRow {
   id: string
   user_id: string
@@ -129,5 +156,11 @@ export const POINTS_COSTS: Record<string, number> = {
   ai_longform: 10,
   ai_code: 6,
   // Dedicated OPay transaction receipt service (/services/opay)
-  opay_receipt: 8
+  opay_receipt: 8,
+  // OPay wallet-app demo (send money / transfer to bank) - each action costs
+  // points on top of debiting the user's own private simulated wallet
+  // balance (see opay_demo_wallets). Bank transfer costs slightly more to
+  // reflect the extra real Paystack account-resolution step involved.
+  opay_wallet_send: 6,
+  opay_bank_transfer: 10
 }

@@ -5,7 +5,9 @@ const CONFIG = {
     download: 5, print: 3, email: 10, link: 2, ai: 3, support: 15,
     // Chapo'sHub AI Hub tools (Step 7)
     ai_content: 5, ai_social: 3, ai_product: 4, ai_email: 5,
-    ai_rewrite: 3, ai_chat: 2, ai_longform: 10, ai_code: 6
+    ai_rewrite: 3, ai_chat: 2, ai_longform: 10, ai_code: 6,
+    // OPay wallet-app demo (send money / transfer to bank)
+    opay_wallet_send: 6, opay_bank_transfer: 10
   },
   app: { name: "Chapo'sHub", version: '2.0.0' }
 };
@@ -152,7 +154,7 @@ function showPage(pageId) {
   if (pageId === 'dashboard') idx = 2; else if (pageId === 'services') idx = 1;
   if (idx >= 0) { const btn = document.querySelectorAll('.nav-item-btm')[idx]; btn.classList.add('active'); btn.setAttribute('aria-current', 'page'); }
   if (pageId === 'history') refreshHistory();
-  if (pageId === 'opay') { initOpayForm(); refreshOpayHistory(); }
+  if (pageId === 'opay') { OpayWallet.openDashboard(); }
 }
 
 function serviceNavAction(s) { return s.dedicated ? `showPage('${s.key}')` : `showPage('receipts');setPlatform('${s.key}')`; }
@@ -498,216 +500,402 @@ async function generateAIContent() {
 }
 
 
-// === OPAY DEDICATED RECEIPT SERVICE (/services/opay) ===
-// Unlike the generic multi-platform receipt builder, this is a purpose-built
-// flow: fixed field set, its own point cost (CONFIG.points.opay_receipt),
-// and its own backend table/route (POST /api/services/opay/generate). The
-// server does the balance check + deduction atomically - this frontend
-// code never decides whether a request is "allowed", it just reflects
-// whatever the server returns.
+// === OPAY WALLET DEMO (/services/opay) ===
+// A private, per-user, auth-gated simulated wallet app (dashboard / send
+// money / transfer-to-bank / history), replacing the earlier form-based
+// OPay receipt generator. Every server call is authenticated (the API
+// client always attaches the Chapo'sHub JWT), so wallet/send/history are
+// implicitly gated behind login - an unauthenticated visitor never reaches
+// showPage('opay') because the whole app-shell stays hidden until sign-in.
+// The demo wallet balance AND Chapo'sHub points are both debited
+// server-side, atomically, with refund-on-failure (see
+// src/routes/opay-wallet.ts) - this frontend never decides whether a
+// transfer is allowed, it only reflects the server's final result.
+const OpayWallet = (function () {
+  let wallet = null;
+  let banksCache = null;
+  let resolvedAccount = null; // { name, bankCode, bankName }
 
-function initOpayForm() {
-  const dateEl = document.getElementById('opayDate');
-  const timeEl = document.getElementById('opayTime');
-  if (dateEl && !dateEl.value) {
-    const now = new Date();
-    dateEl.value = now.toISOString().slice(0, 10);
-    timeEl.value = now.toTimeString().slice(0, 5);
+  const sendState = { amount: 0, name: '', phone: '', note: '', pin: '' };
+  const bankState = { amount: 0, note: '', pin: '' };
+
+  function fmtNaira(v) {
+    return '₦' + Number(v || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
-  ['opaySenderName', 'opaySenderPhone', 'opayRecipientName', 'opayRecipientPhone', 'opayAmount', 'opayStatus', 'opayDate', 'opayTime', 'opayReference', 'opayNote', 'opayTemplate']
-    .forEach(id => { const el = document.getElementById(id); if (el && !el.dataset.opayBound) { el.addEventListener('input', updateOpayPreview); el.addEventListener('change', updateOpayPreview); el.dataset.opayBound = '1'; } });
-  // Clear any stale "verified" state + reset account number/select bindings
-  // whenever the bank/account number changes, so a resolved name can never
-  // silently survive an edit to the fields it was resolved from.
-  const bankEl = document.getElementById('opayBank');
-  const acctEl = document.getElementById('opayAccountNumber');
-  [bankEl, acctEl].forEach(el => { if (el && !el.dataset.opayBankBound) { el.addEventListener('change', clearOpayResolvedAccount); el.addEventListener('input', clearOpayResolvedAccount); el.dataset.opayBankBound = '1'; } });
-  loadOpayBanks();
-  updateOpayPreview();
-}
 
-// --- Real bank list + account-name resolution (Paystack passthrough) ---
-// This is the ONLY part of the OPay demo backed by a live third-party API;
-// the wallet balance, transaction list, and the receipt/transfer itself
-// remain fully simulated. See src/routes/banks.ts for the server side.
-let opayBanksCache = null;
-
-async function loadOpayBanks() {
-  const select = document.getElementById('opayBank');
-  if (!select) return;
-  if (opayBanksCache) { renderOpayBankOptions(select, opayBanksCache); return; }
-  select.innerHTML = '<option value="">Loading banks…</option>';
-  try {
-    const res = await window.api.getBanks();
-    const list = (res && res.data) || [];
-    if (!list.length) throw new Error('empty');
-    opayBanksCache = list;
-    renderOpayBankOptions(select, list);
-  } catch (err) {
-    select.innerHTML = '<option value="">Unable to load banks — check Paystack setup</option>';
+  function showView(viewId) {
+    document.querySelectorAll('#page-opay .ow-view').forEach(v => v.classList.remove('active'));
+    const el = document.getElementById('ow-view-' + viewId);
+    if (el) el.classList.add('active');
   }
-}
 
-function renderOpayBankOptions(select, list) {
-  select.innerHTML = '<option value="">Select bank</option>' +
-    list.map(b => `<option value="${escHtml(b.code)}">${escHtml(b.name)}</option>`).join('');
-}
-
-function clearOpayResolvedAccount() {
-  const box = document.getElementById('opayResolvedAccount');
-  if (box) { box.style.display = 'none'; box.textContent = ''; box.className = 'opay-resolved-account'; }
-}
-
-async function resolveOpayBankAccount() {
-  const bankCode = document.getElementById('opayBank').value;
-  const accountNumber = document.getElementById('opayAccountNumber').value.trim();
-  const box = document.getElementById('opayResolvedAccount');
-  const btn = document.getElementById('opayVerifyBtn');
-
-  if (!bankCode) { showToast('❌ Select a bank first', 'error'); return; }
-  if (!/^\d{10}$/.test(accountNumber)) { showToast('❌ Enter a valid 10-digit account number', 'error'); return; }
-
-  const originalLabel = btn.textContent;
-  try {
-    btn.disabled = true; btn.textContent = '🔍 Verifying…';
-    const res = await window.api.resolveBankAccount({ bank_code: bankCode, account_number: accountNumber });
-    const name = res && res.data && res.data.account_name;
-    if (res && res.success && name) {
-      box.className = 'opay-resolved-account success';
-      box.textContent = '✓ ' + name;
-      box.style.display = 'block';
-      // Convenience: auto-fill the recipient name field with the real
-      // resolved name if the user hasn't typed one yet.
-      const recipientEl = document.getElementById('opayRecipientName');
-      if (recipientEl && !recipientEl.value.trim()) { recipientEl.value = name; updateOpayPreview(); }
-      showToast('✓ Account verified', 'success');
-    } else {
-      throw new Error((res && res.message) || 'Could not resolve account');
+  function showStep(prefix, stepName, steps, progressId) {
+    steps.forEach(s => {
+      const el = document.getElementById(`ow-${prefix}-step-${s}`);
+      if (el) el.classList.toggle('active', s === stepName);
+    });
+    const progress = document.getElementById(progressId);
+    if (progress) {
+      const idx = steps.indexOf(stepName);
+      progress.style.display = stepName === 'success' ? 'none' : 'flex';
+      progress.querySelectorAll('.ow-seg').forEach((seg, i) => seg.classList.toggle('done', i <= idx));
     }
-  } catch (err) {
-    box.className = 'opay-resolved-account error';
-    box.textContent = '❌ ' + (err && err.message ? err.message : 'Could not verify account');
-    box.style.display = 'block';
-  } finally {
-    btn.disabled = false; btn.textContent = originalLabel;
   }
-}
 
-function updateOpayPreview() {
-  const preview = document.getElementById('opayReceiptPreview');
-  if (!preview) return;
-  const senderName = document.getElementById('opaySenderName').value.trim() || 'Sender Name';
-  const senderPhone = document.getElementById('opaySenderPhone').value.trim() || '—';
-  const recipientName = document.getElementById('opayRecipientName').value.trim() || 'Recipient Name';
-  const recipientPhone = document.getElementById('opayRecipientPhone').value.trim() || '—';
-  const amount = parseFloat(document.getElementById('opayAmount').value) || 0;
-  const status = document.getElementById('opayStatus').value || 'Successful';
-  const dateVal = document.getElementById('opayDate').value;
-  const timeVal = document.getElementById('opayTime').value;
-  const reference = document.getElementById('opayReference').value.trim() || 'Will be auto-generated';
-  const note = document.getElementById('opayNote').value.trim();
+  // ---- Dashboard ----
+  let balanceVisible = false;
 
-  preview.innerHTML = `
-    <div class="opay-receipt-header"><div class="opay-receipt-logo">O</div><div class="opay-receipt-brand">OPay</div></div>
-    <div class="opay-receipt-status"><span class="opay-receipt-status-badge ${status.toLowerCase()}">${status === 'Successful' ? '✓ ' : ''}${escHtml(status)}</span></div>
-    <div class="opay-receipt-amount">₦${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-    <hr>
-    <div class="opay-receipt-row"><span class="label">From</span><span class="value">${escHtml(senderName)}<br>${escHtml(senderPhone)}</span></div>
-    <div class="opay-receipt-row"><span class="label">To</span><span class="value">${escHtml(recipientName)}<br>${escHtml(recipientPhone)}</span></div>
-    <hr>
-    <div class="opay-receipt-row"><span class="label">Date</span><span class="value">${escHtml(dateVal || '—')}</span></div>
-    <div class="opay-receipt-row"><span class="label">Time</span><span class="value">${escHtml(timeVal || '—')}</span></div>
-    <div class="opay-receipt-row"><span class="label">Reference</span><span class="value">${escHtml(reference)}</span></div>
-    ${note ? `<div class="opay-receipt-row"><span class="label">Note</span><span class="value">${escHtml(note)}</span></div>` : ''}
-    <div class="opay-receipt-footer">This is a simulated receipt, not proof of a real OPay transaction.</div>
-  `;
-}
-
-function validateOpayForm() {
-  const senderName = document.getElementById('opaySenderName');
-  const senderPhone = document.getElementById('opaySenderPhone');
-  const recipientName = document.getElementById('opayRecipientName');
-  const recipientPhone = document.getElementById('opayRecipientPhone');
-  const amount = document.getElementById('opayAmount');
-  if (!senderName.value.trim()) { showToast('❌ Sender name required', 'error'); senderName.focus(); return false; }
-  if (!senderPhone.value.trim()) { showToast('❌ Sender phone required', 'error'); senderPhone.focus(); return false; }
-  if (!recipientName.value.trim()) { showToast('❌ Recipient name required', 'error'); recipientName.focus(); return false; }
-  if (!recipientPhone.value.trim()) { showToast('❌ Recipient phone required', 'error'); recipientPhone.focus(); return false; }
-  if (!amount.value || parseFloat(amount.value) <= 0) { showToast('❌ Enter a valid amount', 'error'); amount.focus(); return false; }
-  return true;
-}
-
-async function generateOpayReceipt() {
-  if (!validateOpayForm()) return;
-  const cost = CONFIG.points.opay_receipt;
-  if ((user.points || 0) < cost) { showToast('❌ Need ' + cost + ' points for an OPay receipt', 'error'); return; }
-
-  const btn = document.getElementById('opayGenerateBtn');
-  const originalLabel = btn.textContent;
-  const payload = {
-    senderName: document.getElementById('opaySenderName').value.trim(),
-    senderPhone: document.getElementById('opaySenderPhone').value.trim(),
-    recipientName: document.getElementById('opayRecipientName').value.trim(),
-    recipientPhone: document.getElementById('opayRecipientPhone').value.trim(),
-    amount: parseFloat(document.getElementById('opayAmount').value),
-    reference: document.getElementById('opayReference').value.trim() || undefined,
-    transactionDate: document.getElementById('opayDate').value,
-    transactionTime: document.getElementById('opayTime').value,
-    note: document.getElementById('opayNote').value.trim() || undefined,
-    status: document.getElementById('opayStatus').value,
-    template: document.getElementById('opayTemplate').value
-  };
-
-  try {
-    btn.disabled = true; btn.textContent = '🚀 Generating...';
-    const res = await window.api.generateOpayReceipt(payload);
-    document.getElementById('opayReference').value = res.reference;
-    updateOpayPreview();
-    await refreshUserAndPoints();
-    await refreshOpayHistory();
-    showToast('🟢 OPay receipt generated! (-' + res.pointsCharged + ' pts)', 'success');
-  } catch (err) {
-    if (err && err.status === 402) {
-      showToast('❌ Insufficient points for this receipt', 'error');
-    } else if (err && err.status === 409) {
-      showToast('❌ That reference is already in use, try another', 'error');
-    } else {
+  async function loadDashboard() {
+    const subEl = document.getElementById('owBalanceSub');
+    try {
+      wallet = await window.api.getOpayWallet();
+      if (subEl) subEl.textContent = 'OPay Demo Wallet';
+      updateBalanceDisplay();
+    } catch (err) {
+      if (subEl) subEl.textContent = 'Could not load wallet';
       handleAuthFailure(err);
-    }
-  } finally {
-    btn.disabled = false; btn.textContent = originalLabel;
-  }
-}
-
-async function downloadOpayReceipt() {
-  const element = document.getElementById('opayReceiptPreview');
-  try {
-    const canvas = await html2canvas(element, { scale: 2, backgroundColor: '#ffffff' });
-    const link = document.createElement('a');
-    const ref = document.getElementById('opayReference').value.trim() || 'opay_receipt';
-    link.download = 'opay_' + ref.replace(/[^a-z0-9]/gi, '_') + '.png';
-    link.href = canvas.toDataURL('image/png');
-    link.click();
-    showToast('📸 Receipt image downloaded');
-  } catch (err) {
-    showToast('❌ Download failed', 'error');
-  }
-}
-
-async function refreshOpayHistory() {
-  const list = document.getElementById('opayHistoryList');
-  if (!list) return;
-  try {
-    const items = await window.api.getOpayHistory();
-    if (!items.length) {
-      list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🟢</div><div class="empty-state-title">No OPay receipts yet</div><div class="empty-state-desc">Generate your first receipt above.</div></div>';
       return;
     }
-    list.innerHTML = items.map(r => `<div class="history-item"><div class="history-icon" style="background:rgba(29,198,119,0.15)">🟢</div><div class="history-info"><div class="history-title">₦${Number(r.amount).toLocaleString()} · ${escHtml(r.status)}</div><div class="history-desc">#${escHtml(r.reference)} · ${escHtml(r.recipientName)}</div></div><div class="history-time">${relativeTime(r.createdAt)}</div></div>`).join('');
-  } catch (err) {
-    handleAuthFailure(err);
+    const list = document.getElementById('owRecentTxnList');
+    if (list) {
+      try {
+        const txns = await window.api.getOpayTransactions(5);
+        renderTxnList(list, txns);
+      } catch (err) {
+        list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-title">Could not load transactions</div></div>';
+      }
+    }
   }
-}
+
+  function updateBalanceDisplay() {
+    const el = document.getElementById('owBalanceAmount');
+    if (!el || !wallet) return;
+    el.textContent = balanceVisible ? fmtNaira(wallet.balance) : '₦••••••';
+  }
+
+  function renderTxnList(container, txns) {
+    if (!txns.length) {
+      container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🧾</div><div class="empty-state-title">No transactions yet</div></div>';
+      return;
+    }
+    container.innerHTML = txns.map(t => {
+      const isBank = t.category === 'bank_transfer';
+      const icon = isBank ? '🏦' : '👤';
+      const title = isBank ? ('To ' + (t.bankName || 'Bank')) : ('To ' + (t.counterpartyName || 'Someone'));
+      return `<div class="ow-txn-item"><div class="ow-txn-icon">${icon}</div><div class="ow-txn-info"><div class="ow-txn-title">${escHtml(title)}</div><div class="ow-txn-sub">${escHtml(t.note || t.accountNumber || '')}</div></div><div class="ow-txn-right"><div class="ow-txn-amount out">-${fmtNaira(t.amount)}</div><div class="ow-txn-time">${relativeTime(t.createdAt)}</div></div></div>`;
+    }).join('');
+  }
+
+  // ---- Navigation ----
+  function openDashboard() { showView('dashboard'); loadDashboard(); }
+
+  function openSend() {
+    Object.assign(sendState, { amount: 0, name: '', phone: '', note: '', pin: '' });
+    document.getElementById('owSendName').value = '';
+    document.getElementById('owSendPhone').value = '';
+    document.getElementById('owSendAmountInput').value = '';
+    document.getElementById('owSendNarration').value = '';
+    document.getElementById('owSendStepTitle').textContent = 'Send Money';
+    showView('send');
+    showStep('send', 'recipient', ['recipient', 'amount', 'confirm', 'pin', 'success'], 'owSendProgress');
+  }
+  function backFromSend() { openDashboard(); }
+
+  function sendGoToAmount() {
+    const name = document.getElementById('owSendName').value.trim();
+    const phone = document.getElementById('owSendPhone').value.trim();
+    if (!name) { showToast('❌ Recipient name required', 'error'); return; }
+    if (!phone) { showToast('❌ Recipient phone required', 'error'); return; }
+    sendState.name = name; sendState.phone = phone;
+    document.getElementById('owSendBalanceHint').textContent = 'Available balance: ' + fmtNaira(wallet ? wallet.balance : 0);
+    document.getElementById('owSendStepTitle').textContent = 'Enter Amount';
+    showStep('send', 'amount', ['recipient', 'amount', 'confirm', 'pin', 'success'], 'owSendProgress');
+  }
+
+  function sendGoToConfirm() {
+    sendState.note = document.getElementById('owSendNarration').value.trim();
+    document.getElementById('owSendConfirmAmount').textContent = fmtNaira(sendState.amount);
+    document.getElementById('owSendConfirmName').textContent = sendState.name;
+    document.getElementById('owSendConfirmPhone').textContent = sendState.phone;
+    document.getElementById('owSendConfirmNote').textContent = sendState.note || '—';
+    document.getElementById('owSendConfirmPoints').textContent = CONFIG.points.opay_wallet_send + ' pts';
+    document.getElementById('owSendStepTitle').textContent = 'Confirm Transfer';
+    showStep('send', 'confirm', ['recipient', 'amount', 'confirm', 'pin', 'success'], 'owSendProgress');
+  }
+
+  function sendGoToPin() {
+    sendState.pin = '';
+    updatePinDots('owSendPinDots', '');
+    document.getElementById('owSendStepTitle').textContent = 'Enter PIN';
+    showStep('send', 'pin', ['recipient', 'amount', 'confirm', 'pin', 'success'], 'owSendProgress');
+  }
+
+  function updatePinDots(elId, pin) {
+    document.querySelectorAll('#' + elId + ' .ow-dot').forEach((dot, i) => dot.classList.toggle('filled', i < pin.length));
+  }
+
+  async function processSend() {
+    const keypad = document.getElementById('owSendKeypad');
+    keypad.querySelectorAll('button').forEach(b => b.disabled = true);
+    try {
+      const res = await window.api.opaySendMoney({
+        recipientName: sendState.name,
+        recipientPhone: sendState.phone,
+        amount: sendState.amount,
+        note: sendState.note || undefined
+      });
+      const txn = res.transaction;
+      document.getElementById('owSendSuccessAmount').textContent = fmtNaira(sendState.amount);
+      document.getElementById('owSendSuccessName').textContent = sendState.name + ' (' + sendState.phone + ')';
+      document.getElementById('owSendSuccessRef').textContent = txn.reference;
+      document.getElementById('owSendSuccessDate').textContent = new Date(txn.createdAt).toLocaleString();
+      document.getElementById('owSendStepTitle').textContent = 'Success';
+      showStep('send', 'success', ['recipient', 'amount', 'confirm', 'pin', 'success'], 'owSendProgress');
+      await refreshUserAndPoints();
+      showToast('🟢 Sent! (-' + res.pointsCharged + ' pts)', 'success');
+    } catch (err) {
+      if (err && err.status === 402) {
+        showToast('❌ ' + (err.message || 'Insufficient balance for this transfer'), 'error');
+      } else {
+        handleAuthFailure(err);
+      }
+      sendGoToConfirm();
+    } finally {
+      keypad.querySelectorAll('button').forEach(b => b.disabled = false);
+    }
+  }
+
+  // ---- Transfer To Bank ----
+  function openTransfer() {
+    Object.assign(bankState, { amount: 0, note: '', pin: '' });
+    resolvedAccount = null;
+    document.getElementById('owBankAccountNumber').value = '';
+    document.getElementById('owBankAmountInput').value = '';
+    document.getElementById('owBankNarration').value = '';
+    clearBankResolvedAccount();
+    document.getElementById('owBankToAmountBtn').disabled = true;
+    document.getElementById('owBankStepTitle').textContent = 'Transfer To Bank';
+    showView('tobank');
+    showStep('bank', 'recipient', ['recipient', 'amount', 'confirm', 'pin', 'success'], 'owBankProgress');
+    loadBanks();
+  }
+  function backFromTransfer() { openDashboard(); }
+
+  async function loadBanks() {
+    const select = document.getElementById('owBankSelect');
+    if (!select) return;
+    if (banksCache) { renderBankOptions(select, banksCache); return; }
+    select.innerHTML = '<option value="">Loading banks…</option>';
+    try {
+      const res = await window.api.getBanks();
+      const list = (res && res.data) || [];
+      if (!list.length) throw new Error('empty');
+      banksCache = list;
+      renderBankOptions(select, list);
+    } catch (err) {
+      select.innerHTML = '<option value="">Unable to load banks — check Paystack setup</option>';
+    }
+  }
+
+  function renderBankOptions(select, list) {
+    select.innerHTML = '<option value="">Select bank</option>' + list.map(b => `<option value="${escHtml(b.code)}">${escHtml(b.name)}</option>`).join('');
+  }
+
+  function clearBankResolvedAccount() {
+    resolvedAccount = null;
+    const box = document.getElementById('owBankResolvedAccount');
+    if (box) { box.style.display = 'none'; box.textContent = ''; box.className = 'ow-resolved-account'; }
+    const btn = document.getElementById('owBankToAmountBtn');
+    if (btn) btn.disabled = true;
+  }
+
+  async function resolveBankAccount() {
+    const bankSelect = document.getElementById('owBankSelect');
+    const bankCode = bankSelect.value;
+    const bankName = bankSelect.options[bankSelect.selectedIndex] ? bankSelect.options[bankSelect.selectedIndex].text : '';
+    const accountNumber = document.getElementById('owBankAccountNumber').value.trim();
+    const box = document.getElementById('owBankResolvedAccount');
+    const btn = document.getElementById('owBankVerifyBtn');
+
+    if (!bankCode) { showToast('❌ Select a bank first', 'error'); return; }
+    if (!/^\d{10}$/.test(accountNumber)) { showToast('❌ Enter a valid 10-digit account number', 'error'); return; }
+
+    const originalLabel = btn.textContent;
+    try {
+      btn.disabled = true; btn.textContent = '🔍 Verifying…';
+      const res = await window.api.resolveBankAccount({ bank_code: bankCode, account_number: accountNumber });
+      const name = res && res.data && res.data.account_name;
+      if (res && res.success && name) {
+        resolvedAccount = { name, bankCode, bankName, accountNumber };
+        box.className = 'ow-resolved-account success';
+        box.textContent = '✓ ' + name;
+        box.style.display = 'block';
+        document.getElementById('owBankToAmountBtn').disabled = false;
+        showToast('✓ Account verified', 'success');
+      } else {
+        throw new Error((res && res.message) || 'Could not resolve account');
+      }
+    } catch (err) {
+      resolvedAccount = null;
+      document.getElementById('owBankToAmountBtn').disabled = true;
+      box.className = 'ow-resolved-account error';
+      box.textContent = '❌ ' + (err && err.message ? err.message : 'Could not verify account');
+      box.style.display = 'block';
+    } finally {
+      btn.disabled = false; btn.textContent = originalLabel;
+    }
+  }
+
+  function bankGoToAmount() {
+    if (!resolvedAccount) { showToast('❌ Verify the recipient account first', 'error'); return; }
+    document.getElementById('owBankBalanceHint').textContent = 'Available balance: ' + fmtNaira(wallet ? wallet.balance : 0);
+    document.getElementById('owBankStepTitle').textContent = 'Enter Amount';
+    showStep('bank', 'amount', ['recipient', 'amount', 'confirm', 'pin', 'success'], 'owBankProgress');
+  }
+
+  function bankGoToConfirm() {
+    bankState.note = document.getElementById('owBankNarration').value.trim();
+    document.getElementById('owBankConfirmAmount').textContent = fmtNaira(bankState.amount);
+    document.getElementById('owBankConfirmBank').textContent = resolvedAccount.bankName;
+    document.getElementById('owBankConfirmName').textContent = resolvedAccount.name;
+    document.getElementById('owBankConfirmNumber').textContent = resolvedAccount.accountNumber;
+    document.getElementById('owBankConfirmPoints').textContent = CONFIG.points.opay_bank_transfer + ' pts';
+    document.getElementById('owBankStepTitle').textContent = 'Confirm Transfer';
+    showStep('bank', 'confirm', ['recipient', 'amount', 'confirm', 'pin', 'success'], 'owBankProgress');
+  }
+
+  function bankGoToPin() {
+    bankState.pin = '';
+    updatePinDots('owBankPinDots', '');
+    document.getElementById('owBankStepTitle').textContent = 'Enter PIN';
+    showStep('bank', 'pin', ['recipient', 'amount', 'confirm', 'pin', 'success'], 'owBankProgress');
+  }
+
+  async function processBankTransfer() {
+    const keypad = document.getElementById('owBankKeypad');
+    keypad.querySelectorAll('button').forEach(b => b.disabled = true);
+    try {
+      const res = await window.api.opayBankTransfer({
+        bankName: resolvedAccount.bankName,
+        bankCode: resolvedAccount.bankCode,
+        accountNumber: resolvedAccount.accountNumber,
+        accountName: resolvedAccount.name,
+        amount: bankState.amount,
+        note: bankState.note || undefined
+      });
+      const txn = res.transaction;
+      document.getElementById('owBankSuccessAmount').textContent = fmtNaira(bankState.amount);
+      document.getElementById('owBankSuccessName').textContent = resolvedAccount.name;
+      document.getElementById('owBankSuccessBank').textContent = resolvedAccount.bankName;
+      document.getElementById('owBankSuccessRef').textContent = txn.reference;
+      document.getElementById('owBankSuccessDate').textContent = new Date(txn.createdAt).toLocaleString();
+      document.getElementById('owBankStepTitle').textContent = 'Success';
+      showStep('bank', 'success', ['recipient', 'amount', 'confirm', 'pin', 'success'], 'owBankProgress');
+      await refreshUserAndPoints();
+      showToast('🟢 Transfer successful! (-' + res.pointsCharged + ' pts)', 'success');
+    } catch (err) {
+      if (err && err.status === 402) {
+        showToast('❌ ' + (err.message || 'Insufficient balance for this transfer'), 'error');
+      } else {
+        handleAuthFailure(err);
+      }
+      bankGoToConfirm();
+    } finally {
+      keypad.querySelectorAll('button').forEach(b => b.disabled = false);
+    }
+  }
+
+  // ---- History ----
+  async function openHistory() {
+    showView('history');
+    const list = document.getElementById('owHistoryList');
+    list.innerHTML = '<div class="ow-skeleton"></div>';
+    try {
+      const txns = await window.api.getOpayTransactions(200);
+      renderTxnList(list, txns);
+    } catch (err) {
+      handleAuthFailure(err);
+    }
+  }
+
+  // ---- Wire up amount inputs / quick-amounts / keypads (once, at module load) ----
+  function bindOnce() {
+    const sendAmt = document.getElementById('owSendAmountInput');
+    if (sendAmt) sendAmt.addEventListener('input', () => {
+      sendAmt.value = sendAmt.value.replace(/[^0-9]/g, '');
+      sendState.amount = parseInt(sendAmt.value || '0', 10);
+      const valid = sendState.amount > 0 && wallet && sendState.amount <= Number(wallet.balance || 0);
+      document.getElementById('owSendToConfirmBtn').disabled = !valid;
+      const hint = document.getElementById('owSendBalanceHint');
+      if (wallet && sendState.amount > Number(wallet.balance || 0) && sendState.amount > 0) {
+        hint.innerHTML = `<span style="color:var(--danger);font-weight:600">Insufficient balance — available ${fmtNaira(wallet.balance)}</span>`;
+      } else {
+        hint.textContent = 'Available balance: ' + fmtNaira(wallet ? wallet.balance : 0);
+      }
+    });
+    document.querySelectorAll('#ow-send-step-amount .ow-quick-amounts button').forEach(btn => {
+      btn.addEventListener('click', () => { sendAmt.value = btn.dataset.amt; sendAmt.dispatchEvent(new Event('input')); });
+    });
+    const sendKeypad = document.getElementById('owSendKeypad');
+    if (sendKeypad) sendKeypad.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-key]');
+      if (!btn) return;
+      const key = btn.dataset.key;
+      if (key === 'del') sendState.pin = sendState.pin.slice(0, -1);
+      else if (sendState.pin.length < 4) sendState.pin += key;
+      updatePinDots('owSendPinDots', sendState.pin);
+      if (sendState.pin.length === 4) setTimeout(processSend, 250);
+    });
+
+    const bankAmt = document.getElementById('owBankAmountInput');
+    if (bankAmt) bankAmt.addEventListener('input', () => {
+      bankAmt.value = bankAmt.value.replace(/[^0-9]/g, '');
+      bankState.amount = parseInt(bankAmt.value || '0', 10);
+      const valid = bankState.amount > 0 && wallet && bankState.amount <= Number(wallet.balance || 0);
+      document.getElementById('owBankToConfirmBtn').disabled = !valid;
+      const hint = document.getElementById('owBankBalanceHint');
+      if (wallet && bankState.amount > Number(wallet.balance || 0) && bankState.amount > 0) {
+        hint.innerHTML = `<span style="color:var(--danger);font-weight:600">Insufficient balance — available ${fmtNaira(wallet.balance)}</span>`;
+      } else {
+        hint.textContent = 'Available balance: ' + fmtNaira(wallet ? wallet.balance : 0);
+      }
+    });
+    document.querySelectorAll('#ow-bank-step-amount .ow-quick-amounts button').forEach(btn => {
+      btn.addEventListener('click', () => { bankAmt.value = btn.dataset.amt; bankAmt.dispatchEvent(new Event('input')); });
+    });
+    const bankKeypad = document.getElementById('owBankKeypad');
+    if (bankKeypad) bankKeypad.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-key]');
+      if (!btn) return;
+      const key = btn.dataset.key;
+      if (key === 'del') bankState.pin = bankState.pin.slice(0, -1);
+      else if (bankState.pin.length < 4) bankState.pin += key;
+      updatePinDots('owBankPinDots', bankState.pin);
+      if (bankState.pin.length === 4) setTimeout(processBankTransfer, 250);
+    });
+
+    const [bankSelectEl, bankAcctEl] = [document.getElementById('owBankSelect'), document.getElementById('owBankAccountNumber')];
+    [bankSelectEl, bankAcctEl].forEach(el => { if (el) { el.addEventListener('change', clearBankResolvedAccount); el.addEventListener('input', clearBankResolvedAccount); } });
+
+    const eyeToggle = document.getElementById('owEyeToggle');
+    if (eyeToggle) eyeToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      balanceVisible = !balanceVisible;
+      updateBalanceDisplay();
+      eyeToggle.querySelector('i').className = balanceVisible ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye';
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', bindOnce);
+  if (document.readyState !== 'loading') bindOnce();
+
+  return {
+    openDashboard, loadDashboard,
+    openSend, backFromSend, sendGoToAmount, sendGoToConfirm, sendGoToPin,
+    openTransfer, backFromTransfer, resolveBankAccount, bankGoToAmount, bankGoToConfirm, bankGoToPin,
+    openHistory
+  };
+})();
 
 function buyPoints(packageId) {
   const checkoutUrl = WHOP_CHECKOUT_URLS[packageId];
