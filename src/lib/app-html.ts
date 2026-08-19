@@ -467,6 +467,61 @@ export const APP_HTML = `<!DOCTYPE html>
 <!-- OPay Wallet Demo — transaction receipt modal (History view) -->
 <div class="ow-modal-overlay" id="owReceiptOverlay" onclick="if(event.target===this) OpayWallet.closeReceipt()"></div>
 
+<div class="page" id="page-marketplace" role="main" aria-label="Scripts Marketplace">
+<div class="receipt-page-header"><button class="back-btn" onclick="showPage('dashboard')" aria-label="Go back">←</button><div class="page-title-sm">🛒 Scripts Marketplace</div></div>
+
+<div class="mkt-tabs" id="mktTabs" role="tablist" aria-label="Marketplace sections">
+<button class="mkt-tab active" data-tab="browse" onclick="Marketplace.switchTab('browse')" role="tab" aria-selected="true">Browse</button>
+<button class="mkt-tab" data-tab="mylistings" onclick="Marketplace.switchTab('mylistings')" role="tab" aria-selected="false">My Listings</button>
+<button class="mkt-tab" data-tab="purchases" onclick="Marketplace.switchTab('purchases')" role="tab" aria-selected="false">My Purchases</button>
+<button class="mkt-tab" id="mktAdminTab" data-tab="admin" onclick="Marketplace.switchTab('admin')" role="tab" aria-selected="false" style="display:none">Review Queue</button>
+</div>
+
+<!-- ===== BROWSE TAB ===== -->
+<div class="mkt-tab-panel active" id="mktPanel-browse">
+<div class="ai-tool-scroll" id="mktCategoryScroll" role="tablist" aria-label="Categories"></div>
+<div class="mkt-search-box"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="mktSearchInput" placeholder="Search templates..."></div>
+<div id="mktBrowseGrid" class="mkt-listing-grid"><div class="ow-skeleton" style="height:180px;margin:0 1rem;"></div></div>
+</div>
+
+<!-- ===== MY LISTINGS TAB ===== -->
+<div class="mkt-tab-panel" id="mktPanel-mylistings">
+<div style="padding:1rem"><button class="action-btn primary" style="width:100%" onclick="Marketplace.openCreateForm()">+ Create New Listing</button></div>
+<div id="mktMyListings" class="mkt-listing-grid"></div>
+</div>
+
+<!-- ===== MY PURCHASES TAB ===== -->
+<div class="mkt-tab-panel" id="mktPanel-purchases">
+<div id="mktPurchases" class="mkt-listing-grid"></div>
+</div>
+
+<!-- ===== ADMIN REVIEW QUEUE TAB ===== -->
+<div class="mkt-tab-panel" id="mktPanel-admin">
+<div id="mktAdminQueue" class="mkt-listing-grid"></div>
+</div>
+
+<!-- ===== CREATE / EDIT LISTING FORM (overlay) ===== -->
+<div class="mkt-form-overlay" id="mktFormOverlay" onclick="if(event.target===this) Marketplace.closeCreateForm()">
+<div class="mkt-form-sheet">
+<div class="mkt-form-header"><span id="mktFormTitle">Create Listing</span><button class="mkt-form-close" onclick="Marketplace.closeCreateForm()" aria-label="Close">✕</button></div>
+<div class="form-field"><label>Title</label><input type="text" id="mktFieldTitle" maxlength="100" placeholder="e.g. Modern SaaS Landing Page"></div>
+<div class="form-field"><label>Description</label><textarea id="mktFieldDescription" maxlength="2000" placeholder="Describe what the buyer gets, tech stack, features..."></textarea></div>
+<div class="form-field"><label>Category</label><select id="mktFieldCategory"></select></div>
+<div class="form-field"><label>Price (points)</label><input type="number" id="mktFieldPrice" min="10" max="500000" placeholder="e.g. 500"></div>
+<div class="form-field"><label>Preview Image URL</label><input type="url" id="mktFieldPreview" placeholder="https://..."></div>
+<div class="form-field"><label>Template File (.zip, max 25MB)</label><input type="file" id="mktFieldFile" accept=".zip"><div id="mktFileStatus" style="font-size:.75rem;color:var(--text-muted);margin-top:.4rem"></div></div>
+<button class="action-btn primary" id="mktFormSubmitBtn" style="width:100%;margin-top:.5rem" onclick="Marketplace.submitListing()">Submit for Review</button>
+<div id="mktFormError" style="color:var(--danger);font-size:.8rem;margin-top:.6rem;display:none"></div>
+</div>
+</div>
+
+<!-- ===== LISTING DETAIL / PURCHASE MODAL ===== -->
+<div class="mkt-form-overlay" id="mktDetailOverlay" onclick="if(event.target===this) Marketplace.closeDetail()">
+<div class="mkt-form-sheet" id="mktDetailSheet"></div>
+</div>
+
+</div>
+
 <div class="page" id="page-ai" role="main" aria-label="AI Assistant">
 <div class="receipt-page-header"><button class="back-btn" onclick="showPage('dashboard')" aria-label="Go back">←</button><div class="page-title-sm">🤖 Chapo'sHub AI</div></div>
 <div class="ai-tool-scroll" id="aiToolScroll" role="tablist" aria-label="AI tools"></div>

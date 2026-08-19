@@ -20,7 +20,7 @@ const WHOP_CHECKOUT_URLS = {
 // === END CONFIG ===
 
 // Server-backed user/points/history state (populated after auth)
-const user = { username: '', email: '', points: 0, country: 'KE', referralCode: '' };
+const user = { username: '', email: '', points: 0, country: 'KE', referralCode: '', role: 'user' };
 
 // Local-only draft state for the receipt builder (not persisted server-side)
 const state = {
@@ -64,8 +64,11 @@ async function refreshUserAndPoints() {
     user.points = u.points;
     user.country = u.country;
     user.referralCode = u.referralCode;
+    user.role = u.role || 'user';
     updatePointsDisplay();
     updateUserDisplay();
+    const adminTab = document.getElementById('mktAdminTab');
+    if (adminTab) adminTab.style.display = user.role === 'admin' ? '' : 'none';
   } catch (err) {
     handleAuthFailure(err);
   }
@@ -127,7 +130,7 @@ document.addEventListener('keydown', function (e) {
 const platforms = { generic: { name: 'FreshMart', color: '#2c2c2c', badge: 'RECEIPT', taxRate: 8.25, currency: '$', items: [{ description: 'Organic Avocado', quantity: 2, price: 2.49 }, { description: 'Whole Wheat Bread', quantity: 1, price: 3.79 }, { description: 'Almond Milk 1L', quantity: 1, price: 4.29 }] }, binance: { name: 'Binance', color: '#f0b90b', badge: 'BINANCE', taxRate: 0, currency: '$', items: [{ description: 'BTC Purchase', quantity: 0.0025, price: 28450 }, { description: 'Network Fee', quantity: 1, price: 2.5 }] }, bybit: { name: 'Bybit', color: '#f7a600', badge: 'BYBIT', taxRate: 0, currency: '$', items: [{ description: 'ETH/USDT Perp', quantity: 0.5, price: 1850 }, { description: 'Trading Fee', quantity: 1, price: 1.85 }] }, coinbase: { name: 'Coinbase', color: '#0052ff', badge: 'COINBASE', taxRate: 0, currency: '$', items: [{ description: 'ETH Purchase', quantity: 0.1, price: 1850 }, { description: 'Coinbase Fee', quantity: 1, price: 18.5 }] }, paypal: { name: 'PayPal', color: '#003087', badge: 'PAYPAL', taxRate: 0, currency: '$', items: [{ description: 'Payment Received', quantity: 1, price: 150 }, { description: 'PayPal Fee', quantity: 1, price: -4.65 }] }, cashapp: { name: 'Cash App', color: '#00d632', badge: 'CASHAPP', taxRate: 0, currency: '$', items: [{ description: 'Cash Transfer', quantity: 1, price: 75 }, { description: 'Instant Fee', quantity: 1, price: -1.5 }] }, crypto: { name: 'Crypto.com', color: '#002d72', badge: 'CRYPTO', taxRate: 0, currency: '$', items: [{ description: 'CRO Stake', quantity: 1000, price: 0.065 }, { description: 'Card Fee', quantity: 1, price: 0 }] }, opay: { name: 'OPay', color: '#1dc677', badge: 'OPAY', taxRate: 0, currency: '₦', items: [{ description: 'Airtime Purchase', quantity: 1, price: 1000 }, { description: 'Cashback', quantity: 1, price: -50 }] }, kuda: { name: 'Kuda', color: '#40196d', badge: 'KUDA', taxRate: 0, currency: '₦', items: [{ description: 'Transfer Sent', quantity: 1, price: 5000 }, { description: 'Transfer Fee', quantity: 1, price: 0 }] }, wise: { name: 'Wise', color: '#00b9ff', badge: 'WISE', taxRate: 0, currency: '€', items: [{ description: 'Transfer to EUR', quantity: 1, price: 500 }, { description: 'Wise Fee', quantity: 1, price: -3.75 }] }, venmo: { name: 'Venmo', color: '#008CFF', badge: 'VENMO', taxRate: 0, currency: '$', items: [{ description: 'Payment Sent', quantity: 1, price: 50 }, { description: 'Venmo Fee', quantity: 1, price: 0 }] }, trustwallet: { name: 'Trust Wallet', color: '#3375BB', badge: 'TRUST', taxRate: 0, currency: '$', items: [{ description: 'BNB Swap', quantity: 1, price: 250 }, { description: 'Network Fee', quantity: 1, price: 0.5 }] }, zelle: { name: 'Zelle', color: '#6d1ed4', badge: 'ZELLE', taxRate: 0, currency: '$', items: [{ description: 'Transfer Sent', quantity: 1, price: 200 }, { description: 'Zelle Fee', quantity: 1, price: 0 }] } };
 // `dedicated: true` routes the card to its own full-service page (showPage('opay'))
 // instead of the generic multi-platform receipt builder (showPage('receipts')).
-const allServices = [{ key: 'crypto', name: 'Crypto Receipts', icon: '📄', new: true }, { key: 'paypal', name: 'Paypal', icon: 'P', color: '#003087' }, { key: 'kuda', name: 'Kuda', icon: 'K', color: '#40196d' }, { key: 'cashapp', name: 'Cash App', icon: '$', color: '#00d632' }, { key: 'zelle', name: 'Zelle', icon: 'Z', color: '#6d1ed4', new: true }, { key: 'venmo', name: 'Venmo', icon: 'V', color: '#008CFF', new: true }, { key: 'trustwallet', name: 'Trust Wallet', icon: 'T', color: '#3375BB', new: true }, { key: 'wise', name: 'Wise', icon: 'W', color: '#00b9ff', new: true }, { key: 'opay', name: 'OPay', icon: 'O', color: '#1dc677', dedicated: true }, { key: 'binance', name: 'Binance', icon: 'B', color: '#f0b90b' }];
+const allServices = [{ key: 'crypto', name: 'Crypto Receipts', icon: '📄', new: true }, { key: 'paypal', name: 'Paypal', icon: 'P', color: '#003087' }, { key: 'kuda', name: 'Kuda', icon: 'K', color: '#40196d' }, { key: 'cashapp', name: 'Cash App', icon: '$', color: '#00d632' }, { key: 'zelle', name: 'Zelle', icon: 'Z', color: '#6d1ed4', new: true }, { key: 'venmo', name: 'Venmo', icon: 'V', color: '#008CFF', new: true }, { key: 'trustwallet', name: 'Trust Wallet', icon: 'T', color: '#3375BB', new: true }, { key: 'wise', name: 'Wise', icon: 'W', color: '#00b9ff', new: true }, { key: 'opay', name: 'OPay', icon: 'O', color: '#1dc677', dedicated: true }, { key: 'binance', name: 'Binance', icon: 'B', color: '#f0b90b' }, { key: 'marketplace', name: 'Scripts Marketplace', icon: '🛒', color: 'linear-gradient(135deg,#6366f1,#8b5cf6)', dedicated: true, new: true }];
 
 function formatDate(date) { return date.toLocaleString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }); }
 function formatCurrency(val) { return state.currency + parseFloat(val).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
@@ -155,6 +158,7 @@ function showPage(pageId) {
   if (idx >= 0) { const btn = document.querySelectorAll('.nav-item-btm')[idx]; btn.classList.add('active'); btn.setAttribute('aria-current', 'page'); }
   if (pageId === 'history') refreshHistory();
   if (pageId === 'opay') { OpayWallet.openDashboard(); }
+  if (pageId === 'marketplace') { Marketplace.openBrowse(); }
 }
 
 function serviceNavAction(s) { return s.dedicated ? `showPage('${s.key}')` : `showPage('receipts');setPlatform('${s.key}')`; }
@@ -1039,6 +1043,325 @@ const OpayWallet = (function () {
     openSend, backFromSend, sendGoToAmount, sendGoToConfirm, sendGoToPin,
     openTransfer, backFromTransfer, resolveBankAccount, bankGoToAmount, bankGoToConfirm, bankGoToPin,
     openHistory, closeReceipt
+  };
+})();
+
+// === Scripts Marketplace (legitimate website-templates marketplace) ===
+const Marketplace = (function () {
+  const CATEGORIES = ['business', 'portfolio', 'ecommerce', 'landing', 'saas', 'blog', 'other'];
+  let currentTab = 'browse';
+  let currentCategory = 'all';
+  let searchTerm = '';
+  let editingListingId = null;
+  let pendingFile = null;
+  let bound = false;
+
+  function catLabel(c) { return c.charAt(0).toUpperCase() + c.slice(1); }
+
+  function renderCategoryChips() {
+    const scroll = document.getElementById('mktCategoryScroll');
+    if (!scroll) return;
+    const chips = [{ key: 'all', label: 'All' }].concat(CATEGORIES.map(c => ({ key: c, label: catLabel(c) })));
+    scroll.innerHTML = chips.map(c => `<div class="ai-tool-chip ${c.key === currentCategory ? 'active' : ''}" data-cat="${c.key}" onclick="Marketplace.setCategory('${c.key}')" role="tab" aria-selected="${c.key === currentCategory}">${c.label}</div>`).join('');
+  }
+
+  function listingCardHtml(l, opts) {
+    opts = opts || {};
+    const img = l.previewImageUrl
+      ? `<img src="${escHtml(l.previewImageUrl)}" alt="" style="width:100%;height:110px;object-fit:cover;border-radius:12px 12px 0 0">`
+      : `<div style="width:100%;height:110px;border-radius:12px 12px 0 0;background:var(--bg-card-light);display:flex;align-items:center;justify-content:center;font-size:2rem">🛒</div>`;
+    const statusTag = opts.showStatus && l.status && l.status !== 'approved'
+      ? `<div class="mkt-status-tag mkt-status-${l.status}">${l.status}</div>` : '';
+    const purchasedTag = l.purchased ? `<div class="mkt-status-tag mkt-status-approved">Owned</div>` : '';
+    return `<div class="mkt-listing-card" onclick="Marketplace.openDetail('${l.id}', '${opts.context || 'browse'}')">
+      ${img}${statusTag}${purchasedTag}
+      <div class="mkt-listing-body">
+        <div class="mkt-listing-title">${escHtml(l.title)}</div>
+        <div class="mkt-listing-meta">${catLabel(l.category)} ${l.sellerUsername ? '· by ' + escHtml(l.sellerUsername) : ''}</div>
+        <div class="mkt-listing-price">${l.pricePoints || l.pricePaid || 0} pts</div>
+      </div>
+    </div>`;
+  }
+
+  async function openBrowse() {
+    switchTab('browse');
+  }
+
+  async function loadBrowse() {
+    renderCategoryChips();
+    const grid = document.getElementById('mktBrowseGrid');
+    grid.innerHTML = '<div class="ow-skeleton" style="height:180px;margin:0 1rem;"></div>';
+    try {
+      const listings = await window.api.getMarketplaceListings({
+        category: currentCategory === 'all' ? undefined : currentCategory,
+        search: searchTerm || undefined
+      });
+      if (!listings.length) {
+        grid.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🛒</div><div class="empty-state-title">No templates yet</div><div class="empty-state-desc">Be the first to list a website template.</div></div>';
+        return;
+      }
+      grid.innerHTML = listings.map(l => listingCardHtml(l, { context: 'browse' })).join('');
+    } catch (err) {
+      grid.innerHTML = '<div class="empty-state"><div class="empty-state-title">Couldn\'t load listings</div></div>';
+      handleAuthFailure(err);
+    }
+  }
+
+  function setCategory(cat) { currentCategory = cat; loadBrowse(); }
+
+  async function loadMyListings() {
+    const grid = document.getElementById('mktMyListings');
+    grid.innerHTML = '<div class="ow-skeleton" style="height:180px;margin:0 1rem;"></div>';
+    try {
+      const listings = await window.api.getMyMarketplaceListings();
+      if (!listings.length) {
+        grid.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📦</div><div class="empty-state-title">No listings yet</div><div class="empty-state-desc">Create your first template listing above.</div></div>';
+        return;
+      }
+      grid.innerHTML = listings.map(l => {
+        let extra = '';
+        if (l.status === 'rejected' && l.rejectionReason) extra = `<div style="font-size:.72rem;color:var(--danger);padding:0 .8rem .6rem">Rejected: ${escHtml(l.rejectionReason)}</div>`;
+        return listingCardHtml(l, { context: 'mine', showStatus: true }) + extra;
+      }).join('');
+    } catch (err) {
+      grid.innerHTML = '<div class="empty-state"><div class="empty-state-title">Couldn\'t load your listings</div></div>';
+      handleAuthFailure(err);
+    }
+  }
+
+  async function loadPurchases() {
+    const grid = document.getElementById('mktPurchases');
+    grid.innerHTML = '<div class="ow-skeleton" style="height:180px;margin:0 1rem;"></div>';
+    try {
+      const purchases = await window.api.getMarketplacePurchases();
+      if (!purchases.length) {
+        grid.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🧾</div><div class="empty-state-title">No purchases yet</div><div class="empty-state-desc">Templates you buy will show up here with a download link.</div></div>';
+        return;
+      }
+      grid.innerHTML = purchases.map(p => `<div class="mkt-listing-card">
+        <div style="width:100%;height:110px;border-radius:12px 12px 0 0;background:var(--bg-card-light);display:flex;align-items:center;justify-content:center;font-size:2rem;overflow:hidden">${p.previewImageUrl ? `<img src="${escHtml(p.previewImageUrl)}" style="width:100%;height:100%;object-fit:cover">` : '🛒'}</div>
+        <div class="mkt-listing-body">
+          <div class="mkt-listing-title">${escHtml(p.title)}</div>
+          <div class="mkt-listing-meta">by ${escHtml(p.sellerUsername)} · ${p.pricePaid} pts paid</div>
+          <button class="action-btn primary" style="width:100%;margin-top:.6rem" onclick="Marketplace.download('${p.id}', event)">⬇ Download</button>
+        </div>
+      </div>`).join('');
+    } catch (err) {
+      grid.innerHTML = '<div class="empty-state"><div class="empty-state-title">Couldn\'t load purchases</div></div>';
+      handleAuthFailure(err);
+    }
+  }
+
+  async function loadAdminQueue() {
+    const grid = document.getElementById('mktAdminQueue');
+    grid.innerHTML = '<div class="ow-skeleton" style="height:180px;margin:0 1rem;"></div>';
+    try {
+      const listings = await window.api.getMarketplaceAdminPending();
+      if (!listings.length) {
+        grid.innerHTML = '<div class="empty-state"><div class="empty-state-icon">✅</div><div class="empty-state-title">Nothing pending</div><div class="empty-state-desc">New submissions will appear here for review.</div></div>';
+        return;
+      }
+      grid.innerHTML = listings.map(l => `<div class="mkt-listing-card">
+        <div class="mkt-listing-body">
+          <div class="mkt-listing-title">${escHtml(l.title)}</div>
+          <div class="mkt-listing-meta">${catLabel(l.category)} · by ${escHtml(l.sellerUsername)} · ${l.pricePoints} pts</div>
+          <div style="font-size:.8rem;color:var(--text-muted);margin:.5rem 0;max-height:80px;overflow:auto">${escHtml(l.description)}</div>
+          <div style="display:flex;gap:.5rem">
+            <button class="action-btn success" style="flex:1" onclick="Marketplace.approve('${l.id}')">✓ Approve</button>
+            <button class="action-btn secondary" style="flex:1" onclick="Marketplace.reject('${l.id}')">✕ Reject</button>
+          </div>
+        </div>
+      </div>`).join('');
+    } catch (err) {
+      grid.innerHTML = '<div class="empty-state"><div class="empty-state-title">Couldn\'t load review queue</div></div>';
+      handleAuthFailure(err);
+    }
+  }
+
+  function switchTab(tab) {
+    currentTab = tab;
+    document.querySelectorAll('.mkt-tab').forEach(t => { t.classList.toggle('active', t.dataset.tab === tab); t.setAttribute('aria-selected', t.dataset.tab === tab); });
+    document.querySelectorAll('.mkt-tab-panel').forEach(p => p.classList.remove('active'));
+    const panel = document.getElementById('mktPanel-' + tab);
+    if (panel) panel.classList.add('active');
+    if (tab === 'browse') loadBrowse();
+    else if (tab === 'mylistings') loadMyListings();
+    else if (tab === 'purchases') loadPurchases();
+    else if (tab === 'admin') loadAdminQueue();
+  }
+
+  async function download(purchaseId, ev) {
+    if (ev) ev.stopPropagation();
+    try {
+      const { blob, filename } = await window.api.downloadMarketplaceFile(purchaseId);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+    } catch (err) {
+      showToast(err.message || 'Download failed', 'error');
+    }
+  }
+
+  async function approve(id) {
+    try { await window.api.approveMarketplaceListing(id); showToast('Listing approved ✓'); loadAdminQueue(); }
+    catch (err) { showToast(err.message || 'Failed to approve', 'error'); }
+  }
+
+  async function reject(id) {
+    const reason = prompt('Rejection reason (shown to the seller):');
+    if (!reason || !reason.trim()) return;
+    try { await window.api.rejectMarketplaceListing(id, reason.trim()); showToast('Listing rejected'); loadAdminQueue(); }
+    catch (err) { showToast(err.message || 'Failed to reject', 'error'); }
+  }
+
+  function openCreateForm() {
+    editingListingId = null;
+    pendingFile = null;
+    document.getElementById('mktFormTitle').textContent = 'Create Listing';
+    document.getElementById('mktFieldTitle').value = '';
+    document.getElementById('mktFieldDescription').value = '';
+    document.getElementById('mktFieldPrice').value = '';
+    document.getElementById('mktFieldPreview').value = '';
+    document.getElementById('mktFieldFile').value = '';
+    document.getElementById('mktFileStatus').textContent = '';
+    document.getElementById('mktFormError').style.display = 'none';
+    const catSel = document.getElementById('mktFieldCategory');
+    catSel.innerHTML = CATEGORIES.map(c => `<option value="${c}">${catLabel(c)}</option>`).join('');
+    document.getElementById('mktFormOverlay').classList.add('open');
+  }
+
+  function closeCreateForm() { document.getElementById('mktFormOverlay').classList.remove('open'); }
+
+  async function editListing(id) {
+    try {
+      const l = await window.api.getMarketplaceListing(id);
+      editingListingId = id;
+      pendingFile = null;
+      document.getElementById('mktFormTitle').textContent = 'Edit Listing';
+      document.getElementById('mktFieldTitle').value = l.title;
+      document.getElementById('mktFieldDescription').value = l.description;
+      document.getElementById('mktFieldPrice').value = l.pricePoints;
+      document.getElementById('mktFieldPreview').value = l.previewImageUrl || '';
+      document.getElementById('mktFieldFile').value = '';
+      document.getElementById('mktFileStatus').textContent = l.hasFile ? `Current file: ${l.fileName}` : 'No file uploaded yet';
+      document.getElementById('mktFormError').style.display = 'none';
+      const catSel = document.getElementById('mktFieldCategory');
+      catSel.innerHTML = CATEGORIES.map(c => `<option value="${c}" ${c === l.category ? 'selected' : ''}>${catLabel(c)}</option>`).join('');
+      document.getElementById('mktFormOverlay').classList.add('open');
+      closeDetail();
+    } catch (err) { showToast(err.message || 'Failed to load listing', 'error'); }
+  }
+
+  async function submitListing() {
+    const errEl = document.getElementById('mktFormError');
+    errEl.style.display = 'none';
+    const payload = {
+      title: document.getElementById('mktFieldTitle').value.trim(),
+      description: document.getElementById('mktFieldDescription').value.trim(),
+      category: document.getElementById('mktFieldCategory').value,
+      pricePoints: parseInt(document.getElementById('mktFieldPrice').value, 10),
+      previewImageUrl: document.getElementById('mktFieldPreview').value.trim() || undefined
+    };
+    const fileInput = document.getElementById('mktFieldFile');
+    const file = fileInput.files && fileInput.files[0];
+    const btn = document.getElementById('mktFormSubmitBtn');
+    btn.disabled = true; btn.textContent = 'Submitting...';
+    try {
+      let listing;
+      if (editingListingId) {
+        listing = await window.api.updateMarketplaceListing(editingListingId, payload);
+      } else {
+        listing = await window.api.createMarketplaceListing(payload);
+      }
+      if (file) {
+        if (!/\.zip$/i.test(file.name)) throw new Error('Only .zip files are accepted');
+        if (file.size > 25 * 1024 * 1024) throw new Error('File too large (max 25MB)');
+        await window.api.uploadMarketplaceFile(listing.id, file);
+      }
+      showToast('Listing submitted for review ✓');
+      closeCreateForm();
+      loadMyListings();
+    } catch (err) {
+      errEl.textContent = err.details || err.message || 'Something went wrong';
+      errEl.style.display = 'block';
+    } finally {
+      btn.disabled = false; btn.textContent = 'Submit for Review';
+    }
+  }
+
+  async function deleteListing(id) {
+    if (!confirm('Remove this listing? Buyers who already purchased it keep their download.')) return;
+    try { await window.api.deleteMarketplaceListing(id); showToast('Listing removed'); loadMyListings(); closeDetail(); }
+    catch (err) { showToast(err.message || 'Failed to remove listing', 'error'); }
+  }
+
+  async function openDetail(id, context) {
+    const overlay = document.getElementById('mktDetailOverlay');
+    const sheet = document.getElementById('mktDetailSheet');
+    sheet.innerHTML = '<div class="ow-skeleton" style="height:200px;margin:1rem;"></div>';
+    overlay.classList.add('open');
+    try {
+      const l = await window.api.getMarketplaceListing(id);
+      const isOwner = context === 'mine';
+      const img = l.previewImageUrl ? `<img src="${escHtml(l.previewImageUrl)}" style="width:100%;height:160px;object-fit:cover;border-radius:12px;margin-bottom:1rem">` : '';
+      let actionsHtml = '';
+      if (isOwner) {
+        actionsHtml = `<button class="action-btn secondary" style="width:100%;margin-bottom:.5rem" onclick="Marketplace.editListing('${l.id}')">✎ Edit</button>
+          <button class="action-btn secondary" style="width:100%;color:var(--danger)" onclick="Marketplace.deleteListing('${l.id}')">🗑 Remove Listing</button>`;
+      } else if (l.purchased) {
+        actionsHtml = `<div style="text-align:center;color:var(--success);font-weight:700;margin-bottom:.5rem">✓ You own this template</div>
+          <button class="action-btn primary" style="width:100%" onclick="Marketplace.buyThenClose('${l.id}')">Go to My Purchases →</button>`;
+      } else {
+        actionsHtml = `<button class="action-btn primary" style="width:100%" onclick="Marketplace.purchase('${l.id}')">Buy for ${l.pricePoints} pts</button>`;
+      }
+      sheet.innerHTML = `<div class="mkt-form-header"><span>${escHtml(l.title)}</span><button class="mkt-form-close" onclick="Marketplace.closeDetail()">✕</button></div>
+        ${img}
+        <div class="mkt-listing-meta" style="margin-bottom:.6rem">${catLabel(l.category)} ${l.sellerUsername ? '· by ' + escHtml(l.sellerUsername) : ''} ${l.salesCount !== undefined ? '· ' + l.salesCount + ' sales' : ''}</div>
+        <div style="font-size:.88rem;color:var(--text);white-space:pre-wrap;margin-bottom:1rem">${escHtml(l.description)}</div>
+        <div class="mkt-listing-price" style="margin-bottom:1rem">${l.pricePoints} pts</div>
+        ${actionsHtml}`;
+    } catch (err) {
+      sheet.innerHTML = `<div class="empty-state"><div class="empty-state-title">Couldn't load listing</div></div>`;
+    }
+  }
+
+  function closeDetail() { document.getElementById('mktDetailOverlay').classList.remove('open'); }
+
+  function buyThenClose(id) { closeDetail(); switchTab('purchases'); }
+
+  async function purchase(id) {
+    try {
+      const result = await window.api.purchaseMarketplaceListing(id);
+      showToast(`Purchased "${result.title}" ✓`);
+      closeDetail();
+      updatePointsDisplay(); refreshUserAndPoints();
+      switchTab('purchases');
+    } catch (err) {
+      showToast(err.message || 'Purchase failed', 'error');
+    }
+  }
+
+  function bindOnce() {
+    if (bound) return; bound = true;
+    const search = document.getElementById('mktSearchInput');
+    if (search) {
+      let t;
+      search.addEventListener('input', (e) => {
+        clearTimeout(t);
+        t = setTimeout(() => { searchTerm = e.target.value.trim(); loadBrowse(); }, 300);
+      });
+    }
+  }
+
+  function openBrowseInit() { bindOnce(); openBrowse(); }
+
+  return {
+    openBrowse: openBrowseInit, switchTab, setCategory,
+    openCreateForm, closeCreateForm, submitListing, editListing, deleteListing,
+    openDetail, closeDetail, purchase, buyThenClose, download,
+    approve, reject
   };
 })();
 

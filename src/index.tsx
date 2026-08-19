@@ -18,6 +18,7 @@ import webhooks from './routes/webhooks'
 import opay from './routes/opay'
 import opayWallet from './routes/opay-wallet'
 import banks from './routes/banks'
+import marketplace from './routes/marketplace'
 
 const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>()
 
@@ -83,6 +84,7 @@ app.route('/api/webhooks', webhooks)
 app.route('/api/services/opay', opay)
 app.route('/api/services/opay', opayWallet)
 app.route('/api/banks', banks)
+app.route('/api/marketplace', marketplace)
 
 // Note: static frontend assets in public/ (index.html, /static/*) are served
 // automatically by Cloudflare Pages' built-in asset handler per _routes.json

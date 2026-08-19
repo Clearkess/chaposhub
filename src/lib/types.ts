@@ -12,6 +12,10 @@ export type Bindings = {
   // Paystack: real bank list + account-name resolution for the OPay demo's
   // "Bank Transfer" tab (wallet balance / transfer itself remain simulated).
   PAYSTACK_SECRET_KEY?: string   // secret, from Paystack dashboard (sk_live_... / sk_test_...)
+  // Scripts / website-templates marketplace: R2 bucket holding the actual
+  // uploaded template .zip files, streamed only to a listing's buyers via an
+  // authenticated route (never a public URL).
+  MARKETPLACE_BUCKET: R2Bucket
 }
 
 export type AppVariables = {
@@ -120,6 +124,41 @@ export interface PointsTransactionRow {
   payment_id: string | null
   created_at: string
 }
+
+export interface MarketplaceListingRow {
+  id: string
+  seller_id: string
+  title: string
+  description: string
+  category: string
+  price_points: number
+  preview_image_url: string | null
+  file_key: string | null
+  file_name: string | null
+  file_size: number | null
+  status: string
+  rejection_reason: string | null
+  sales_count: number
+  created_at: string
+  updated_at: string
+}
+
+export interface MarketplacePurchaseRow {
+  id: string
+  listing_id: string
+  buyer_id: string
+  seller_id: string
+  price_points: number
+  seller_earned_points: number
+  platform_fee_points: number
+  created_at: string
+}
+
+export const MARKETPLACE_CATEGORIES = [
+  'business', 'portfolio', 'ecommerce', 'landing', 'saas', 'blog', 'other'
+] as const
+
+export const MARKETPLACE_PLATFORM_FEE_PCT = 10 // seller keeps 90% of price_points per sale
 
 export interface ActivityRow {
   id: string

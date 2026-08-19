@@ -176,6 +176,85 @@
     async getDashboard() {
       return this.request('/analytics/dashboard');
     }
+
+    // --- Scripts Marketplace ---
+    async getMarketplaceListings(opts) {
+      const q = new URLSearchParams();
+      if (opts && opts.category) q.set('category', opts.category);
+      if (opts && opts.search) q.set('search', opts.search);
+      const qs = q.toString();
+      return this.request('/marketplace/listings' + (qs ? '?' + qs : ''));
+    }
+    async getMarketplaceListing(id) {
+      return this.request('/marketplace/listings/' + id);
+    }
+    async getMyMarketplaceListings() {
+      return this.request('/marketplace/my-listings');
+    }
+    async createMarketplaceListing(payload) {
+      return this.request('/marketplace/listings', { method: 'POST', body: payload });
+    }
+    async updateMarketplaceListing(id, payload) {
+      return this.request('/marketplace/listings/' + id, { method: 'PATCH', body: payload });
+    }
+    async deleteMarketplaceListing(id) {
+      return this.request('/marketplace/listings/' + id, { method: 'DELETE' });
+    }
+    // Raw binary upload (not JSON) - bypasses the JSON-stringify request() helper.
+    async uploadMarketplaceFile(id, file) {
+      const token = this.getToken();
+      const headers = { 'x-file-name': file.name || 'template.zip' };
+      if (token) headers['Authorization'] = 'Bearer ' + token;
+      let res;
+      try {
+        res = await fetch(this.baseUrl + '/marketplace/listings/' + id + '/upload', {
+          method: 'POST', headers, body: file
+        });
+      } catch (e) {
+        throw new APIError('Network error - please check your connection', 0, null);
+      }
+      let data = null;
+      try { data = await res.json(); } catch (e) { data = null; }
+      if (!res.ok) throw new APIError((data && data.error) || 'Upload failed', res.status, data && data.details);
+      return data;
+    }
+    async purchaseMarketplaceListing(id) {
+      return this.request('/marketplace/listings/' + id + '/purchase', { method: 'POST' });
+    }
+    async getMarketplacePurchases() {
+      return this.request('/marketplace/purchases');
+    }
+    async getMarketplaceSales() {
+      return this.request('/marketplace/sales');
+    }
+    // Downloads a purchased file as a Blob (auth header can't be set on a
+    // plain <a href> download, so we fetch it as a blob and trigger a
+    // client-side save via a temporary object URL).
+    async downloadMarketplaceFile(purchaseId) {
+      const token = this.getToken();
+      const headers = {};
+      if (token) headers['Authorization'] = 'Bearer ' + token;
+      const res = await fetch(this.baseUrl + '/marketplace/download/' + purchaseId, { headers });
+      if (!res.ok) {
+        let data = null;
+        try { data = await res.json(); } catch (e) {}
+        throw new APIError((data && data.error) || 'Download failed', res.status, null);
+      }
+      const disposition = res.headers.get('Content-Disposition') || '';
+      const match = disposition.match(/filename="([^"]+)"/);
+      const filename = match ? match[1] : 'template.zip';
+      const blob = await res.blob();
+      return { blob, filename };
+    }
+    async getMarketplaceAdminPending() {
+      return this.request('/marketplace/admin/pending');
+    }
+    async approveMarketplaceListing(id) {
+      return this.request('/marketplace/admin/listings/' + id + '/approve', { method: 'POST' });
+    }
+    async rejectMarketplaceListing(id, reason) {
+      return this.request('/marketplace/admin/listings/' + id + '/reject', { method: 'POST', body: { reason } });
+    }
   }
 
   window.APIError = APIError;

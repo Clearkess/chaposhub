@@ -12,5 +12,11 @@
       "database_name": "chaposhub-production",
       "database_id": "9c73c479-1782-4a29-a13a-597bb2faa9f3"
     }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "MARKETPLACE_BUCKET",
+      "bucket_name": "chaposhub-marketplace"
+    }
   ]
 }
