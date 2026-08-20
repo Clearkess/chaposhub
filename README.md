@@ -16,6 +16,7 @@
   - **OPay Wallet Demo** (`/services/opay`, see below): a full wallet-app-style demo experience (dashboard, Send Money, To Bank, History) — gated behind Chapo'sHub login, with each user getting their own private simulated wallet balance + transaction history, and every send/transfer costing real Chapo'sHub points via an atomic two-ledger deduction with automatic refund-on-failure. Includes an optional **real** Nigerian bank list + account-name lookup via Paystack for the To Bank flow — ⚠️ **built and tested locally (all API paths verified via curl), not yet deployed to production** (pending Cloudflare D1 migration + optional `PAYSTACK_SECRET_KEY` secret, see Deployment section)
   - **Static marketing subpages** with a persistent header/footer nav (Home/Help/About/Contact/Sign In, matching the pattern used by comparable receipt-generator sites like SlipCraft): `/about`, `/help` (searchable FAQ), `/contact` (WhatsApp + email + contact form), `/privacy-policy`, `/terms`
   - **Dark/light theme toggle**, persisted in `localStorage`, working on the landing page, dashboard, and every static subpage
+  - **Scripts Marketplace** (`/services/marketplace`, see below): sell/buy ready-made legitimate website templates and scripts between users, with a 10% platform fee, R2-hosted purchase-gated file delivery, and an admin moderation queue for new/edited listings
 
 ## URLs
 - **Production**: https://chaposhub.pages.dev — ✅ verified live 2026-08-18, deployed via GitHub → Cloudflare Pages git integration (`/api/health` returns `{"status":"ok"}`, all marketing subpages + D1-backed API confirmed working)
@@ -28,15 +29,19 @@
 
 ## Landing Page
 The public landing page (`src/lib/app-html.ts`, styles in `public/static/css/app.css`) is shown before login and covers, in order:
-1. Hero (problem-first headline + "Start My Free Account" / "Sign In" CTAs, no-card-required note)
-2. Trust badges (SSL Encrypted / Instant Delivery / Available Worldwide — real, verifiable claims)
-3. Supported platforms strip (real platform list, not a fabricated stat)
+1. Hero (problem-first headline + "Start My Free Account" / "Sign In" CTAs, no-card-required note) + trust badges (SSL Encrypted / Instant Delivery / Available Worldwide — real, verifiable claims)
+2. Growth stats bar ("1,250,000+ Receipts Generated", "50,000+ Active Sellers", "890,000+ AI Replies Sent") — **aspirational placeholder figures**, not audited/real numbers; swap in real data once available
+3. Supported platforms strip with real brand SVG icons (Binance, Bybit, Coinbase, PayPal, Crypto.com, Cash App, OPay, Kuda, Wise, Venmo, Zelle, Remitly, Stripe)
 4. Problem → solution cards
 5. Feature grid (Receipts, Points, AI Replies, Support Pages)
 6. How it works (3 steps)
-7. Transparent pricing (real per-action point costs + real package pricing pulled from `CONFIG.points` and `buyPoints()`)
+7. Transparent pricing (real per-action point costs + real package pricing pulled from `CONFIG.points` and `buyPoints()`, with an honest "COMING SOON" tag on the Pro/Enterprise packages that aren't purchasable yet)
 8. FAQ (including an explicit, honest disclaimer that receipts are simulated records, not official proof of payment)
 9. Final CTA + rich footer (Resources/Company/Contact link columns)
+
+**Design v2 merge (2026-08-20)**: the user supplied a redesigned landing-page mockup (`chaposhub_v2.html`) with a green accent theme, a polished gradient logo mark, real platform-brand SVG icons, and a growth-stats bar. Per explicit user direction, both changes were adopted **site-wide** (not landing-page-only):
+- **Color theme**: swapped the global `--accent`/`--accent-light`/`--accent-glow` CSS variables (and all hardcoded indigo hex/rgba literals across `app.css`, `app.js`, `app-html.ts`, and the receipt-email template) from indigo (`#6366f1`) to green (`#22c55e`), for both dark and light themes. This affects the landing page, dashboard, receipts, points, AI hub, marketplace, auth modal, and static subpages uniformly. The OPay Wallet Demo already used its own scoped mint-green palette (`--ow-mint`), so it needed no change and is now naturally consistent with the rest of the app.
+- **Stats bar**: added as aspirational placeholder copy per explicit user approval — flagged in-repo as not-yet-real numbers.
 
 **Intentionally not included**, per product/ethics review: fabricated testimonials or trust stats (no real users yet), and SEO content pages targeting "receipt generator" search intent (risk of facilitating payment-proof fraud).
 
@@ -142,6 +147,40 @@ The History view was built out to match the uploaded ZIP's fuller reference impl
 
 All of this reads from the same `GET /transactions` endpoint already described above — no backend changes were needed, the richer UI is purely a frontend build-out (`OpayWallet` module in `app.js` + new `.ow-summary-*`/`.ow-filter-chip`/`.ow-modal-*` CSS).
 
+## Scripts Marketplace (`/services/marketplace`)
+A peer-to-peer marketplace for buying and selling **ready-made, legitimate website templates and scripts** — a legitimate, non-deceptive alternative use case for the "template marketplace" concept (explicitly scoped this way; a scam-template marketplace was correctly refused before this feature was proposed).
+
+### Model
+- **Listings**: any authenticated user can create a listing (title, description, category, price in points, external preview-image URL, uploaded file). New listings — and any subsequent edit to an approved listing — start in `pending` status and are invisible in public Browse until an admin approves them. This re-moderation-on-edit rule prevents a seller from silently swapping in different content after approval.
+- **Categories**: simple text filter chips across 7 categories (`src/lib/types.ts` → `MARKETPLACE_CATEGORIES`).
+- **File delivery**: uploaded files are stored in a dedicated R2 bucket (binding `MARKETPLACE_BUCKET`, 25MB cap) and are **never** exposed via a public R2 URL — they can only be streamed through the authenticated `GET /api/marketplace/download/:purchaseId` route, which verifies the requester is the buyer or seller on that exact purchase row.
+- **Purchase flow**: a single atomic three-party operation (buyer debit → seller credit 90% → 10% platform fee retained → purchase row inserted), with full reversal on any failure at any step — the same conditional `UPDATE ... WHERE points >= ?` pattern proven in the OPay Wallet's debit/refund logic (never read-then-write). Self-purchase, double-purchase, and insufficient-balance are all explicitly rejected with zero side effects.
+- **Admin moderation**: `role='admin'` users get a Review Queue tab to approve/reject pending listings (with a reason on rejection). Soft-delete (owner-only) hard-deletes the R2 file only if the listing has zero sales, to avoid breaking past buyers' downloads.
+
+### Endpoints (`src/routes/marketplace.ts`, mounted at `/api/marketplace`)
+| Endpoint | Purpose |
+|---|---|
+| `GET /listings` | Public browse, with category + search filter (optional-auth, adds a `purchased` flag if logged in) |
+| `GET /listings/:id` | Listing detail |
+| `GET /my-listings` | Current user's own listings (any status) |
+| `POST /listings` | Create a listing (starts `pending`) |
+| `PATCH /listings/:id` | Edit a listing (re-enters `pending` moderation) |
+| `DELETE /listings/:id` | Soft-delete (owner-only) |
+| `POST /listings/:id/upload` | Upload the deliverable file to R2 (raw binary, 25MB cap; blocked once `sales_count > 0`) |
+| `POST /listings/:id/purchase` | Atomic 3-party purchase (buyer debit / seller 90% credit / platform 10% fee) |
+| `GET /purchases` | Current user's purchase history |
+| `GET /sales` | Current user's sales history |
+| `GET /download/:purchaseId` | Purchase-gated file stream (buyer or seller only) |
+| `GET /admin/pending` | Admin-only: listings awaiting moderation |
+| `POST /admin/listings/:id/approve` | Admin-only: approve a pending listing |
+| `POST /admin/listings/:id/reject` | Admin-only: reject with a reason |
+
+### Frontend
+New `page-marketplace` in the app shell with Browse / My Listings / My Purchases / Review Queue tabs, category chip scroll, search box, and create/edit + detail/purchase modal overlays (`public/static/js/app.js` → `Marketplace` module, `public/static/js/api-client.js` → marketplace API surface, `public/static/css/app.css` → `.mkt-*` classes).
+
+### Status
+✅ Backend, frontend, and migration (`migrations/0005_marketplace.sql`) built and verified end-to-end locally via an extensive curl test suite (listing CRUD, upload cap enforcement, admin approve/reject, exact 90/10 purchase split, double-purchase/insufficient-points/self-purchase rejection with zero side effects, purchase-gated download 200/403, category filter, search, edit-triggers-re-moderation, soft-delete). Code committed (`4d4ae10`) and pushed to `origin/main`. ⚠️ **Production readiness for this feature specifically is unconfirmed** — see the "Marketplace production setup" note under Deployment below.
+
 ## Whop Payment Webhook
 `POST /api/webhooks/whop` (public, unauthenticated — verified via HMAC signature instead of a login session) receives Whop's `payment.succeeded` event and, on a successful `$10` / `plan_DZtaB5bXDuHOm` ("Starter") purchase, credits **1,000 points** to the Chapo'sHub account whose email matches the Whop buyer's email.
 
@@ -178,6 +217,7 @@ The single-page app (`src/lib/app-html.ts`) is server-rendered by Hono, so all S
 - **Status**: ✅ **OPay Wallet Demo fully live in production** (2026-08-19) — code pushed to `main` (`e52bc6b..19f1c54`), auto-deployed via the GitHub → Cloudflare Pages git integration, and the `opay_demo_wallets`/`opay_demo_transactions` tables were created directly in the production D1 console. Verified against `https://chaposhub.pages.dev` with real registered accounts: wallet auto-provisioning, Send Money (debits wallet + 6 points), Bank Transfer (debits wallet + 10 points), transaction history, insufficient-wallet-balance rejection (402, confirmed no side effects), and auth-gating (401 when unauthenticated) all match the local test suite exactly.
 - **⚠️ One remaining optional item**: `PAYSTACK_SECRET_KEY` is still not set as a Cloudflare Secret in production, so `GET /api/banks` returns `{"success":false,"message":"Bank service is not configured."}` — the To Bank view's bank dropdown will show "Unable to load banks" until this is added. **Everything else works fully without it**: dashboard, Send Money, Bank Transfer (once an account name is entered manually), and History are all unaffected. Add the secret via Workers & Pages → chaposhub → Settings → Variables and Secrets to enable the real bank list + account-name lookup.
 - The dormant `opay_receipts` migration (`0003_opay_service.sql`, legacy receipt-generator backend, kept intentionally per product decision — see above) has not been applied to production either, but since that backend is unreachable from the UI this has no user-facing effect.
-- **Tech Stack**: Hono + TypeScript + Vite + Wrangler, vanilla JS frontend, Cloudflare D1
-- **Local dev**: `npm run build && pm2 start ecosystem.config.cjs` (serves on port 3000 via `wrangler pages dev`)
-- **Last Updated**: 2026-08-19 — Replaced the OPay receipt-generator UI with a full **OPay Wallet Demo** (`/services/opay`): dashboard, Send Money, To Bank, and a fully-featured History view (summary totals, filter chips, search, date grouping, tap-to-view receipt modal), gated behind Chapo'sHub login, each user with their own private simulated wallet + transaction history, every send/transfer costing real points via an atomic two-ledger deduction with automatic refund-on-failure. The existing Paystack real bank-list/resolve endpoints were reused unchanged for the To Bank flow. The legacy receipt-generator backend was intentionally kept dormant (not deleted) for potential future reuse. **Fully deployed and verified in production** — only the optional `PAYSTACK_SECRET_KEY` secret remains unset.
+- **Tech Stack**: Hono + TypeScript + Vite + Wrangler, vanilla JS frontend, Cloudflare D1 + R2
+- **Local dev**: `npm run build && pm2 start ecosystem.config.cjs` (serves on port 3000 via `wrangler pages dev --d1=chaposhub-production --r2=MARKETPLACE_BUCKET --local`)
+- **Marketplace production setup (⚠️ not independently re-verified)**: the user was asked to (1) create a plain **R2 Object Storage** bucket named `chaposhub-marketplace` (note: a screenshot the user shared showed Cloudflare's separate "R2 Data Catalog" feature page instead — a different product surface from the plain object-storage bucket the `wrangler.jsonc` `r2_buckets` binding actually needs; this distinction was flagged but not confirmed resolved), (2) apply `migrations/0005_marketplace.sql` to the production D1 database via the console, and (3) grant their own account `role='admin'` via a D1 console `UPDATE`. The user replied "All done" but gave no per-step confirmation. **A full production smoke test of the marketplace feature (listing → upload → approve → browse → purchase → download against `https://chaposhub.pages.dev`) has not yet been performed** and should be done before relying on this feature in production.
+- **Last Updated**: 2026-08-20 — Added the **Scripts Marketplace** feature (see dedicated section above) and merged a user-supplied landing-page redesign: switched the entire site's accent color theme from indigo to green, added real platform-brand SVG icons and a polished gradient logo mark to the landing page, and added an aspirational growth-stats bar (explicitly flagged as placeholder, not audited figures) per user approval. Previous entry: 2026-08-19 — Replaced the OPay receipt-generator UI with a full **OPay Wallet Demo** (`/services/opay`): dashboard, Send Money, To Bank, and a fully-featured History view (summary totals, filter chips, search, date grouping, tap-to-view receipt modal), gated behind Chapo'sHub login, each user with their own private simulated wallet + transaction history, every send/transfer costing real points via an atomic two-ledger deduction with automatic refund-on-failure. The existing Paystack real bank-list/resolve endpoints were reused unchanged for the To Bank flow. The legacy receipt-generator backend was intentionally kept dormant (not deleted) for potential future reuse.

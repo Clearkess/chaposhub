@@ -65,7 +65,7 @@ points.post('/deduct', authMiddleware, async (c) => {
 
   const newBalance = user.points - amount
   const now = new Date().toISOString()
-  const meta = ACTION_META[action] || { icon: '📋', color: 'rgba(99,102,241,0.15)', type: action, title: action }
+  const meta = ACTION_META[action] || { icon: '📋', color: 'rgba(34,197,94,0.15)', type: action, title: action }
 
   await c.env.DB.batch([
     c.env.DB.prepare('UPDATE users SET points = ? WHERE id = ?').bind(newBalance, userId),

@@ -73,7 +73,7 @@ auth.post('/register', async (c) => {
 
   await c.env.DB.prepare(
     `INSERT INTO activities (id, user_id, type, title, description, icon, color, created_at)
-     VALUES (?, ?, 'login', 'Account Created', 'Welcome to Chapo''sHub!', '🎉', 'rgba(99,102,241,0.15)', ?)`
+     VALUES (?, ?, 'login', 'Account Created', 'Welcome to Chapo''sHub!', '🎉', 'rgba(34,197,94,0.15)', ?)`
   ).bind(generateId('act'), userId, now).run()
 
   const token = await generateToken(userId, 'user', c.env.JWT_SECRET)

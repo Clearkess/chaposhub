@@ -10,7 +10,7 @@ function generateEmailTemplate(data: any): string {
   const items = Array.isArray(data.items) ? data.items : []
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-      <h2 style="color: #6366f1;">${data.storeName || 'Receipt'}</h2>
+      <h2 style="color: #16a34a;">${data.storeName || 'Receipt'}</h2>
       <p><strong>Order ID:</strong> ${data.orderId || ''}</p>
       <p><strong>Date:</strong> ${data.dateTime ? new Date(data.dateTime).toLocaleString() : new Date().toLocaleString()}</p>
       <hr>
