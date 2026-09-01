@@ -252,6 +252,7 @@ export const APP_HTML = `<!DOCTYPE html>
 <!-- Auth modal -->
 <div class="auth-overlay hidden" id="authOverlay">
   <div class="auth-modal">
+    <div class="auth-modal-logo"><img src="/static/images/logo-mark.png" alt="Chapo'sHub logo" width="52" height="52"></div>
     <h2 id="authTitle">👋 Welcome back</h2>
     <p class="auth-sub" id="authSub">Log in to access your receipts, points & AI tools.</p>
     <div class="auth-tabs">
