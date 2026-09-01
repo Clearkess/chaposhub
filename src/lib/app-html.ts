@@ -23,8 +23,11 @@ export const APP_HTML = `<!DOCTYPE html>
 <meta name="twitter:title" content="Chapo'sHub — Branded Receipts, Points & AI Replies">
 <meta name="twitter:description" content="Generate branded receipts for 13+ platforms, draft AI-powered customer replies, and pay only for what you use. No subscriptions, no card required.">
 <meta name="twitter:image" content="https://chaposhub.pages.dev/static/images/og-image.png">
-<link rel="icon" type="image/png" href="/static/images/logo.png">
-<link rel="apple-touch-icon" href="/static/images/logo.png">
+<link rel="icon" type="image/x-icon" href="/static/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/static/images/favicon-16.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/static/images/logo-icon-192.png">
+<link rel="apple-touch-icon" href="/static/images/apple-touch-icon.png">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"Chapo'sHub","url":"https://chaposhub.pages.dev/","logo":"https://chaposhub.pages.dev/static/images/logo.png","description":"Generate branded receipts for 13+ platforms, draft AI-powered customer replies, and pay only for what you use with Chapo'sHub's points system."}</script>
 <script>(function(){try{var t=localStorage.getItem('chapo_theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}})();</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -40,13 +43,7 @@ export const APP_HTML = `<!DOCTYPE html>
 <div class="landing-page" id="landingPage">
   <header class="landing-header">
     <div class="landing-logo">
-      <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" width="32" height="32">
-        <defs><linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#22c55e"/><stop offset="100%" style="stop-color:#16a34a"/></linearGradient></defs>
-        <rect x="4" y="4" width="56" height="56" rx="16" fill="url(#logoGrad)"/>
-        <path d="M20 20h24v4H20zM20 30h18v4H20zM20 40h12v4H20z" fill="#0a0a0f" opacity="0.9"/>
-        <circle cx="46" cy="34" r="6" fill="#0a0a0f" opacity="0.9"/>
-        <path d="M44 32l4 2-4 2" stroke="url(#logoGrad)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-      </svg>
+      <img src="/static/images/logo-mark.png" alt="Chapo'sHub logo" width="32" height="32" class="brand-logo-img">
       Chapo'sHub
     </div>
     <nav class="landing-nav" aria-label="Page sections">
@@ -228,7 +225,7 @@ export const APP_HTML = `<!DOCTYPE html>
   <footer class="site-footer">
     <div class="site-footer-grid">
       <div>
-        <div class="site-footer-brand">🧾 Chapo'sHub</div>
+        <div class="site-footer-brand"><img src="/static/images/logo-mark.png" alt="Chapo'sHub logo" width="28" height="28" class="brand-logo-img"> Chapo'sHub</div>
         <p class="site-footer-tagline">A trusted points-based hub for generating branded receipts and digital tools. Simplify your workflow today.</p>
       </div>
       <div class="site-footer-col">
@@ -255,6 +252,7 @@ export const APP_HTML = `<!DOCTYPE html>
 <!-- Auth modal -->
 <div class="auth-overlay hidden" id="authOverlay">
   <div class="auth-modal">
+    <div class="auth-modal-logo"><img src="/static/images/logo-mark.png" alt="Chapo'sHub logo" width="52" height="52"></div>
     <h2 id="authTitle">👋 Welcome back</h2>
     <p class="auth-sub" id="authSub">Log in to access your receipts, points & AI tools.</p>
     <div class="auth-tabs">
@@ -289,7 +287,7 @@ export const APP_HTML = `<!DOCTYPE html>
 <!-- Main app shell (hidden until authenticated) -->
 <div class="app-shell hidden" id="appShell">
 <div class="page active" id="page-dashboard" role="main" aria-label="Dashboard">
-<div class="top-bar"><div class="top-left"><div class="top-avatar">CH</div><div class="top-user" id="topUser">guest<span>KE</span></div></div><div class="top-right"><div class="top-badge" id="topBadge">💎 0pts</div><div class="top-icon-btn" onclick="window.ChapoTheme.toggle()" role="button" tabindex="0" aria-label="Toggle theme" title="Toggle theme">🌙</div></div></div>
+<div class="top-bar"><div class="top-left"><div class="top-avatar"><img src="/static/images/logo-mark.png" alt="Chapo'sHub" width="36" height="36"></div><div class="top-user" id="topUser">guest<span>KE</span></div></div><div class="top-right"><div class="top-badge" id="topBadge">💎 0pts</div><div class="top-icon-btn" onclick="window.ChapoTheme.toggle()" role="button" tabindex="0" aria-label="Toggle theme" title="Toggle theme">🌙</div></div></div>
 <div class="ref-bar"><div class="ref-left">👤 Referral program</div><button class="ref-btn" onclick="copyRefLink()">Copy Ref Link</button></div>
 <div class="welcome"><div class="welcome-text">Welcome back,<br><strong id="welcomeName">guest 👋</strong></div><button class="buy-points-btn" onclick="showPage('points')">💰 Chapo'sHub Points</button></div>
 <div class="balance-card"><div class="balance-label">💳 TOTAL BALANCE</div><div class="balance-amount" id="balanceAmount">0 <span>pts</span></div><div class="balance-actions"><div class="balance-action" onclick="showPage('services')"><div class="balance-action-icon">→</div><div class="balance-action-label">Services</div></div><div class="balance-action" onclick="showPage('orders')"><div class="balance-action-icon">🛒</div><div class="balance-action-label">Orders</div></div><div class="balance-action" onclick="showPage('history')"><div class="balance-action-icon">🕐</div><div class="balance-action-label">History</div></div></div></div>

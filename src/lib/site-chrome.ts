@@ -28,8 +28,11 @@ export function siteHead(opts: { title: string; description: string; path: strin
 <meta name="twitter:title" content="${title}">
 <meta name="twitter:description" content="${description}">
 <meta name="twitter:image" content="https://chaposhub.pages.dev/static/images/og-image.png">
-<link rel="icon" type="image/png" href="/static/images/logo.png">
-<link rel="apple-touch-icon" href="/static/images/logo.png">
+<link rel="icon" type="image/x-icon" href="/static/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/static/images/favicon-16.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/static/images/logo-icon-192.png">
+<link rel="apple-touch-icon" href="/static/images/apple-touch-icon.png">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="/static/css/app.css" rel="stylesheet">
 <script>(function(){try{var t=localStorage.getItem('chapo_theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}})();</script>`
@@ -39,7 +42,7 @@ export function siteHeader(activePath: string): string {
   const link = (href: string, label: string) =>
     `<a href="${href}"${activePath === href ? ' aria-current="page"' : ''}>${label}</a>`
   return `<header class="landing-header">
-    <a href="/" class="landing-logo" style="text-decoration:none">🧾 Chapo'sHub</a>
+    <a href="/" class="landing-logo" style="text-decoration:none"><img src="/static/images/logo-mark.png" alt="Chapo'sHub logo" width="32" height="32" class="brand-logo-img"> Chapo'sHub</a>
     <nav class="landing-nav" aria-label="Site navigation">
       ${link('/help', 'Help')}
       ${link('/about', 'About')}
@@ -56,7 +59,7 @@ export function siteFooter(): string {
   return `<footer class="site-footer">
     <div class="site-footer-grid">
       <div>
-        <div class="site-footer-brand">🧾 Chapo'sHub</div>
+        <div class="site-footer-brand"><img src="/static/images/logo-mark.png" alt="Chapo'sHub logo" width="28" height="28" class="brand-logo-img"> Chapo'sHub</div>
         <p class="site-footer-tagline">A trusted points-based hub for generating branded receipts and digital tools. Simplify your workflow today.</p>
       </div>
       <div class="site-footer-col">
