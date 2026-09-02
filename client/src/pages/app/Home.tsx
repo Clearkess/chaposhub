@@ -5,8 +5,15 @@ import { usePage } from '../../contexts/PageContext'
 import { useToast } from '../../contexts/ToastContext'
 import { allServices } from '../../lib/config'
 
-// Ported from `#page-dashboard` in src/lib/app-html.ts + renderAllServices()
-// in public/static/js/app.js.
+// Originally ported 1:1 from `#page-dashboard` in src/lib/app-html.ts +
+// renderAllServices() in public/static/js/app.js. Restructured into a
+// "SlipCraft-inspired Chapo'sHub 2.0" layout: compact pill header -> compact
+// referral pill -> greeting -> simplified balance card -> Quick Actions
+// (moved above the fold) -> Featured (AI Reply) -> a single consolidated
+// "All Services" grid (the old duplicate 3-card Articles/Support/Opay grid
+// was folded into this one list to reduce visual weight/redundancy).
+// Green identity, points system, dark mode toggle and referral system are
+// all preserved — only the density/hierarchy changed.
 export default function Home() {
   const { user } = useAuth()
   const { toggle } = useTheme()
@@ -58,10 +65,17 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="ref-bar">
-        <div className="ref-left">👤 Referral program</div>
-        <button className="ref-btn" onClick={copyRefLink}>
-          Copy Ref Link
+      {/* Compact referral pill — replaces the old full-width .ref-bar.
+          NOTE: "Referred" count is a static placeholder. The backend schema
+          has a `referred_by` column but nothing populates it on signup and
+          no endpoint counts referrals yet, so there's no real number to
+          show here — flagged to the user, not silently fabricated. */}
+      <div className="ref-pill-row">
+        <div className="ref-pill" title="Referral program">
+          <span aria-hidden="true">👥</span> Referred: <strong>0</strong>
+        </div>
+        <button className="ref-pill-btn" onClick={copyRefLink}>
+          Copy Ref
         </button>
       </div>
 
@@ -71,12 +85,17 @@ export default function Home() {
           <br />
           <strong>{name} 👋</strong>
         </div>
-        <button className="buy-points-btn" onClick={() => goTo('points')}>
-          💰 Chapo'sHub Points
+        <button
+          className="welcome-add-btn"
+          onClick={() => goTo('points')}
+          aria-label="Buy Chapo'sHub Points"
+          title="Buy Chapo'sHub Points"
+        >
+          +
         </button>
       </div>
 
-      <div className="balance-card">
+      <div className="balance-card compact">
         <div className="balance-label">💳 TOTAL BALANCE</div>
         <div className="balance-amount">
           {points} <span>pts</span>
@@ -97,6 +116,9 @@ export default function Home() {
         </div>
       </div>
 
+      {/* Quick Actions moved directly under the balance card so it's
+          immediately visible above the fold (was previously buried lower
+          on the page). */}
       <div className="section-title">Quick Actions</div>
       <div className="quick-actions">
         <div className="quick-action orange" onClick={() => goTo('points')}>
@@ -119,42 +141,12 @@ export default function Home() {
         <div className="featured-arrow">⚡</div>
       </div>
 
-      <div className="service-grid">
-        <div
-          className="service-card"
-          onClick={() => showToast('Articles coming soon!')}
-          role="button"
-          tabIndex={0}
-          aria-label="Articles"
-        >
-          <div
-            className="service-logo"
-            style={{ background: 'linear-gradient(135deg,#22c55e,#4ade80)', color: 'white', fontSize: '1.2rem' }}
-          >
-            📖
-          </div>
-          <div className="service-name">Articles(FMT)</div>
-          <div className="service-desc">Buy & read</div>
-        </div>
-        <div className="service-card" onClick={() => goTo('support')} role="button" tabIndex={0} aria-label="Support sites">
-          <div
-            className="service-logo"
-            style={{ background: 'linear-gradient(135deg,#3b82f6,#60a5fa)', color: 'white', fontSize: '1.2rem' }}
-          >
-            🎧
-          </div>
-          <div className="service-name">Support Sites</div>
-          <div className="service-desc">Build pages</div>
-        </div>
-        <div className="service-card" onClick={() => goTo('opay')} role="button" tabIndex={0} aria-label="OPay wallet demo">
-          <div className="service-logo" style={{ background: '#1dc677', color: 'white' }}>
-            O
-          </div>
-          <div className="service-name">Opay</div>
-          <div className="service-desc">Wallet demo</div>
-        </div>
-      </div>
-
+      {/* Single consolidated service-discovery section (the old duplicate
+          3-card "popular services" grid was folded in here — it repeated
+          Opay/Support which already live in the full list below, and was
+          one of the "competing green elements" cluttering the hierarchy).
+          Dashboard shows a 5-icon preview; "View All ->" goes to the full
+          Services page which lists every entry in `allServices`. */}
       <div className="section-title">
         All Services{' '}
         <a
@@ -168,7 +160,7 @@ export default function Home() {
         </a>
       </div>
       <div className="all-services-grid">
-        {allServices.map((s) => (
+        {allServices.slice(0, 5).map((s) => (
           <div className="all-service" key={s.key} onClick={() => serviceNavAction(s)}>
             <div className="all-service-logo" style={{ background: s.color || 'var(--bg-card)', color: 'white' }}>
               {s.icon}

@@ -132,6 +132,10 @@ export const allServices: ServiceDef[] = [
   { key: 'trustwallet', name: 'Trust Wallet', icon: 'T', color: '#3375BB', new: true },
   { key: 'wise', name: 'Wise', icon: 'W', color: '#00b9ff', new: true },
   { key: 'opay', name: 'OPay', icon: 'O', color: '#1dc677', dedicated: true },
+  {
+    key: 'support', name: 'Support Sites', icon: '🎧',
+    color: 'linear-gradient(135deg,#3b82f6,#60a5fa)', dedicated: true
+  },
   { key: 'binance', name: 'Binance', icon: 'B', color: '#f0b90b' },
   {
     key: 'marketplace', name: 'Scripts Marketplace', icon: '🛒',

@@ -36,7 +36,7 @@ function BottomNav() {
         <span className="nav-icon" aria-hidden="true">
           💵
         </span>
-        <span className="nav-label">Transact...</span>
+        <span className="nav-label">Transactions</span>
       </button>
       <button
         className={`nav-item-btm ${page === 'services' ? 'active' : ''}`}
@@ -52,13 +52,13 @@ function BottomNav() {
       <button
         className={`nav-item-btm ${page === 'dashboard' ? 'active' : ''}`}
         onClick={() => goTo('dashboard')}
-        aria-label="Dashboard"
+        aria-label="Home"
         aria-current={page === 'dashboard' ? 'page' : undefined}
       >
         <span className="nav-icon" aria-hidden="true">
           ⊞
         </span>
-        <span className="nav-label">Dashboard</span>
+        <span className="nav-label">Home</span>
       </button>
       <button
         className={`nav-item-btm ${page === 'history' ? 'active' : ''}`}
@@ -71,11 +71,11 @@ function BottomNav() {
         </span>
         <span className="nav-label">History</span>
       </button>
-      <button className="nav-item-btm" onClick={handleLogout} aria-label="Log out">
+      <button className="nav-item-btm" onClick={handleLogout} aria-label="Logout">
         <span className="nav-icon" aria-hidden="true">
           🚪
         </span>
-        <span className="nav-label">Log Out</span>
+        <span className="nav-label">Logout</span>
       </button>
     </nav>
   )

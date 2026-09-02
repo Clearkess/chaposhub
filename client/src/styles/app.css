@@ -8,7 +8,7 @@ html[data-theme="light"] .landing-header{background:rgba(247,247,251,.9)}
 html[data-theme="light"] .receipt{background:#fffdf7;color:#222}
 body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:80px;overflow-x:hidden;-webkit-font-smoothing:antialiased}
 ::-webkit-scrollbar{width:0;height:0}
-.top-bar{display:flex;align-items:center;justify-content:space-between;padding:.8rem 1rem;background:var(--bg);position:sticky;top:0;z-index:50}
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:.6rem 1rem;background:var(--bg);position:sticky;top:0;z-index:50}
 .top-left{display:flex;align-items:center;gap:.6rem}
 .top-avatar{width:36px;height:36px;border-radius:50%;background:#0a0a0f;display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;color:white;overflow:hidden;flex-shrink:0}
 .top-avatar img{width:100%;height:100%;object-fit:contain;padding:3px}
@@ -18,20 +18,30 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .top-badge{background:var(--bg-card);border:1px solid var(--border);border-radius:20px;padding:.4rem .8rem;font-size:.8rem;font-weight:700;color:var(--accent);display:flex;align-items:center;gap:.3rem}
 .top-icon-btn{width:36px;height:36px;border-radius:50%;background:var(--bg-card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1rem;cursor:pointer;color:var(--text-muted);transition:.2s}
 .top-icon-btn:hover{background:var(--bg-card-light)}
-.ref-bar{display:flex;align-items:center;justify-content:space-between;padding:.6rem 1rem;background:var(--bg-card);border-bottom:1px solid var(--border)}
-.ref-left{display:flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--text-muted)}
-.ref-btn{background:var(--accent);color:#000;border:none;border-radius:20px;padding:.4rem 1rem;font-size:.75rem;font-weight:700;cursor:pointer;transition:.2s}
-.ref-btn:hover{background:var(--accent-light)}
-.ref-btn:active{transform:scale(.95)}
-.welcome{padding:1rem;display:flex;justify-content:space-between;align-items:flex-start}
+/* Compact referral pill row (SlipCraft-inspired) — replaces the old
+   full-width .ref-bar block with a small, low-visual-weight pill so the
+   referral program no longer reads as its own standalone section. */
+.ref-pill-row{display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:0 1rem .6rem}
+.ref-pill{display:inline-flex;align-items:center;gap:.35rem;background:var(--bg-card);border:1px solid var(--border);border-radius:20px;padding:.35rem .7rem;font-size:.75rem;color:var(--text-muted)}
+.ref-pill strong{color:var(--text)}
+.ref-pill-btn{background:transparent;color:var(--accent);border:1px solid var(--accent);border-radius:20px;padding:.35rem .8rem;font-size:.72rem;font-weight:700;cursor:pointer;transition:.2s}
+.ref-pill-btn:hover{background:var(--accent-glow)}
+.ref-pill-btn:active{transform:scale(.95)}
+.welcome{padding:.4rem 1rem 1rem;display:flex;justify-content:space-between;align-items:flex-start}
 .welcome-text{font-size:.9rem;color:var(--text-muted)}
 .welcome-text strong{color:var(--text);font-size:1.1rem;display:block;margin-top:.2rem}
-.buy-points-btn{background:var(--accent);color:#000;border:none;border-radius:24px;padding:.5rem 1rem;font-size:.8rem;font-weight:700;display:flex;align-items:center;gap:.3rem;cursor:pointer;transition:.2s}
-.buy-points-btn:hover{background:var(--accent-light)}
-.buy-points-btn:active{transform:scale(.95)}
+.welcome-add-btn{width:36px;height:36px;border-radius:50%;background:var(--accent);color:#000;border:none;font-size:1.2rem;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.2s;flex-shrink:0;line-height:1}
+.welcome-add-btn:hover{background:var(--accent-light)}
+.welcome-add-btn:active{transform:scale(.9)}
 .balance-card{background:linear-gradient(135deg,#16a34a 0%,#22c55e 50%,#4ade80 100%);border-radius:20px;margin:0 1rem 1rem;padding:1.2rem;position:relative;overflow:hidden;box-shadow:0 8px 32px rgba(34,197,94,.2)}
 .balance-card::before{content:'';position:absolute;top:-20px;right:-20px;width:100px;height:100px;background:rgba(255,255,255,.1);border-radius:50%}
 .balance-card::after{content:'';position:absolute;bottom:-30px;left:-30px;width:80px;height:80px;background:rgba(255,255,255,.05);border-radius:50%}
+/* .compact: simplified/lower-weight variant used on the dashboard — less
+   vertical padding and a smaller balance figure so the green card no
+   longer "dominates" the screen the way the full-size version does. */
+.balance-card.compact{padding:.9rem 1.2rem}
+.balance-card.compact .balance-amount{font-size:1.9rem;margin:.15rem 0}
+.balance-card.compact .balance-actions{margin-top:.7rem}
 .balance-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:.3rem;position:relative;z-index:1}
 .balance-amount{font-size:2.4rem;font-weight:800;color:white;margin:.3rem 0;letter-spacing:-.02em;position:relative;z-index:1}
 .balance-amount span{font-size:1rem;font-weight:500;opacity:.8}
@@ -81,7 +91,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .nav-item-btm:hover{color:var(--text-muted)}
 .nav-item-btm.active{color:var(--accent)}
 .nav-item-btm .nav-icon{font-size:1.2rem}
-.nav-item-btm .nav-label{font-size:.6rem}
+.nav-item-btm .nav-label{font-size:.58rem;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .page{display:none;animation:fadeIn .3s ease}
 .page.active{display:block}
 @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
