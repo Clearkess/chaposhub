@@ -46,6 +46,12 @@ if (!fs.existsSync(FILES_DIR)) fs.mkdirSync(FILES_DIR, { recursive: true })
 
 const router = Router()
 
+// This router is mounted BEFORE the global express.json() middleware in
+// index.ts (so the raw-body /upload route below can receive exact binary
+// bytes). That means every OTHER route on this router that expects a JSON
+// body must apply its own scoped JSON parser, or req.body will be empty.
+const jsonParser = express.json({ limit: '2mb' })
+
 const MAX_FILE_SIZE = 25 * 1024 * 1024 // 25MB cap for a template .zip
 const MIN_PRICE = 10
 const MAX_PRICE = 500_000
@@ -192,7 +198,7 @@ router.get('/my-listings', authMiddleware, (req: AuthedRequest, res) => {
 })
 
 // POST /api/marketplace/listings — create (starts as 'pending')
-router.post('/listings', authMiddleware, (req: AuthedRequest, res) => {
+router.post('/listings', authMiddleware, jsonParser, (req: AuthedRequest, res) => {
   const userId = req.userId!
   const body = req.body || {}
   const { errors, title, description, category, pricePoints, previewImageUrl } = validateListingFields(body)
@@ -214,7 +220,7 @@ router.post('/listings', authMiddleware, (req: AuthedRequest, res) => {
 // Any content edit re-enters the moderation queue (status -> pending,
 // rejection_reason cleared) so an already-approved listing can't be quietly
 // swapped for something else without another review pass.
-router.patch('/listings/:id', authMiddleware, (req: AuthedRequest, res) => {
+router.patch('/listings/:id', authMiddleware, jsonParser, (req: AuthedRequest, res) => {
   const userId = req.userId!
   const id = req.params.id
   const listing = db.prepare('SELECT * FROM marketplace_listings WHERE id = ?').get(id) as MarketplaceListingRow | undefined
@@ -507,7 +513,7 @@ router.post('/admin/listings/:id/approve', authMiddleware, adminOnly, (req: Auth
 })
 
 // POST /api/marketplace/admin/listings/:id/reject  { reason }
-router.post('/admin/listings/:id/reject', authMiddleware, adminOnly, (req: AuthedRequest, res) => {
+router.post('/admin/listings/:id/reject', authMiddleware, adminOnly, jsonParser, (req: AuthedRequest, res) => {
   const id = req.params.id
   const body = req.body || {}
   const reason = typeof body.reason === 'string' ? body.reason.trim().slice(0, 300) : ''
