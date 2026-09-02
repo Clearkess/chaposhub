@@ -5,7 +5,7 @@ html{scroll-behavior:smooth}
 :root{--bg:#0a0a0f;--bg-card:#14141b;--bg-card-light:#1a1a24;--bg-input:#0d0d14;--border:#1f1f2a;--border-hover:#2a2a38;--text:#f0f0f5;--text-muted:#8b8b9a;--text-dim:#5a5a6a;--accent:#22c55e;--accent-light:#4ade80;--accent-glow:rgba(34,197,94,0.15);--success:#22c55e;--warning:#f59e0b;--danger:#ef4444;--info:#3b82f6;--shadow:0 8px 32px rgba(0,0,0,0.3)}
 html[data-theme="light"]{--bg:#f7f7fb;--bg-card:#ffffff;--bg-card-light:#f0f0f7;--bg-input:#ffffff;--border:#e2e2ec;--border-hover:#cbcbdb;--text:#15151f;--text-muted:#5c5c6e;--text-dim:#8b8b9a;--accent:#16a34a;--accent-light:#22c55e;--accent-glow:rgba(34,197,94,0.1);--success:#16a34a;--warning:#d97706;--danger:#dc2626;--info:#2563eb;--shadow:0 8px 32px rgba(15,15,30,0.08)}
 html[data-theme="light"] .landing-header{background:rgba(247,247,251,.9)}
-html[data-theme="light"] .receipt{background:#fffdf7;color:#222}
+html[data-theme="light"] .receipt.receipt-skin-thermal{background:#fffdf7;color:#222}
 body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:80px;overflow-x:hidden;-webkit-font-smoothing:antialiased}
 ::-webkit-scrollbar{width:0;height:0}
 .top-bar{display:flex;align-items:center;justify-content:space-between;padding:.6rem 1rem;background:var(--bg);position:sticky;top:0;z-index:50}
@@ -114,8 +114,17 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .form-field textarea{min-height:80px;resize:vertical}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
 .receipt-preview-card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1rem;margin:0 1rem 1rem}
-.receipt{width:100%;max-width:300px;margin:0 auto;background:#fffdf7;padding:20px 16px;font-family:'Courier New',Courier,monospace;font-size:11px;line-height:1.5;border:1px dashed #bbb;border-radius:3px;color:#222;position:relative}
-.receipt::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;opacity:.4}
+/* Base .receipt is now skin-agnostic (sizing/positioning only) — the visual
+   look (paper / dark exchange card / white card / branded wallet card) is
+   applied per-platform via the `receipt-skin-*` modifier class added next to
+   it, so each platform's receipt can look authentically different instead of
+   every platform sharing one thermal-paper template. */
+.receipt{width:100%;max-width:300px;margin:0 auto;border-radius:16px;position:relative;overflow:hidden}
+
+/* THERMAL skin (generic/custom store) — original dashed-border paper receipt,
+   unchanged from before this feature was added. */
+.receipt.receipt-skin-thermal{background:#fffdf7;padding:20px 16px;font-family:'Courier New',Courier,monospace;font-size:11px;line-height:1.5;border:1px dashed #bbb;border-radius:3px;color:#222}
+.receipt.receipt-skin-thermal::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;opacity:.4}
 .receipt h2{text-align:center;font-size:1rem;margin:4px 0;font-weight:bold;letter-spacing:.5px;position:relative;z-index:1}
 .receipt .meta{text-align:center;font-size:9px;color:#555;margin-bottom:6px;position:relative;z-index:1}
 .receipt hr{border:none;border-top:1px dashed #999;margin:8px 0;position:relative;z-index:1}
@@ -129,6 +138,96 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .qr-area{text-align:center;margin:6px 0;position:relative;z-index:1}
 .footer-note{text-align:center;font-size:9px;color:#666;margin:3px 0;position:relative;z-index:1}
 .platform-badge{display:inline-block;padding:1px 8px;border-radius:3px;font-size:8px;font-weight:bold;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;position:relative;z-index:1}
+
+/* ---------------------------------------------------------------------
+   CRYPTO skin — dark exchange-app transaction-success card, used for
+   Binance / Bybit / Coinbase / Crypto.com / Trust Wallet. Deliberately
+   NOT tied to Chapo'sHub's own dark/light theme toggle — it mirrors each
+   exchange app's own (always-dark) transaction receipt screen, using
+   `preset.darkBg` for the exact per-brand surface color.
+   --------------------------------------------------------------------- */
+.rc{padding:30px 22px 22px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#fff}
+.rc-brand{display:flex;align-items:center;gap:.5rem;margin-bottom:22px}
+.rc-brand-logo{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;flex-shrink:0}
+.rc-brand-name{font-weight:700;font-size:.9rem;color:#fff}
+.rc-label{text-align:center;font-size:.75rem;color:rgba(255,255,255,.5);margin-bottom:4px}
+.rc-amount{text-align:center;font-size:2.1rem;font-weight:800;color:#fff;margin-bottom:10px;letter-spacing:-.01em}
+.rc-status{text-align:center;display:flex;align-items:center;justify-content:center;gap:.4rem;color:#02c076;font-weight:700;font-size:.78rem;margin-bottom:16px}
+.rc-check{width:16px;height:16px;border-radius:50%;background:#02c076;color:#0b1210;display:inline-flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:900}
+.rc-disclaimer{font-size:.68rem;color:rgba(255,255,255,.42);text-align:center;margin-bottom:18px;line-height:1.4}
+.rc-rows{background:rgba(255,255,255,.06);border-radius:14px;padding:.9rem 1rem}
+.rc-row{display:flex;justify-content:space-between;gap:.6rem;padding:.5rem 0;border-bottom:1px solid rgba(255,255,255,.08);font-size:.72rem}
+.rc-row:last-child{border-bottom:none}
+.rc-l{color:rgba(255,255,255,.5);flex-shrink:0}
+.rc-v{color:#fff;font-weight:600;text-align:right;word-break:break-word}
+.rc-mono{font-family:'Courier New',Courier,monospace;font-size:.66rem}
+.rc-row-fee .rc-v{color:rgba(255,255,255,.7)}
+.rc-row-total{border-top:1px solid rgba(255,255,255,.16);border-bottom:none;margin-top:2px;padding-top:.7rem}
+.rc-row-total .rc-v{color:#02c076;font-weight:800;font-size:.82rem}
+.rc-footer{text-align:center;font-size:.6rem;color:rgba(255,255,255,.35);margin-top:16px;line-height:1.4}
+
+/* ---------------------------------------------------------------------
+   PAYPAL skin — white card, PayPal-blue wordmark & checkmark, "You sent"
+   hero. Fixed light look (matches the real PayPal app), independent of
+   Chapo'sHub's theme toggle.
+   --------------------------------------------------------------------- */
+.rp{padding:32px 22px 22px;background:#fff;color:#1a1a1a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+.rp-brand{text-align:center;font-size:1.15rem;font-weight:800;color:#003087;margin-bottom:20px;letter-spacing:-.01em}
+.rp-brand span{color:#0070e0}
+.rp-check-wrap{display:flex;justify-content:center;margin-bottom:10px}
+.rp-check{width:48px;height:48px;border-radius:50%;background:#eaf4ff;color:#0070e0;display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:800}
+.rp-title{text-align:center;font-size:1.15rem;font-weight:800;color:#1a1a1a;margin-bottom:4px}
+.rp-sub{text-align:center;font-size:.78rem;color:#687173;margin-bottom:18px}
+.rp-hr{border:none;border-top:1px solid #eee;margin:0 0 14px}
+.rp-row{display:flex;justify-content:space-between;gap:.6rem;padding:.45rem 0;font-size:.74rem}
+.rp-l{color:#687173;flex-shrink:0}
+.rp-v{color:#1a1a1a;font-weight:600;text-align:right;word-break:break-word}
+.rp-mono{font-family:'Courier New',Courier,monospace;font-size:.66rem}
+.rp-status-pill{background:#e6f7ec;color:#03824a;padding:.1rem .6rem;border-radius:10px;font-weight:700;font-size:.66rem}
+.rp-row-total{border-top:1px solid #eee;margin-top:4px;padding-top:.7rem;font-weight:800}
+.rp-row-total .rp-v{color:#003087;font-size:.85rem}
+.rp-footer{text-align:center;font-size:.58rem;color:#9aa0a2;margin-top:16px;line-height:1.4}
+
+/* ---------------------------------------------------------------------
+   CASH APP skin — ultra-minimal white screen, huge green check ring &
+   amount. Fixed light look, matches the real app's send-confirmation.
+   --------------------------------------------------------------------- */
+.rca{padding:36px 20px 22px;background:#fff;color:#1a1a1a;text-align:center;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+.rca-check-wrap{display:flex;justify-content:center;margin-bottom:14px}
+.rca-check{width:58px;height:58px;border-radius:50%;background:#00d632;color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.7rem;font-weight:800}
+.rca-amount{font-size:2.3rem;font-weight:800;color:#1a1a1a;margin-bottom:4px;letter-spacing:-.01em}
+.rca-status{font-size:.9rem;font-weight:700;color:#1a1a1a;margin-bottom:4px}
+.rca-to{font-size:.76rem;color:#8a8a8a;margin-bottom:20px}
+.rca-dash{border:none;border-top:1px dashed #ddd;margin:0 0 16px}
+.rca-rows{text-align:left}
+.rca-row{display:flex;justify-content:space-between;gap:.6rem;padding:.42rem 0;font-size:.74rem}
+.rca-l{color:#8a8a8a;flex-shrink:0}
+.rca-v{color:#1a1a1a;font-weight:600;text-align:right;word-break:break-word}
+.rca-mono{font-family:'Courier New',Courier,monospace;font-size:.66rem}
+.rca-row-total{border-top:1px solid #eee;margin-top:4px;padding-top:.7rem;font-weight:800}
+.rca-row-total .rca-v{color:#00a72e;font-size:.85rem}
+.rca-footer{font-size:.58rem;color:#b0b0b0;margin-top:18px;line-height:1.4}
+
+/* ---------------------------------------------------------------------
+   WALLET CARD skin — compact branded card used for OPay / Kuda / Zelle /
+   Venmo / Wise ("and more"). White card, per-platform accent color via
+   the inline `--wc-color` custom property set from `preset.color`.
+   --------------------------------------------------------------------- */
+.wc{padding:30px 20px 20px;background:#fff;color:#1a1a1a;text-align:center;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+.wc-icon{width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:800;color:#fff;margin:0 auto 14px}
+.wc-amount{font-size:1.9rem;font-weight:800;color:#1a1a1a;margin-bottom:6px;letter-spacing:-.01em}
+.wc-status{display:flex;align-items:center;justify-content:center;gap:.4rem;font-size:.78rem;font-weight:700;color:var(--wc-color,#16a34a);margin-bottom:20px}
+.wc-dot{width:6px;height:6px;border-radius:50%;background:var(--wc-color,#16a34a);display:inline-block}
+.wc-rows{text-align:left;background:#f7f7fa;border-radius:12px;padding:.8rem .9rem}
+.wc-row{display:flex;justify-content:space-between;gap:.6rem;padding:.42rem 0;border-bottom:1px solid #eceef1;font-size:.72rem}
+.wc-row:last-child{border-bottom:none}
+.wc-l{color:#8a8a95;flex-shrink:0}
+.wc-v{color:#1a1a1a;font-weight:600;text-align:right;word-break:break-word}
+.wc-mono{font-family:'Courier New',Courier,monospace;font-size:.66rem}
+.wc-row-fee .wc-v{color:#8a8a95}
+.wc-row-total{border-top:1px solid #dcdce2;margin-top:2px;padding-top:.6rem}
+.wc-row-total .wc-v{color:var(--wc-color,#16a34a);font-weight:800;font-size:.8rem}
+.wc-footer{font-size:.56rem;color:#a8a8b0;margin-top:14px;line-height:1.4}
 .action-buttons{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;padding:0 1rem 1rem}
 .action-btn{padding:.8rem;border-radius:12px;border:none;font-size:.8rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.3rem;transition:.2s;font-family:inherit}
 .action-btn:active{transform:scale(.97)}

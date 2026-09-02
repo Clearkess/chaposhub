@@ -21,6 +21,14 @@ export interface ReceiptItem {
   price: number
 }
 
+// `skin` selects which pixel-styled receipt template renders this platform's
+// preview/export (see ReceiptSkin.tsx). `badgeDark` = true means the badge
+// pill uses dark text (for light/bright brand colors like Binance gold or
+// Bybit orange). `logoGlyph` is the 1-2 char text mark shown in the round
+// brand icon (kept text-based, matching the existing service-icon
+// convention elsewhere in the app — no third-party logo image assets).
+export type ReceiptSkin = 'thermal' | 'crypto' | 'paypal' | 'cashapp' | 'walletcard'
+
 export interface PlatformPreset {
   name: string
   color: string
@@ -28,11 +36,16 @@ export interface PlatformPreset {
   taxRate: number
   currency: string
   items: ReceiptItem[]
+  skin: ReceiptSkin
+  badgeDark?: boolean
+  logoGlyph?: string
+  darkBg?: string // for the `crypto` skin: the app's real dark-mode surface color
 }
 
 export const platforms: Record<string, PlatformPreset> = {
   generic: {
     name: 'FreshMart', color: '#2c2c2c', badge: 'RECEIPT', taxRate: 8.25, currency: '$',
+    skin: 'thermal',
     items: [
       { description: 'Organic Avocado', quantity: 2, price: 2.49 },
       { description: 'Whole Wheat Bread', quantity: 1, price: 3.79 },
@@ -41,6 +54,7 @@ export const platforms: Record<string, PlatformPreset> = {
   },
   binance: {
     name: 'Binance', color: '#f0b90b', badge: 'BINANCE', taxRate: 0, currency: '$',
+    skin: 'crypto', badgeDark: true, logoGlyph: 'B', darkBg: '#1e2026',
     items: [
       { description: 'BTC Purchase', quantity: 0.0025, price: 28450 },
       { description: 'Network Fee', quantity: 1, price: 2.5 }
@@ -48,6 +62,7 @@ export const platforms: Record<string, PlatformPreset> = {
   },
   bybit: {
     name: 'Bybit', color: '#f7a600', badge: 'BYBIT', taxRate: 0, currency: '$',
+    skin: 'crypto', badgeDark: true, logoGlyph: 'B', darkBg: '#101014',
     items: [
       { description: 'ETH/USDT Perp', quantity: 0.5, price: 1850 },
       { description: 'Trading Fee', quantity: 1, price: 1.85 }
@@ -55,6 +70,7 @@ export const platforms: Record<string, PlatformPreset> = {
   },
   coinbase: {
     name: 'Coinbase', color: '#0052ff', badge: 'COINBASE', taxRate: 0, currency: '$',
+    skin: 'crypto', logoGlyph: 'C', darkBg: '#0a0b0d',
     items: [
       { description: 'ETH Purchase', quantity: 0.1, price: 1850 },
       { description: 'Coinbase Fee', quantity: 1, price: 18.5 }
@@ -62,6 +78,7 @@ export const platforms: Record<string, PlatformPreset> = {
   },
   paypal: {
     name: 'PayPal', color: '#003087', badge: 'PAYPAL', taxRate: 0, currency: '$',
+    skin: 'paypal', logoGlyph: 'P',
     items: [
       { description: 'Payment Received', quantity: 1, price: 150 },
       { description: 'PayPal Fee', quantity: 1, price: -4.65 }
@@ -69,6 +86,7 @@ export const platforms: Record<string, PlatformPreset> = {
   },
   cashapp: {
     name: 'Cash App', color: '#00d632', badge: 'CASHAPP', taxRate: 0, currency: '$',
+    skin: 'cashapp', logoGlyph: '$',
     items: [
       { description: 'Cash Transfer', quantity: 1, price: 75 },
       { description: 'Instant Fee', quantity: 1, price: -1.5 }
@@ -76,6 +94,7 @@ export const platforms: Record<string, PlatformPreset> = {
   },
   crypto: {
     name: 'Crypto.com', color: '#002d72', badge: 'CRYPTO', taxRate: 0, currency: '$',
+    skin: 'crypto', logoGlyph: 'C', darkBg: '#0b1339',
     items: [
       { description: 'CRO Stake', quantity: 1000, price: 0.065 },
       { description: 'Card Fee', quantity: 1, price: 0 }
@@ -83,6 +102,7 @@ export const platforms: Record<string, PlatformPreset> = {
   },
   opay: {
     name: 'OPay', color: '#1dc677', badge: 'OPAY', taxRate: 0, currency: '₦',
+    skin: 'walletcard', logoGlyph: 'O',
     items: [
       { description: 'Airtime Purchase', quantity: 1, price: 1000 },
       { description: 'Cashback', quantity: 1, price: -50 }
@@ -90,6 +110,7 @@ export const platforms: Record<string, PlatformPreset> = {
   },
   kuda: {
     name: 'Kuda', color: '#40196d', badge: 'KUDA', taxRate: 0, currency: '₦',
+    skin: 'walletcard', logoGlyph: 'K',
     items: [
       { description: 'Transfer Sent', quantity: 1, price: 5000 },
       { description: 'Transfer Fee', quantity: 1, price: 10 }
@@ -97,18 +118,22 @@ export const platforms: Record<string, PlatformPreset> = {
   },
   zelle: {
     name: 'Zelle', color: '#6d1ed4', badge: 'ZELLE', taxRate: 0, currency: '$',
+    skin: 'walletcard', logoGlyph: 'Z',
     items: [{ description: 'Payment Sent', quantity: 1, price: 200 }]
   },
   venmo: {
     name: 'Venmo', color: '#008CFF', badge: 'VENMO', taxRate: 0, currency: '$',
+    skin: 'walletcard', logoGlyph: 'V',
     items: [{ description: 'Payment', quantity: 1, price: 45 }]
   },
   trustwallet: {
     name: 'Trust Wallet', color: '#3375BB', badge: 'TRUST', taxRate: 0, currency: '$',
+    skin: 'crypto', logoGlyph: 'T', darkBg: '#0b1626',
     items: [{ description: 'BNB Purchase', quantity: 1, price: 300 }]
   },
   wise: {
     name: 'Wise', color: '#00b9ff', badge: 'WISE', taxRate: 0, currency: '$',
+    skin: 'walletcard', logoGlyph: 'W',
     items: [{ description: 'International Transfer', quantity: 1, price: 500 }]
   }
 }

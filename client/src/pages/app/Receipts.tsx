@@ -5,6 +5,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useToast } from '../../contexts/ToastContext'
 import { api, APIError } from '../../api/client'
 import { CONFIG, platforms, ReceiptItem } from '../../lib/config'
+import ReceiptSkin from '../../components/ReceiptSkin'
 
 const DRAFT_KEY = 'chapo_draft'
 
@@ -254,7 +255,11 @@ export default function Receipts() {
     const element = receiptRef.current
     if (!element) return
     try {
-      const canvas = await html2canvas(element, { scale: 2, backgroundColor: '#fffdf7' })
+      // Each skin paints its own full-bleed background (thermal cream paper,
+      // dark exchange card, white PayPal/CashApp/wallet card) — let
+      // html2canvas read it from the DOM instead of forcing the old
+      // thermal-only cream color, so exports match what's on screen.
+      const canvas = await html2canvas(element, { scale: 2, backgroundColor: null })
       const link = document.createElement('a')
       link.download = 'receipt_' + draft.orderId.replace(/[^a-z0-9]/gi, '_') + '.png'
       link.href = canvas.toDataURL('image/png')
@@ -285,12 +290,20 @@ export default function Receipts() {
     }
     const doc = printWindow.document
     doc.title = 'Receipt ' + draft.orderId
-    const style = doc.createElement('style')
-    style.textContent =
-      "body{display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;background:#f5f5f0}.receipt{width:300px;background:#fffdf7;padding:24px 20px;font-family:'Courier New',monospace;font-size:13px;line-height:1.5;border:1px dashed #bbb}"
-    doc.head.appendChild(style)
+    // Clone every stylesheet/style tag from the app document into the print
+    // window's head so ALL receipt skins (thermal / crypto / paypal /
+    // cashapp / walletcard) print with their real styling — the old code
+    // only hand-wrote thermal-specific CSS here, which left every other
+    // skin completely unstyled when printed.
+    document.querySelectorAll('link[rel="stylesheet"], style').forEach((node) => {
+      doc.head.appendChild(node.cloneNode(true))
+    })
+    const wrapperStyle = doc.createElement('style')
+    wrapperStyle.textContent =
+      'body{display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;background:#f5f5f0;padding:20px}'
+    doc.head.appendChild(wrapperStyle)
     const receiptDiv = doc.createElement('div')
-    receiptDiv.className = 'receipt'
+    receiptDiv.className = receiptRef.current ? receiptRef.current.className : 'receipt'
     receiptDiv.innerHTML = receiptRef.current ? receiptRef.current.innerHTML : ''
     doc.body.appendChild(receiptDiv)
     printWindow.focus()
@@ -354,7 +367,6 @@ export default function Receipts() {
 
   const totals = recalcTotals()
   const p = platforms[draft.platform] || platforms.generic
-  const isDarkBadge = draft.platform === 'binance' || draft.platform === 'bybit'
   const dateTimeLocal = new Date(draft.dateTime)
   const dateTimeLocalStr = Number.isNaN(dateTimeLocal.getTime())
     ? new Date().toISOString().slice(0, 16)
@@ -367,15 +379,14 @@ export default function Receipts() {
       <div className="platform-scroll">
         {Object.keys(platforms).map((key) => {
           const preset = platforms[key]
-          const dark = key === 'binance' || key === 'bybit'
           return (
             <div
               key={key}
               className={`platform-chip ${key === draft.platform ? 'active' : ''}`}
               onClick={() => applyPlatform(key)}
             >
-              <div className="chip-logo" style={{ background: preset.color, color: dark ? '#1a1a1a' : 'white' }}>
-                {key === 'generic' ? '🛒' : preset.name[0]}
+              <div className="chip-logo" style={{ background: preset.color, color: preset.badgeDark ? '#1a1a1a' : 'white' }}>
+                {key === 'generic' ? '🛒' : preset.logoGlyph || preset.name[0]}
               </div>
               {preset.name}
             </div>
@@ -555,55 +566,28 @@ export default function Receipts() {
         >
           👁️ Live Preview
         </div>
-        <div ref={receiptRef} className="receipt" role="img" aria-label="Generated receipt preview">
-          <div style={{ textAlign: 'center', marginBottom: 6 }}>
-            <span className="platform-badge" style={{ background: p.color, color: isDarkBadge ? '#1a1a1a' : 'white' }}>
-              {p.badge}
-            </span>
-          </div>
-          <h2>{draft.storeName}</h2>
-          <p className="meta">{formatDate(new Date(draft.dateTime))}</p>
-          <p className="meta">Order #{draft.orderId}</p>
-          <hr />
-          <table>
-            <thead>
-              <tr>
-                <th>Item</th>
-                <th className="qty">Qty</th>
-                <th className="price">Price</th>
-              </tr>
-            </thead>
-            <tbody>
-              {draft.items.map((it, i) => (
-                <tr key={i}>
-                  <td>{it.description}</td>
-                  <td className="qty">{it.quantity}</td>
-                  <td className="price">{formatCurrency(it.price * it.quantity)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <hr />
-          <div className="totals">
-            <p>
-              Subtotal: <strong>{formatCurrency(totals.subtotal)}</strong>
-            </p>
-            <p>
-              Tax ({draft.taxRate}%): <strong>{formatCurrency(totals.tax)}</strong>
-            </p>
-            <p className="total-line">
-              Total: <strong>{formatCurrency(totals.total)}</strong>
-            </p>
-          </div>
-          <hr />
-          <div className="barcode-area">
-            <svg ref={barcodeRef} />
-          </div>
-          <div className="qr-area" ref={qrRef} />
-          <p className="footer-note">Thank you for using {draft.storeName}! 🛍️</p>
-          <p className="footer-note" style={{ fontSize: 8, color: '#888' }}>
-            This is a simulated receipt.
-          </p>
+        <div
+          ref={receiptRef}
+          className={`receipt receipt-skin-${p.skin}`}
+          style={p.skin === 'crypto' && p.darkBg ? { background: p.darkBg } : undefined}
+          role="img"
+          aria-label="Generated receipt preview"
+        >
+          <ReceiptSkin
+            platformKey={draft.platform}
+            preset={p}
+            storeName={draft.storeName}
+            orderId={draft.orderId}
+            dateTime={draft.dateTime}
+            items={draft.items}
+            taxRate={draft.taxRate}
+            currency={draft.currency}
+            formatCurrency={formatCurrency}
+            formatDate={formatDate}
+            totals={totals}
+            barcodeRef={barcodeRef}
+            qrRef={qrRef}
+          />
         </div>
       </div>
 
