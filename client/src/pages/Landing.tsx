@@ -1,319 +1,371 @@
-import React from 'react'
-import SiteHeader from '../components/SiteHeader'
-import SiteFooter from '../components/SiteFooter'
+import React, { useEffect } from 'react'
+import '../styles/homepage-gold.css'
+import GoldHeader from '../components/GoldHeader'
+import GoldFooter from '../components/GoldFooter'
+import GoldDashboardMockup from '../components/GoldDashboardMockup'
+import CountUp from '../components/CountUp'
 
-// Marketing landing page, ported verbatim from the `landingPage` markup in
-// src/lib/app-html.ts. Shown when the visitor is not authenticated.
+// ChaposHub homepage — luxury dark SaaS + gold technology redesign.
+// Fully isolated under the `.gh-landing` root + `.gh-*` classes (see
+// styles/homepage-gold.css). Does not touch the green `.landing-*` theme
+// still used by About/Contact/Help/Legal and the authenticated dashboard.
+//
+// Branding note: the gold "eJ" logo (which includes a firearm-shaped
+// element) is used ONLY at small brand-mark scale — header, footer, and the
+// dashboard-mockup topbar/sidebar — never as a large standalone graphic and
+// never echoed in feature icons or other UI elements, per explicit request.
 export default function Landing({ onSignIn, onSignUp }: { onSignIn: () => void; onSignUp: () => void }) {
+  // Escape the app shell's mobile-app-style `body{max-width:480px}` rule
+  // (app.css @media(min-width:768px)) so this full-bleed marketing page can
+  // use the full viewport on desktop. Scoped to just this page's lifetime.
+  useEffect(() => {
+    document.body.classList.add('gh-body-active')
+    return () => document.body.classList.remove('gh-body-active')
+  }, [])
+
   return (
-    <div className="landing-page">
-      <SiteHeader onSignIn={onSignIn} />
+    <div className="gh-landing" id="top">
+      <GoldHeader onSignIn={onSignIn} onSignUp={onSignUp} />
 
-      <section className="landing-hero">
-        <div className="landing-hero-badge">
-          <span className="landing-hero-badge-pulse" /> Trusted by sellers worldwide
+      {/* 2. HERO */}
+      <section className="gh-hero">
+        <div className="gh-container gh-hero-grid">
+          <div className="gh-hero-copy">
+            <div className="gh-hero-badge">✦ Trusted by 401,212+ users worldwide</div>
+            <h1 className="gh-hero-title">
+              Everything Digital.
+              <span>One Powerful Platform.</span>
+            </h1>
+            <p className="gh-hero-sub">
+              Generate receipts, send emails, build support pages, create login pages, and manage your digital
+              workflow — all from one powerful dashboard.
+            </p>
+            <div className="gh-hero-cta">
+              <button className="gh-btn gh-btn-primary" onClick={onSignUp}>
+                Get Started Free →
+              </button>
+              <button
+                className="gh-btn gh-btn-secondary"
+                onClick={() => document.querySelector('#gh-features')?.scrollIntoView({ behavior: 'smooth' })}
+              >
+                Explore Features
+              </button>
+            </div>
+            <div className="gh-hero-note-row">
+              <span className="gh-hero-note">🔒 SSL Encrypted</span>
+              <span className="gh-hero-note">⚡ Instant Delivery</span>
+              <span className="gh-hero-note">🌍 Worldwide</span>
+            </div>
+          </div>
+          <div className="gh-hero-visual">
+            <div className="gh-hero-visual-glow" />
+            <GoldDashboardMockup />
+          </div>
         </div>
-        <h1 className="landing-hero-title">Stop losing time on messy receipts and slow customer replies</h1>
-        <p className="landing-hero-sub">
-          Generate branded receipts for 13+ platforms, draft AI-powered customer replies in seconds, and pay only
-          for what you use — no subscriptions, no card required to start.
-        </p>
-        <div className="landing-hero-cta">
-          <button className="landing-cta-primary" onClick={onSignUp}>
-            🚀 Start My Free Account
+      </section>
+
+      {/* 3. TRUST / STATISTICS */}
+      <section className="gh-stats" aria-label="Platform stats">
+        <div className="gh-container">
+          <div className="gh-stats-title">Built for speed. Trusted worldwide.</div>
+          <div className="gh-stats-grid">
+            <div>
+              <div className="gh-stat-num">
+                <CountUp target={806095} suffix="+" />
+              </div>
+              <div className="gh-stat-label">Activities</div>
+            </div>
+            <div>
+              <div className="gh-stat-num">
+                <CountUp target={401212} suffix="+" />
+              </div>
+              <div className="gh-stat-label">Happy Users</div>
+            </div>
+            <div>
+              <div className="gh-stat-num">
+                <CountUp target={595986} suffix="+" />
+              </div>
+              <div className="gh-stat-label">Emails Sent</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 4. FEATURES */}
+      <section className="gh-section" id="gh-features" aria-label="Features">
+        <div className="gh-container">
+          <div className="gh-section-head">
+            <span className="gh-eyebrow">Features</span>
+            <h2 className="gh-section-title">
+              Everything You Need.
+              <span>One Platform.</span>
+            </h2>
+            <p className="gh-section-sub">
+              A complete suite of digital tools designed for speed, reliability, and ease of use.
+            </p>
+          </div>
+          <div className="gh-feature-grid">
+            {FEATURES.map((f) => (
+              <div className="gh-feature-card" key={f.title}>
+                <div className="gh-feature-icon">{f.icon}</div>
+                <div className="gh-feature-title">{f.title}</div>
+                <div className="gh-feature-desc">{f.desc}</div>
+                <button className="gh-feature-link" onClick={onSignUp}>
+                  {f.cta} →
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 5. HOW IT WORKS */}
+      <section className="gh-section" id="gh-how" aria-label="How it works">
+        <div className="gh-container">
+          <div className="gh-section-head">
+            <span className="gh-eyebrow">How It Works</span>
+            <h2 className="gh-section-title">From Idea to Result in Three Steps</h2>
+          </div>
+          <div className="gh-how-steps">
+            <div className="gh-how-step">
+              <div className="gh-how-num">01</div>
+              <div className="gh-how-title">Choose</div>
+              <div className="gh-how-desc">Select the ChaposHub tool you need.</div>
+            </div>
+            <div className="gh-how-step">
+              <div className="gh-how-num">02</div>
+              <div className="gh-how-title">Customize</div>
+              <div className="gh-how-desc">Enter your information and configure your desired result.</div>
+            </div>
+            <div className="gh-how-step">
+              <div className="gh-how-num">03</div>
+              <div className="gh-how-title">Generate</div>
+              <div className="gh-how-desc">Generate your output instantly and manage it from your dashboard.</div>
+            </div>
+          </div>
+          <div className="gh-how-cta">
+            <button className="gh-btn gh-btn-primary" onClick={onSignUp}>
+              Start Creating Free →
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* 6. DASHBOARD PREVIEW */}
+      <section className="gh-dash-preview" id="gh-dashboard-preview" aria-label="Dashboard preview">
+        <div className="gh-dash-preview-glow" />
+        <div className="gh-container gh-dash-preview-inner">
+          <div className="gh-section-head">
+            <span className="gh-eyebrow">Dashboard</span>
+            <h2 className="gh-section-title">Your Entire Digital Workflow. In One Place.</h2>
+          </div>
+          <div className="gh-dash-preview-mockup">
+            <GoldDashboardMockup large />
+          </div>
+        </div>
+      </section>
+
+      {/* 7. TESTIMONIALS */}
+      <section className="gh-section" aria-label="Testimonials">
+        <div className="gh-container">
+          <div className="gh-section-head">
+            <span className="gh-eyebrow">Testimonials</span>
+            <h2 className="gh-section-title">Trusted by Users Worldwide</h2>
+          </div>
+          <div className="gh-testimonial-grid">
+            {TESTIMONIALS.map((t, i) => (
+              <div className="gh-testimonial-card" key={i}>
+                <div className="gh-testimonial-quote">&ldquo;</div>
+                <p className="gh-testimonial-text">{t}</p>
+                <div className="gh-testimonial-author">
+                  <div className="gh-testimonial-avatar">U</div>
+                  <div>
+                    <div className="gh-testimonial-name">Verified User</div>
+                    <div className="gh-testimonial-tag">ChaposHub member</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 8. PRICING */}
+      <section className="gh-section" id="gh-pricing" aria-label="Pricing">
+        <div className="gh-container">
+          <div className="gh-section-head">
+            <span className="gh-eyebrow">Pricing</span>
+            <h2 className="gh-section-title">Simple Plans. Powerful Tools.</h2>
+          </div>
+          <div className="gh-pricing-grid">
+            <div className="gh-price-card">
+              <div className="gh-price-name">Free</div>
+              <div className="gh-price-amount">
+                $0<span>/month</span>
+              </div>
+              <div className="gh-price-desc">Core digital tools</div>
+              <ul className="gh-price-features">
+                <li>Core digital tools</li>
+                <li>Basic receipt generation</li>
+                <li>Activity history</li>
+                <li>Dashboard access</li>
+                <li>Mobile access</li>
+              </ul>
+              <button className="gh-btn gh-btn-secondary gh-btn-block" onClick={onSignUp}>
+                Get Started Free →
+              </button>
+            </div>
+
+            <div className="gh-price-card gh-price-featured">
+              <div className="gh-price-badge">Most Popular</div>
+              <div className="gh-price-name">Pro</div>
+              <div className="gh-price-amount">
+                $9.99<span>/month</span>
+              </div>
+              <div className="gh-price-desc">For power users</div>
+              <ul className="gh-price-features">
+                <li>Everything in Free</li>
+                <li>Higher usage limits</li>
+                <li>Advanced generation</li>
+                <li>Extended history</li>
+                <li>Priority processing</li>
+                <li>Priority support</li>
+              </ul>
+              <button className="gh-btn gh-btn-primary gh-btn-block" onClick={onSignUp}>
+                Upgrade to Pro →
+              </button>
+            </div>
+
+            <div className="gh-price-card">
+              <div className="gh-price-name">Business</div>
+              <div className="gh-price-amount">Custom</div>
+              <div className="gh-price-desc">For teams and high-volume users.</div>
+              <ul className="gh-price-features">
+                <li>Everything in Pro</li>
+                <li>Higher limits</li>
+                <li>Team features</li>
+                <li>Advanced management</li>
+                <li>Dedicated support</li>
+                <li>Custom solutions</li>
+              </ul>
+              <a href="/contact" className="gh-btn gh-btn-secondary gh-btn-block">
+                Contact Us →
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 9. FAQ */}
+      <section className="gh-section" id="gh-faq" aria-label="Frequently asked questions">
+        <div className="gh-container">
+          <div className="gh-section-head">
+            <span className="gh-eyebrow">FAQ</span>
+            <h2 className="gh-section-title">Frequently Asked Questions</h2>
+          </div>
+          <div className="gh-faq-list">
+            {FAQS.map((f) => (
+              <details className="gh-faq-item" key={f.q}>
+                <summary>{f.q}</summary>
+                <p>{f.a}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 10. FINAL CTA */}
+      <section className="gh-final-cta">
+        <div className="gh-final-cta-inner">
+          <h2>Ready to Build Faster?</h2>
+          <div className="gh-final-cta-lede">Everything you need. One ChaposHub.</div>
+          <p className="gh-final-cta-desc">
+            Join thousands of users using ChaposHub to simplify their digital workflows.
+          </p>
+          <button className="gh-btn gh-btn-primary" onClick={onSignUp}>
+            Get Started Free →
           </button>
-          <button className="landing-cta-secondary" onClick={onSignIn}>
-            Sign In
-          </button>
-        </div>
-        <div className="landing-hero-note">No credit card required · 245 free points on signup</div>
-        <div className="landing-trust" aria-label="Trust indicators">
-          <div className="landing-trust-item">
-            <span className="trust-icon">🔒</span> SSL Encrypted
-          </div>
-          <div className="landing-trust-item">
-            <span className="trust-icon">⚡</span> Instant Delivery
-          </div>
-          <div className="landing-trust-item">
-            <span className="trust-icon">🌍</span> Available Worldwide
+          <div className="gh-final-cta-note">
+            <span>No complicated setup</span>
+            <span>Fast workflows</span>
+            <span>Worldwide access</span>
           </div>
         </div>
       </section>
 
-      <section className="landing-stats" aria-label="Platform stats">
-        <div className="landing-stats-grid">
-          <div className="landing-stat">
-            <div className="landing-stat-num">1,250,000+</div>
-            <div className="landing-stat-label">Receipts Generated</div>
-          </div>
-          <div className="landing-stat">
-            <div className="landing-stat-num">50,000+</div>
-            <div className="landing-stat-label">Active Sellers</div>
-          </div>
-          <div className="landing-stat">
-            <div className="landing-stat-num">890,000+</div>
-            <div className="landing-stat-label">AI Replies Sent</div>
-          </div>
-        </div>
-      </section>
-
-      <section className="landing-platforms" aria-label="Supported platforms">
-        <div className="landing-platforms-label">Supported Platforms</div>
-        <div className="landing-platform-grid">
-          {PLATFORM_ICONS.map((p) => (
-            <div className="landing-platform-item" key={p.name}>
-              <div className="landing-platform-icon" dangerouslySetInnerHTML={{ __html: p.svg }} />
-              <span className="landing-platform-name">{p.name}</span>
-            </div>
-          ))}
-          <div className="landing-platform-item">
-            <div className="landing-platform-more">+3</div>
-            <span className="landing-platform-name">More</span>
-          </div>
-        </div>
-      </section>
-
-      <section className="landing-problem" aria-label="Problems we solve">
-        <h2 className="landing-section-title">Sound familiar?</h2>
-        <div className="landing-problem-grid">
-          <div className="landing-problem-card">
-            <div className="landing-problem-pain">😩 "It takes forever to format a receipt every time I make a sale."</div>
-            <div className="landing-problem-fix">
-              → Pick a platform preset, fill in the amount, download a branded receipt in under a minute.
-            </div>
-          </div>
-          <div className="landing-problem-card">
-            <div className="landing-problem-pain">😩 "I never know how to word a reply to an annoyed customer."</div>
-            <div className="landing-problem-fix">→ Paste their message, pick a tone, get a ready-to-send AI reply instantly.</div>
-          </div>
-          <div className="landing-problem-card">
-            <div className="landing-problem-pain">😩 "I'm paying for tools I barely use."</div>
-            <div className="landing-problem-fix">
-              → Points-based pricing — top up when you need it, never pay a recurring fee for idle time.
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="landing-features" aria-label="Features">
-        <h2 className="landing-section-title">Everything in one hub</h2>
-        <div className="landing-feature-grid">
-          <div className="landing-feature-card">
-            <div className="landing-feature-icon">🧾</div>
-            <div className="landing-feature-text">
-              <div className="landing-feature-title">Receipt Management</div>
-              <div className="landing-feature-desc">
-                Create polished, branded receipts for PayPal, Binance, Cash App, OPay, Zelle and more — download,
-                print, email, or share a short link in seconds.
-              </div>
-            </div>
-          </div>
-          <div className="landing-feature-card">
-            <div className="landing-feature-icon">💎</div>
-            <div className="landing-feature-text">
-              <div className="landing-feature-title">Points Economy</div>
-              <div className="landing-feature-desc">
-                Pay-as-you-go points power every action. Top up anytime with crypto, card, or bank transfer — no
-                subscriptions, no waste.
-              </div>
-            </div>
-          </div>
-          <div className="landing-feature-card">
-            <div className="landing-feature-icon">🤖</div>
-            <div className="landing-feature-text">
-              <div className="landing-feature-title">AI Reply Assistant</div>
-              <div className="landing-feature-desc">
-                Paste any customer message and get a smart, tone-matched reply instantly — professional, friendly,
-                casual, urgent, or apologetic.
-              </div>
-            </div>
-          </div>
-          <div className="landing-feature-card">
-            <div className="landing-feature-icon">🛟</div>
-            <div className="landing-feature-text">
-              <div className="landing-feature-title">Support Page Builder</div>
-              <div className="landing-feature-desc">
-                Spin up a branded support contact page with your colors, WhatsApp, Telegram and email in one click.
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="landing-how" id="landing-how-it-works" aria-label="How it works">
-        <h2 className="landing-section-title">How it works</h2>
-        <div className="landing-how-steps">
-          <div className="landing-how-step">
-            <div className="landing-how-num">1</div>
-            <div className="landing-how-title">Pick a platform &amp; enter details</div>
-            <div className="landing-how-desc">Choose from 13+ presets or go generic, then add your store name, items and amounts.</div>
-          </div>
-          <div className="landing-how-step">
-            <div className="landing-how-num">2</div>
-            <div className="landing-how-title">Preview instantly</div>
-            <div className="landing-how-desc">Watch your branded receipt render live, complete with barcode and QR code.</div>
-          </div>
-          <div className="landing-how-step">
-            <div className="landing-how-num">3</div>
-            <div className="landing-how-title">Download, print, email or share</div>
-            <div className="landing-how-desc">Export as PNG, print directly, email it, or generate a short shareable link.</div>
-          </div>
-        </div>
-      </section>
-
-      <section className="landing-pricing" id="landing-pricing-section" aria-label="Pricing">
-        <h2 className="landing-section-title">Simple, transparent pricing</h2>
-        <p className="landing-pricing-sub">No subscriptions. Every new account starts with 245 free points.</p>
-        <div className="landing-pricing-table">
-          <div className="landing-pricing-row landing-pricing-head">
-            <span>Action</span>
-            <span>Points Cost</span>
-          </div>
-          <div className="landing-pricing-row">
-            <span>Download receipt</span>
-            <span>5 pts</span>
-          </div>
-          <div className="landing-pricing-row">
-            <span>Print receipt</span>
-            <span>3 pts</span>
-          </div>
-          <div className="landing-pricing-row">
-            <span>Email receipt</span>
-            <span>10 pts</span>
-          </div>
-          <div className="landing-pricing-row">
-            <span>Short link</span>
-            <span>2 pts</span>
-          </div>
-          <div className="landing-pricing-row">
-            <span>AI reply</span>
-            <span>3 pts</span>
-          </div>
-          <div className="landing-pricing-row">
-            <span>Support page</span>
-            <span>15 pts</span>
-          </div>
-        </div>
-        <div className="landing-pricing-packages">
-          <div className="landing-package-card">
-            <div className="landing-package-points">1,000 pts</div>
-            <div className="landing-package-price">$10</div>
-            <div className="landing-package-desc">Starter</div>
-          </div>
-          <div className="landing-package-card">
-            <div className="landing-package-tag">COMING SOON</div>
-            <div className="landing-package-points">5,000 pts</div>
-            <div className="landing-package-price">$45</div>
-            <div className="landing-package-desc">Pro</div>
-          </div>
-          <div className="landing-package-card">
-            <div className="landing-package-tag">COMING SOON</div>
-            <div className="landing-package-points">10,000 pts</div>
-            <div className="landing-package-price">$80</div>
-            <div className="landing-package-desc">Enterprise</div>
-          </div>
-        </div>
-      </section>
-
-      <section className="landing-faq" id="landing-faq-section" aria-label="Frequently asked questions">
-        <h2 className="landing-section-title">Frequently asked questions</h2>
-        <details className="landing-faq-item">
-          <summary>What are these receipts for?</summary>
-          <p>
-            Chapo'sHub receipts are simulated, branded records for personal bookkeeping, invoicing your own
-            customers, and demo/testing purposes. They are not issued by PayPal, Binance, or any platform they're
-            styled after, and are not intended to be submitted as official proof of payment to a third party.
-          </p>
-        </details>
-        <details className="landing-faq-item">
-          <summary>Do I need a credit card to sign up?</summary>
-          <p>No. Every new account gets 245 free points instantly, no card required. You only pay if/when you want to top up points.</p>
-        </details>
-        <details className="landing-faq-item">
-          <summary>Can I customize the receipt branding?</summary>
-          <p>Yes — pick a platform preset for instant styling, or use the generic template and set your own store name, currency, tax rate, and line items.</p>
-        </details>
-        <details className="landing-faq-item">
-          <summary>How does the points system work?</summary>
-          <p>
-            Every account starts with 245 free points. Actions like downloading, printing, emailing, or generating
-            an AI reply each cost a small number of points (shown in the pricing table above). Top up anytime —
-            points never expire and there's no recurring subscription.
-          </p>
-        </details>
-        <details className="landing-faq-item">
-          <summary>What does the AI reply tool do?</summary>
-          <p>
-            Paste in a customer's message, choose a tone (professional, friendly, casual, urgent, or apologetic),
-            and get an instantly generated reply you can copy and send.
-          </p>
-        </details>
-      </section>
-
-      <section className="landing-final-cta">
-        <h2>Ready to get started?</h2>
-        <p>Create your free account and get 245 points instantly — no card required.</p>
-        <button className="landing-cta-primary" onClick={onSignUp}>
-          Start My Free Account
-        </button>
-      </section>
-
-      <SiteFooter />
+      <GoldFooter />
     </div>
   )
 }
 
-const PLATFORM_ICONS = [
+const FEATURES = [
   {
-    name: 'Binance',
-    svg: `<svg viewBox="0 0 56 56"><circle cx="28" cy="28" r="28" fill="#F0B90B"/><path d="M20.5 28l-5.5-5.5 5.5-5.5 5.5 5.5-5.5 5.5zm15 0l5.5 5.5-5.5 5.5-5.5-5.5 5.5-5.5zm-7.5-7.5l5.5-5.5 5.5 5.5-5.5 5.5-5.5-5.5zm0 15l-5.5 5.5-5.5-5.5 5.5-5.5 5.5 5.5z" fill="#000"/><circle cx="28" cy="28" r="3.5" fill="#000"/></svg>`
+    icon: '🧾',
+    title: 'Receipt Generator',
+    desc: 'Create professional digital receipts in seconds.',
+    cta: 'Generate Receipt'
   },
   {
-    name: 'Bybit',
-    svg: `<svg viewBox="0 0 56 56"><circle cx="28" cy="28" r="28" fill="#1a1a2e"/><text x="28" y="32" text-anchor="middle" fill="#fff" font-size="10" font-weight="900" font-family="Inter,sans-serif" letter-spacing="1.5">BYBIT</text><rect x="38" y="22" width="2" height="10" fill="#F7A600" rx="1"/></svg>`
+    icon: '⚡',
+    title: 'Instant Generation',
+    desc: 'Turn your ideas into usable digital assets quickly.',
+    cta: 'Generate Now'
   },
   {
-    name: 'Coinbase',
-    svg: `<svg viewBox="0 0 56 56"><circle cx="28" cy="28" r="28" fill="#0052FF"/><path d="M28 17c6.075 0 11 4.925 11 11s-4.925 11-11 11-11-4.925-11-11 4.925-11 11-11z" fill="#fff"/><path d="M28 22c3.314 0 6 2.686 6 6s-2.686 6-6 6-6-2.686-6-6 2.686-6 6-6z" fill="#0052FF"/><rect x="34" y="26" width="8" height="4" rx="2" fill="#fff"/></svg>`
+    icon: '✉️',
+    title: 'Flash Email',
+    desc: 'Create and manage fast email workflows from one place.',
+    cta: 'Create Email'
   },
   {
-    name: 'PayPal',
-    svg: `<svg viewBox="0 0 56 56"><circle cx="28" cy="28" r="28" fill="#fff"/><path d="M22 18h8c4.4 0 8 3.6 8 8s-3.6 8-8 8h-2l-1 7h-5l3-23z" fill="#003087"/><path d="M24 21h6c3 0 5.5 2.5 5.5 5.5S33 32 30 32h-2l-1 5h-4l1.5-16z" fill="#0070E0"/></svg>`
+    icon: '🛠️',
+    title: 'Support Page Builder',
+    desc: 'Build professional support pages without complicated setup.',
+    cta: 'Build Page'
   },
   {
-    name: 'Crypto.com',
-    svg: `<svg viewBox="0 0 56 56"><circle cx="28" cy="28" r="28" fill="#002D72"/><path d="M28 12l14 8v16l-14 8-14-8V20l14-8z" fill="none" stroke="#fff" stroke-width="2.5"/><path d="M22 22h4v4h-4zM26 22h4v4h-4zM30 22h4v4h-4zM24 26h4v4h-4zM28 26h4v4h-4zM26 30h4v4h-4z" fill="#fff"/></svg>`
+    icon: '🔐',
+    title: 'Login Page Builder',
+    desc: 'Create modern authentication pages for your projects.',
+    cta: 'Create Login'
   },
   {
-    name: 'Cash App',
-    svg: `<svg viewBox="0 0 56 56"><rect x="4" y="4" width="48" height="48" rx="14" fill="#00D632"/><text x="28" y="38" text-anchor="middle" fill="#fff" font-size="28" font-weight="900" font-family="Inter,sans-serif">$</text></svg>`
+    icon: '📊',
+    title: 'Activity Management',
+    desc: 'Track your generated services and account activity from one dashboard.',
+    cta: 'View Activity'
+  }
+]
+
+const TESTIMONIALS = [
+  'ChaposHub gives me everything I need in one place. The dashboard is simple and extremely easy to use.',
+  "The generation tools are fast, and I don't have to keep switching between different platforms.",
+  'The interface feels modern and professional. ChaposHub has become part of my everyday workflow.'
+]
+
+const FAQS = [
+  {
+    q: 'What is ChaposHub?',
+    a: 'ChaposHub is an all-in-one digital services platform that brings multiple digital tools into one dashboard.'
   },
   {
-    name: 'OPay',
-    svg: `<svg viewBox="0 0 56 56"><circle cx="28" cy="28" r="28" fill="#1DCB8B"/><circle cx="28" cy="28" r="14" fill="none" stroke="#fff" stroke-width="4"/><rect x="10" y="24" width="10" height="8" rx="2" fill="#1B0A3E"/></svg>`
+    q: 'Is ChaposHub free?',
+    a: 'Yes. Users can get started with the free plan and upgrade when they need additional capabilities.'
   },
   {
-    name: 'Kuda',
-    svg: `<svg viewBox="0 0 56 56"><circle cx="28" cy="28" r="28" fill="#40196D"/><text x="28" y="33" text-anchor="middle" fill="#fff" font-size="13" font-weight="700" font-family="Inter,sans-serif">kuda.</text></svg>`
+    q: 'Can I use ChaposHub on my phone?',
+    a: 'Yes. The website and dashboard are designed to work across desktop and mobile devices.'
   },
   {
-    name: 'Wise',
-    svg: `<svg viewBox="0 0 56 56"><circle cx="28" cy="28" r="28" fill="#9FE870"/><path d="M38 18l-8 20-8-20h6l2 8 2-8h6z" fill="#163300"/></svg>`
+    q: 'Do I need technical knowledge?',
+    a: 'No. ChaposHub is designed around simple workflows that make the tools easy to use.'
   },
   {
-    name: 'Venmo',
-    svg: `<svg viewBox="0 0 56 56"><circle cx="28" cy="28" r="28" fill="#008CFF"/><text x="28" y="36" text-anchor="middle" fill="#fff" font-size="22" font-weight="900" font-family="Inter,sans-serif" font-style="italic">V</text></svg>`
+    q: 'What tools are available?',
+    a: 'ChaposHub can provide receipt generation, email tools, support-page creation, login-page creation, instant generation, and additional digital utilities.'
   },
   {
-    name: 'Zelle',
-    svg: `<svg viewBox="0 0 56 56"><circle cx="28" cy="28" r="28" fill="#6D1ED4"/><text x="28" y="35" text-anchor="middle" fill="#fff" font-size="20" font-weight="900" font-family="Inter,sans-serif">Z</text></svg>`
-  },
-  {
-    name: 'Remitly',
-    svg: `<svg viewBox="0 0 56 56"><circle cx="28" cy="28" r="28" fill="#2E5BFF"/><path d="M20 28l8-8 8 8-8 8-8-8z" fill="#fff"/></svg>`
-  },
-  {
-    name: 'Stripe',
-    svg: `<svg viewBox="0 0 56 56"><circle cx="28" cy="28" r="28" fill="#635BFF"/><text x="28" y="35" text-anchor="middle" fill="#fff" font-size="20" font-weight="900" font-family="Inter,sans-serif">S</text></svg>`
+    q: 'Is ChaposHub secure?',
+    a: 'ChaposHub uses HTTPS/SSL and appropriate security practices to protect user accounts and information.'
   }
 ]
