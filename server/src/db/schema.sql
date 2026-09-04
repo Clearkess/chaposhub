@@ -14,6 +14,8 @@ CREATE TABLE IF NOT EXISTS users (
   referred_by TEXT REFERENCES users(id),
   receipts_generated INTEGER NOT NULL DEFAULT 0,
   last_login TEXT,
+  whatsapp TEXT,
+  is_vendor INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -180,3 +182,36 @@ CREATE TABLE IF NOT EXISTS marketplace_purchases (
 CREATE INDEX IF NOT EXISTS idx_marketplace_purchases_buyer ON marketplace_purchases(buyer_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_marketplace_purchases_seller ON marketplace_purchases(seller_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_marketplace_purchases_listing ON marketplace_purchases(listing_id);
+
+-- P2P points marketplace (see migrations/0006_p2p_vendor.sql for full rationale)
+CREATE TABLE IF NOT EXISTS p2p_listings (
+  id TEXT PRIMARY KEY,
+  vendor_id TEXT NOT NULL REFERENCES users(id),
+  rate_ngn_per_point REAL NOT NULL,
+  min_points INTEGER NOT NULL DEFAULT 100,
+  max_points INTEGER NOT NULL DEFAULT 5000,
+  status TEXT NOT NULL DEFAULT 'active',
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_p2p_listings_status ON p2p_listings(status, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_p2p_listings_vendor ON p2p_listings(vendor_id, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS p2p_orders (
+  id TEXT PRIMARY KEY,
+  listing_id TEXT NOT NULL REFERENCES p2p_listings(id),
+  vendor_id TEXT NOT NULL REFERENCES users(id),
+  buyer_id TEXT NOT NULL REFERENCES users(id),
+  points_amount INTEGER NOT NULL,
+  rate_ngn_per_point REAL NOT NULL,
+  total_ngn REAL NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending_payment',
+  buyer_marked_paid_at TEXT,
+  completed_at TEXT,
+  cancelled_at TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_p2p_orders_buyer ON p2p_orders(buyer_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_p2p_orders_vendor ON p2p_orders(vendor_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_p2p_orders_listing ON p2p_orders(listing_id);

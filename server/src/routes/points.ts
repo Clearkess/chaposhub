@@ -89,9 +89,10 @@ router.post('/deduct', authMiddleware, async (req: AuthedRequest, res) => {
   })
 })
 
-// Purchase points via Stripe (legacy/optional path). Real purchases go
-// through the Whop checkout links (see WHOP_CHECKOUT_URLS on the frontend)
-// and are credited by /api/webhooks/whop, NOT this endpoint.
+// Purchase points via Stripe (legacy/optional card-checkout path — not
+// currently wired to a live Stripe account). The primary way to buy points
+// is now the peer-to-peer marketplace (see server/src/routes/p2p.ts), where
+// any vendor can sell points directly to another user at a rate they set.
 //
 // IMPORTANT: this endpoint intentionally does NOT have a "mock mode" that
 // credits points without a real payment. If STRIPE_SECRET_KEY is not
@@ -109,7 +110,7 @@ router.post('/purchase', authMiddleware, async (req: AuthedRequest, res) => {
 
   if (!process.env.STRIPE_SECRET_KEY) {
     return res.status(501).json({
-      error: 'Card checkout is not available right now. Please use the Whop checkout link instead.'
+      error: 'Card checkout is not available right now. Please use the P2P points marketplace instead.'
     })
   }
 

@@ -9,11 +9,11 @@ import ai from './routes/ai'
 import email from './routes/email'
 import users from './routes/users'
 import analytics from './routes/analytics'
-import webhooks from './routes/webhooks'
 import opay from './routes/opay'
 import opayWallet from './routes/opay-wallet'
 import banks from './routes/banks'
 import marketplace from './routes/marketplace'
+import p2p from './routes/p2p'
 
 const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>()
 
@@ -66,11 +66,11 @@ app.route('/api/ai', ai)
 app.route('/api/email', email)
 app.route('/api/users', users)
 app.route('/api/analytics', analytics)
-app.route('/api/webhooks', webhooks)
 app.route('/api/services/opay', opay)
 app.route('/api/services/opay', opayWallet)
 app.route('/api/banks', banks)
 app.route('/api/marketplace', marketplace)
+app.route('/api/p2p', p2p)
 
 // --- React SPA (client/) ---
 // The React app is built separately (client/npm run build) and its output

@@ -11,24 +11,16 @@ import aiRouter from './routes/ai.js'
 import emailRouter from './routes/email.js'
 import usersRouter from './routes/users.js'
 import analyticsRouter from './routes/analytics.js'
-import webhooksRouter from './routes/webhooks.js'
 import opayRouter from './routes/opay.js'
 import opayWalletRouter from './routes/opay-wallet.js'
 import banksRouter from './routes/banks.js'
 import marketplaceRouter from './routes/marketplace.js'
+import p2pRouter from './routes/p2p.js'
 
 const app = express()
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 8787
 
 app.use(cors())
-
-// NOTE: webhooksRouter defines its own express.text({type:'*/*'}) raw-body
-// parser scoped to POST /whop specifically, so the global JSON parser below
-// must NOT run for that route (HMAC verification needs the exact raw bytes).
-// Mounting webhooksRouter before the global json() middleware, combined with
-// Express matching sub-routers by path, keeps /api/webhooks/* routes as the
-// first (and only) body parser to touch that request.
-app.use('/api/webhooks', webhooksRouter)
 
 // Marketplace file-upload route defines its own express.raw() body parser
 // scoped to POST /listings/:id/upload; mount before the global json()
@@ -52,6 +44,7 @@ app.use('/api/analytics', analyticsRouter)
 app.use('/api/services/opay', opayRouter)
 app.use('/api/services/opay', opayWalletRouter)
 app.use('/api/banks', banksRouter)
+app.use('/api/p2p', p2pRouter)
 
 app.listen(PORT, () => {
   console.log(`chaposhub API server listening on http://0.0.0.0:${PORT}`)

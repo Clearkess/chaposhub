@@ -11,9 +11,6 @@ export type Bindings = {
   STRIPE_SECRET_KEY?: string
   RESEND_API_KEY?: string
   FROM_EMAIL?: string
-  // Whop payment webhook integration
-  WHOP_WEBHOOK_SECRET?: string   // secret, from Whop dashboard (ws_...)
-  WHOP_STARTER_PLAN_ID?: string  // plain var, e.g. plan_DZtaB5bXDuHOm
   // Paystack: real bank list + account-name resolution for the OPay demo's
   // "Bank Transfer" tab (wallet balance / transfer itself remain simulated).
   PAYSTACK_SECRET_KEY?: string   // secret, from Paystack dashboard (sk_live_... / sk_test_...)
@@ -47,6 +44,8 @@ export interface UserRow {
   referred_by: string | null
   receipts_generated: number
   last_login: string | null
+  whatsapp: string | null
+  is_vendor: number
   created_at: string
   updated_at: string
 }
@@ -164,6 +163,39 @@ export const MARKETPLACE_CATEGORIES = [
 ] as const
 
 export const MARKETPLACE_PLATFORM_FEE_PCT = 10 // seller keeps 90% of price_points per sale
+
+// ── P2P points marketplace (see migrations/0006_p2p_vendor.sql) ──────────
+export interface P2pListingRow {
+  id: string
+  vendor_id: string
+  rate_ngn_per_point: number
+  min_points: number
+  max_points: number
+  status: string // 'active' | 'paused' | 'removed'
+  created_at: string
+  updated_at: string
+}
+
+export interface P2pOrderRow {
+  id: string
+  listing_id: string
+  vendor_id: string
+  buyer_id: string
+  points_amount: number
+  rate_ngn_per_point: number
+  total_ngn: number
+  status: string // 'pending_payment' | 'awaiting_confirmation' | 'completed' | 'cancelled'
+  buyer_marked_paid_at: string | null
+  completed_at: string | null
+  cancelled_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export const P2P_MIN_RATE_NGN = 1
+export const P2P_MAX_RATE_NGN = 5000
+export const P2P_MIN_LISTING_POINTS = 50
+export const P2P_MAX_LISTING_POINTS = 1_000_000
 
 export interface ActivityRow {
   id: string
