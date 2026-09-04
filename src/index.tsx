@@ -1,11 +1,6 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import type { Bindings, AppVariables } from './lib/types'
-import { APP_HTML } from './lib/app-html'
-import { aboutPageHtml } from './lib/pages/about'
-import { helpPageHtml } from './lib/pages/help'
-import { contactPageHtml } from './lib/pages/contact'
-import { privacyPolicyHtml, termsHtml } from './lib/pages/legal'
 
 import auth from './routes/auth'
 import receipts from './routes/receipts'
@@ -30,22 +25,11 @@ app.get('/api/health', (c) => {
   return c.json({ status: 'ok', service: 'chaposhub', time: new Date().toISOString() })
 })
 
-// Monolithic frontend app (chaposhub_fixed.html port, wired to real API)
-app.get('/', (c) => {
-  return c.html(APP_HTML)
-})
-
-// Static marketing subpages (persistent nav/footer via src/lib/site-chrome.ts)
-app.get('/about', (c) => c.html(aboutPageHtml()))
-app.get('/help', (c) => c.html(helpPageHtml()))
-app.get('/contact', (c) => c.html(contactPageHtml()))
-app.get('/privacy-policy', (c) => c.html(privacyPolicyHtml()))
-app.get('/terms', (c) => c.html(termsHtml()))
-
 // robots.txt / sitemap.xml — served directly by this Worker rather than as
 // static files under public/, since Cloudflare Pages' _routes.json only
-// excludes /static/* from Worker routing (root-level public/ files still hit
-// this app, where they'd otherwise 404 with no matching route).
+// excludes the static asset paths from Worker routing (root-level public/
+// files not covered by _routes.json would otherwise 404 with no matching
+// route here).
 app.get('/robots.txt', (c) => {
   return c.text('User-agent: *\nAllow: /\n\nSitemap: https://chaposhub.pages.dev/sitemap.xml\n')
 })
@@ -72,7 +56,9 @@ app.get('/sitemap.xml', (c) => {
   )
 })
 
-// Mount feature routes
+// Mount feature API routes (unchanged Hono/D1 implementations, already live
+// in production — see server/src/routes/* for the parallel Express/
+// better-sqlite3 port used by the local Node dev environment).
 app.route('/api/auth', auth)
 app.route('/api/receipts', receipts)
 app.route('/api/points', points)
@@ -86,8 +72,20 @@ app.route('/api/services/opay', opayWallet)
 app.route('/api/banks', banks)
 app.route('/api/marketplace', marketplace)
 
-// Note: static frontend assets in public/ (index.html, /static/*) are served
-// automatically by Cloudflare Pages' built-in asset handler per _routes.json
-// (exclude: /static/*). No serveStatic middleware needed/compatible here.
+// --- React SPA (client/) ---
+// The React app is built separately (client/npm run build) and its output
+// (index.html + /assets/* + /images/*) is copied into public/ by
+// `npm run build` at the repo root (see scripts/copy-client-dist.mjs) before
+// Cloudflare Pages' own build step runs. Cloudflare Pages' built-in static
+// asset handler serves those files directly per _routes.json (they never
+// reach this Worker). Any request that *isn't* a static asset match falls
+// through to this catch-all, which serves the SPA shell so client-side
+// routing (react-router-dom, e.g. /about, /help, /contact, /privacy-policy,
+// /terms, and 404s) works correctly on hard refresh / direct link.
+app.get('*', async (c) => {
+  const asset = await c.env.ASSETS?.fetch(new Request(new URL('/index.html', c.req.url)))
+  if (asset) return asset
+  return c.text('Not found', 404)
+})
 
 export default app

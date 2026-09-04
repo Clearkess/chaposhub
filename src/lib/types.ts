@@ -1,6 +1,11 @@
 export type Bindings = {
   DB: D1Database
   JWT_SECRET: string
+  // Cloudflare Pages Functions automatically expose the project's own static
+  // asset bundle (public/) via this binding, letting the Worker fetch/serve
+  // any built file (e.g. index.html for SPA-fallback routing) directly,
+  // without needing a second HTTP round-trip through the CDN.
+  ASSETS?: { fetch: (request: Request) => Promise<Response> }
   OPENAI_API_KEY?: string
   NOMASK_API_KEY?: string
   STRIPE_SECRET_KEY?: string
