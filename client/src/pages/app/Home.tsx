@@ -1,9 +1,10 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { usePage } from '../../contexts/PageContext'
 import { useToast } from '../../contexts/ToastContext'
 import { allServices } from '../../lib/config'
+import JoinVendorModal from '../../components/JoinVendorModal'
 
 // Originally ported 1:1 from `#page-dashboard` in src/lib/app-html.ts +
 // renderAllServices() in public/static/js/app.js. Restructured into a
@@ -19,10 +20,12 @@ export default function Home() {
   const { toggle } = useTheme()
   const { goTo, goToReceiptsWithPlatform } = usePage()
   const { showToast } = useToast()
+  const [vendorModalOpen, setVendorModalOpen] = useState(false)
 
   const points = user?.points ?? 0
   const name = user?.username || 'guest'
   const country = user?.country || 'KE'
+  const isVendor = !!user?.isVendor
 
   function serviceNavAction(s: (typeof allServices)[number]) {
     if (s.dedicated) goTo(s.key as any)
@@ -51,7 +54,9 @@ export default function Home() {
           </div>
         </div>
         <div className="top-right">
-          <div className="top-badge">💎 {points}pts</div>
+          <div className="top-badge">
+            <i className="fa-solid fa-gem"></i> {points}pts
+          </div>
           <div
             className="top-icon-btn"
             onClick={toggle}
@@ -60,7 +65,7 @@ export default function Home() {
             aria-label="Toggle theme"
             title="Toggle theme"
           >
-            🌙
+            <i className="fa-solid fa-moon"></i>
           </div>
         </div>
       </div>
@@ -72,7 +77,7 @@ export default function Home() {
           show here — flagged to the user, not silently fabricated. */}
       <div className="ref-pill-row">
         <div className="ref-pill" title="Referral program">
-          <span aria-hidden="true">👥</span> Referred: <strong>0</strong>
+          <i className="fa-solid fa-user-group" aria-hidden="true"></i> Referred: <strong>0</strong>
         </div>
         <button className="ref-pill-btn" onClick={copyRefLink}>
           Copy Ref
@@ -83,7 +88,9 @@ export default function Home() {
         <div className="welcome-text">
           Welcome back,
           <br />
-          <strong>{name} 👋</strong>
+          <strong>
+            {name} <i className="fa-solid fa-hand-peace"></i>
+          </strong>
         </div>
         <button
           className="welcome-add-btn"
@@ -96,21 +103,29 @@ export default function Home() {
       </div>
 
       <div className="balance-card compact">
-        <div className="balance-label">💳 TOTAL BALANCE</div>
+        <div className="balance-label">
+          <i className="fa-solid fa-credit-card"></i> TOTAL BALANCE
+        </div>
         <div className="balance-amount">
           {points} <span>pts</span>
         </div>
         <div className="balance-actions">
           <div className="balance-action" onClick={() => goTo('services')}>
-            <div className="balance-action-icon">→</div>
+            <div className="balance-action-icon">
+              <i className="fa-solid fa-arrow-right"></i>
+            </div>
             <div className="balance-action-label">Services</div>
           </div>
           <div className="balance-action" onClick={() => goTo('orders')}>
-            <div className="balance-action-icon">🛒</div>
+            <div className="balance-action-icon">
+              <i className="fa-solid fa-cart-shopping"></i>
+            </div>
             <div className="balance-action-label">Orders</div>
           </div>
           <div className="balance-action" onClick={() => goTo('history')}>
-            <div className="balance-action-icon">🕐</div>
+            <div className="balance-action-icon">
+              <i className="fa-solid fa-clock-rotate-left"></i>
+            </div>
             <div className="balance-action-label">History</div>
           </div>
         </div>
@@ -122,23 +137,38 @@ export default function Home() {
       <div className="section-title">Quick Actions</div>
       <div className="quick-actions">
         <div className="quick-action orange" onClick={() => goTo('points')}>
-          <span className="quick-action-icon">🔗</span> Buy Points
+          <span className="quick-action-icon">
+            <i className="fa-solid fa-link"></i>
+          </span>{' '}
+          Buy Points
         </div>
-        <div className="quick-action" onClick={() => showToast('Vendor application coming soon!')}>
-          <span className="quick-action-icon">👤</span> Join Vendor
+        <div
+          className="quick-action"
+          onClick={() => (isVendor ? goTo('points') : setVendorModalOpen(true))}
+        >
+          <span className="quick-action-icon">
+            <i className="fa-solid fa-store"></i>
+          </span>{' '}
+          {isVendor ? 'Vendor Dashboard' : 'Join Vendor'}
         </div>
       </div>
 
+      <JoinVendorModal open={vendorModalOpen} onClose={() => setVendorModalOpen(false)} />
+
       <div className="section-title">Featured</div>
       <div className="featured-card" onClick={() => goTo('ai')}>
-        <div className="featured-icon">🤖</div>
+        <div className="featured-icon">
+          <i className="fa-solid fa-robot"></i>
+        </div>
         <div className="featured-content">
           <div className="featured-title">
             AI Reply <span className="featured-badge">NEW</span>
           </div>
           <div className="featured-desc">Smart AI-powered replies for any conversation</div>
         </div>
-        <div className="featured-arrow">⚡</div>
+        <div className="featured-arrow">
+          <i className="fa-solid fa-bolt"></i>
+        </div>
       </div>
 
       {/* Single consolidated service-discovery section (the old duplicate
@@ -156,7 +186,7 @@ export default function Home() {
             goTo('services')
           }}
         >
-          View All →
+          View All <i className="fa-solid fa-arrow-right"></i>
         </a>
       </div>
       <div className="all-services-grid">

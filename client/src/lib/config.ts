@@ -1,5 +1,5 @@
-// Shared config ported from public/static/js/app.js CONFIG / WHOP_CHECKOUT_URLS
-// / platforms / allServices constants.
+// Shared config ported from public/static/js/app.js CONFIG / platforms /
+// allServices constants.
 
 export const CONFIG = {
   points: {
@@ -9,10 +9,6 @@ export const CONFIG = {
     opay_wallet_send: 6, opay_bank_transfer: 10
   } as Record<string, number>,
   app: { name: "Chapo'sHub", version: '2.0.0' }
-}
-
-export const WHOP_CHECKOUT_URLS: Record<string, string> = {
-  starter: 'https://whop.com/checkout/plan_DZtaB5bXDuHOm'
 }
 
 export interface ReceiptItem {

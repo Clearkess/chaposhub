@@ -14,6 +14,7 @@ export type PageId =
   | 'history'
   | 'orders'
   | 'support'
+  | 'settings'
 
 interface PageContextValue {
   page: PageId

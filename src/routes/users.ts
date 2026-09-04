@@ -20,7 +20,9 @@ users.get('/profile', authMiddleware, async (c) => {
     country: user.country,
     receiptsGenerated: user.receipts_generated,
     memberSince: user.created_at,
-    referralCode: user.referral_code
+    referralCode: user.referral_code,
+    whatsapp: user.whatsapp,
+    isVendor: !!user.is_vendor
   })
 })
 
@@ -28,7 +30,7 @@ users.get('/profile', authMiddleware, async (c) => {
 users.patch('/profile', authMiddleware, async (c) => {
   const userId = c.get('userId')
   const body = await c.req.json().catch(() => ({}))
-  const { username, country } = body
+  const { username, country, whatsapp } = body
 
   const updates: string[] = []
   const values: any[] = []
@@ -46,6 +48,17 @@ users.patch('/profile', authMiddleware, async (c) => {
     }
     updates.push('country = ?')
     values.push(country.toUpperCase())
+  }
+  // WhatsApp number — used for P2P vendor/buyer order-coordination
+  // notifications only. Blank string clears it; omit the field to leave
+  // it untouched.
+  if (whatsapp !== undefined) {
+    const trimmed = typeof whatsapp === 'string' ? whatsapp.trim() : ''
+    if (trimmed && !/^\+?[0-9\s-]{7,20}$/.test(trimmed)) {
+      return c.json({ error: 'Validation failed', details: 'WhatsApp number format looks invalid' }, 400)
+    }
+    updates.push('whatsapp = ?')
+    values.push(trimmed || null)
   }
 
   if (updates.length === 0) {

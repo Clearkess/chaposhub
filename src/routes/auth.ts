@@ -27,7 +27,9 @@ function publicUser(u: UserRow) {
     role: u.role,
     receiptsGenerated: u.receipts_generated,
     referralCode: u.referral_code,
-    memberSince: u.created_at
+    memberSince: u.created_at,
+    whatsapp: u.whatsapp,
+    isVendor: !!u.is_vendor
   }
 }
 

@@ -10,6 +10,8 @@ export interface ChapoUser {
   role: string
   isVerified?: boolean
   referralCode?: string | null
+  whatsapp?: string | null
+  isVendor?: boolean
   [key: string]: any
 }
 

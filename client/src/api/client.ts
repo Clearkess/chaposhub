@@ -270,6 +270,44 @@ class APIService {
   async rejectMarketplaceListing(id: string, reason: string) {
     return this.request('/marketplace/admin/listings/' + id + '/reject', { method: 'POST', body: { reason } })
   }
+
+  // --- P2P points marketplace ---
+  async getVendorStatus() {
+    return this.request('/p2p/vendor/status')
+  }
+  async applyForVendor(whatsapp: string) {
+    return this.request('/p2p/vendor/apply', { method: 'POST', body: { whatsapp } })
+  }
+  async getP2pListings() {
+    return this.request('/p2p/listings')
+  }
+  async getMyP2pListings() {
+    return this.request('/p2p/my-listings')
+  }
+  async createP2pListing(payload: { rateNgnPerPoint: number; minPoints?: number; maxPoints?: number }) {
+    return this.request('/p2p/listings', { method: 'POST', body: payload })
+  }
+  async updateP2pListing(id: string, payload: { status?: string; rateNgnPerPoint?: number }) {
+    return this.request('/p2p/listings/' + id, { method: 'PATCH', body: payload })
+  }
+  async createP2pOrder(listingId: string, pointsAmount: number) {
+    return this.request('/p2p/orders', { method: 'POST', body: { listingId, pointsAmount } })
+  }
+  async getP2pOrdersBuying() {
+    return this.request('/p2p/orders/buying')
+  }
+  async getP2pOrdersSelling() {
+    return this.request('/p2p/orders/selling')
+  }
+  async markP2pOrderPaid(id: string) {
+    return this.request('/p2p/orders/' + id + '/mark-paid', { method: 'POST' })
+  }
+  async confirmP2pOrder(id: string) {
+    return this.request('/p2p/orders/' + id + '/confirm', { method: 'POST' })
+  }
+  async cancelP2pOrder(id: string) {
+    return this.request('/p2p/orders/' + id + '/cancel', { method: 'POST' })
+  }
 }
 
 export const api = new APIService('/api')
