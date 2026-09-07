@@ -158,9 +158,9 @@ export default function OpayWallet() {
 
   function handleAuthFailure(err: unknown) {
     if (err instanceof APIError && err.status === 401) {
-      showToast('❌ Please log in again', 'error')
+      showToast('Please log in again', 'error')
     } else {
-      showToast('❌ ' + (err instanceof Error ? err.message : 'Something went wrong'), 'error')
+      showToast(err instanceof Error ? err.message : 'Something went wrong', 'error')
     }
   }
 
@@ -178,11 +178,11 @@ export default function OpayWallet() {
 
   function sendGoToAmount() {
     if (!sendName.trim()) {
-      showToast('❌ Recipient name required', 'error')
+      showToast('Recipient name required', 'error')
       return
     }
     if (!sendPhone.trim()) {
-      showToast('❌ Recipient phone required', 'error')
+      showToast('Recipient phone required', 'error')
       return
     }
     setSendStep('amount')
@@ -225,10 +225,10 @@ export default function OpayWallet() {
       })
       setSendStep('success')
       await refreshUser()
-      showToast(`🟢 Sent! (-${res.pointsCharged} pts)`, 'success')
+      showToast(`Sent! (-${res.pointsCharged} pts)`, 'success')
     } catch (err) {
       if (err instanceof APIError && err.status === 402) {
-        showToast('❌ ' + (err.message || 'Insufficient balance for this transfer'), 'error')
+        showToast(err.message || 'Insufficient balance for this transfer', 'error')
       } else {
         handleAuthFailure(err)
       }
@@ -275,11 +275,11 @@ export default function OpayWallet() {
   async function resolveBankAccount() {
     const selectedBank = banks?.find((b) => b.code === bankCode)
     if (!bankCode) {
-      showToast('❌ Select a bank first', 'error')
+      showToast('Select a bank first', 'error')
       return
     }
     if (!/^\d{10}$/.test(bankAccountNumber)) {
-      showToast('❌ Enter a valid 10-digit account number', 'error')
+      showToast('Enter a valid 10-digit account number', 'error')
       return
     }
     setVerifying(true)
@@ -294,7 +294,7 @@ export default function OpayWallet() {
           bankName: selectedBank?.name || '',
           accountNumber: bankAccountNumber
         })
-        showToast('✓ Account verified', 'success')
+        showToast('Account verified', 'success')
       } else {
         throw new Error((res && res.message) || 'Could not resolve account')
       }
@@ -308,7 +308,7 @@ export default function OpayWallet() {
 
   function bankGoToAmount() {
     if (!resolvedAccount) {
-      showToast('❌ Verify the recipient account first', 'error')
+      showToast('Verify the recipient account first', 'error')
       return
     }
     setBankStep('amount')
@@ -348,10 +348,10 @@ export default function OpayWallet() {
       setBankResult({ amount: amt, ref: txn.reference, date: new Date(txn.createdAt).toLocaleString() })
       setBankStep('success')
       await refreshUser()
-      showToast(`🟢 Transfer successful! (-${res.pointsCharged} pts)`, 'success')
+      showToast(`Transfer successful! (-${res.pointsCharged} pts)`, 'success')
     } catch (err) {
       if (err instanceof APIError && err.status === 402) {
-        showToast('❌ ' + (err.message || 'Insufficient balance for this transfer'), 'error')
+        showToast(err.message || 'Insufficient balance for this transfer', 'error')
       } else {
         handleAuthFailure(err)
       }
@@ -514,12 +514,12 @@ export default function OpayWallet() {
         <div className={`ow-view ${view === 'dashboard' ? 'active' : ''}`}>
           <div className="receipt-page-header">
             <button className="back-btn" onClick={() => goTo('dashboard')} aria-label="Go back">
-              ←
+              <i className="fa-solid fa-arrow-left"></i>
             </button>
-            <div className="page-title-sm">🟢 OPay Wallet (Demo)</div>
+            <div className="page-title-sm"><i className="fa-solid fa-wallet"></i> OPay Wallet (Demo)</div>
           </div>
           <div className="ow-disclaimer">
-            ⚠️ <strong>Simulated demo wallet.</strong> This is a private play-money wallet for UI/UX demo purposes
+            <i className="fa-solid fa-triangle-exclamation"></i> <strong>Simulated demo wallet.</strong> This is a private play-money wallet for UI/UX demo purposes
             only — no real OPay account, bank account, or payment rail is ever touched. Sending money here costs
             Chapo'sHub points.
           </div>
@@ -566,31 +566,31 @@ export default function OpayWallet() {
                 loadDashboard()
               }}
             >
-              ↻ Refresh
+              <i className="fa-solid fa-rotate"></i> Refresh
             </a>
           </div>
           <div className="ow-txn-list">
             {recentTxns === null && !recentError && <div className="ow-skeleton" />}
             {recentError && (
               <div className="empty-state">
-                <div className="empty-state-icon">⚠️</div>
+                <div className="empty-state-icon"><i className="fa-solid fa-triangle-exclamation"></i></div>
                 <div className="empty-state-title">Could not load transactions</div>
               </div>
             )}
             {recentTxns && recentTxns.length === 0 && (
               <div className="empty-state">
-                <div className="empty-state-icon">🧾</div>
+                <div className="empty-state-icon"><i className="fa-solid fa-receipt"></i></div>
                 <div className="empty-state-title">No transactions yet</div>
               </div>
             )}
             {recentTxns &&
               recentTxns.map((t) => {
                 const isBank = t.category === 'bank_transfer'
-                const icon = isBank ? '🏦' : '👤'
+                const icon = isBank ? 'fa-solid fa-building-columns' : 'fa-solid fa-user'
                 const title = isBank ? 'To ' + (t.bankName || 'Bank') : 'To ' + (t.counterpartyName || 'Someone')
                 return (
                   <div className="ow-txn-item" key={t.id}>
-                    <div className="ow-txn-icon">{icon}</div>
+                    <div className="ow-txn-icon"><i className={icon}></i></div>
                     <div className="ow-txn-info">
                       <div className="ow-txn-title">{title}</div>
                       <div className="ow-txn-sub">{t.note || t.accountNumber || ''}</div>
@@ -610,7 +610,7 @@ export default function OpayWallet() {
         <div className={`ow-view ${view === 'send' ? 'active' : ''}`}>
           <div className="receipt-page-header">
             <button className="back-btn" onClick={() => setView('dashboard')} aria-label="Go back">
-              ←
+              <i className="fa-solid fa-arrow-left"></i>
             </button>
             <div className="page-title-sm">
               {sendStep === 'recipient' && 'Send Money'}
@@ -754,7 +754,7 @@ export default function OpayWallet() {
         <div className={`ow-view ${view === 'tobank' ? 'active' : ''}`}>
           <div className="receipt-page-header">
             <button className="back-btn" onClick={() => setView('dashboard')} aria-label="Go back">
-              ←
+              <i className="fa-solid fa-arrow-left"></i>
             </button>
             <div className="page-title-sm">
               {bankStep === 'recipient' && 'Transfer To Bank'}
@@ -769,7 +769,7 @@ export default function OpayWallet() {
           {bankStep === 'recipient' && (
             <div className="ow-step active">
               <div className="ow-real-note">
-                🏦 <strong>Verify Recipient Bank Account · REAL LOOKUP</strong>
+                <i className="fa-solid fa-building-columns"></i> <strong>Verify Recipient Bank Account · REAL LOOKUP</strong>
                 <br />
                 Pulls today's actual Nigerian bank list and confirms the account name via Paystack — this check is
                 real, but no money moves and no bank account is touched.
@@ -809,18 +809,18 @@ export default function OpayWallet() {
                   </div>
                   <div className="form-field" style={{ display: 'flex', alignItems: 'flex-end' }}>
                     <button type="button" className="action-btn secondary" style={{ width: '100%' }} onClick={resolveBankAccount} disabled={verifying}>
-                      {verifying ? '🔍 Verifying…' : '🔍 Verify'}
+                      {verifying ? (<><i className="fa-solid fa-magnifying-glass"></i> Verifying…</>) : (<><i className="fa-solid fa-magnifying-glass"></i> Verify</>)}
                     </button>
                   </div>
                 </div>
                 {resolvedAccount && (
                   <div className="ow-resolved-account success" style={{ display: 'block' }}>
-                    ✓ {resolvedAccount.name}
+                    <i className="fa-solid fa-check"></i> {resolvedAccount.name}
                   </div>
                 )}
                 {!resolvedAccount && verifyError && (
                   <div className="ow-resolved-account error" style={{ display: 'block' }}>
-                    ❌ {verifyError}
+                    <i className="fa-solid fa-circle-exclamation"></i> {verifyError}
                   </div>
                 )}
               </div>
@@ -948,7 +948,7 @@ export default function OpayWallet() {
         <div className={`ow-view ${view === 'history' ? 'active' : ''}`}>
           <div className="receipt-page-header">
             <button className="back-btn" onClick={() => setView('dashboard')} aria-label="Go back">
-              ←
+              <i className="fa-solid fa-arrow-left"></i>
             </button>
             <div className="page-title-sm">Transaction History</div>
           </div>
@@ -991,13 +991,13 @@ export default function OpayWallet() {
             {historyLoading && <div className="ow-skeleton" style={{ height: 64, margin: 16 }} />}
             {!historyLoading && historyError && (
               <div className="empty-state">
-                <div className="empty-state-icon">⚠️</div>
+                <div className="empty-state-icon"><i className="fa-solid fa-triangle-exclamation"></i></div>
                 <div className="empty-state-title">Could not load transaction history</div>
               </div>
             )}
             {!historyLoading && !historyError && filteredTxns.length === 0 && (
               <div className="empty-state">
-                <div className="empty-state-icon">🧾</div>
+                <div className="empty-state-icon"><i className="fa-solid fa-receipt"></i></div>
                 <div className="empty-state-title">No transactions match your filters</div>
               </div>
             )}

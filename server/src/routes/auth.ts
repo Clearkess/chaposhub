@@ -65,7 +65,7 @@ router.post('/register', async (req, res) => {
 
   db.prepare(
     `INSERT INTO activities (id, user_id, type, title, description, icon, color, created_at)
-     VALUES (?, ?, 'login', 'Account Created', 'Welcome to Chapo''sHub!', '🎉', 'rgba(34,197,94,0.15)', ?)`
+     VALUES (?, ?, 'login', 'Account Created', 'Welcome to Chapo''sHub!', 'fa-solid fa-champagne-glasses', 'rgba(34,197,94,0.15)', ?)`
   ).run(generateId('act'), userId, now)
 
   const token = generateToken(userId, 'user')

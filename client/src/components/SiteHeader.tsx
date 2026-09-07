@@ -34,7 +34,7 @@ export default function SiteHeader({ onSignIn }: { onSignIn?: () => void }) {
           aria-label="Toggle dark/light theme"
           title="Toggle theme"
         >
-          {theme === 'light' ? '☀️' : '🌙'}
+          <i className={`fa-solid ${theme === 'light' ? 'fa-sun' : 'fa-moon'}`}></i>
         </button>
         <button className="landing-signin-btn" onClick={onSignIn}>
           Sign In

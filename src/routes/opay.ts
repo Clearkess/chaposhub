@@ -112,7 +112,7 @@ opay.post('/generate', authMiddleware, async (c) => {
       ).bind(generateId('ptx'), userId, -COST, userId, `OPay receipt #${finalReference}`, now),
       c.env.DB.prepare(
         `INSERT INTO activities (id, user_id, type, title, description, icon, color, created_at)
-         VALUES (?, ?, 'opay', 'OPay Receipt', ?, '🟢', 'rgba(29,198,119,0.15)', ?)`
+         VALUES (?, ?, 'opay', 'OPay Receipt', ?, 'fa-solid fa-wallet', 'rgba(29,198,119,0.15)', ?)`
       ).bind(generateId('act'), userId, `#${finalReference} · ₦${amt.toLocaleString()}`, now)
     ])
   } catch (e: any) {

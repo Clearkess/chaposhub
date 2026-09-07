@@ -25,21 +25,21 @@ points.get('/balance', authMiddleware, async (c) => {
 })
 
 const ACTION_META: Record<string, { icon: string; color: string; type: string; title: string }> = {
-  download: { icon: '🧾', color: 'rgba(249,115,22,0.15)', type: 'receipt', title: 'Receipt Downloaded' },
-  print: { icon: '🖨️', color: 'rgba(34,197,94,0.15)', type: 'receipt', title: 'Receipt Printed' },
-  email: { icon: '📧', color: 'rgba(34,197,94,0.15)', type: 'email', title: 'Email Sent' },
-  link: { icon: '🔗', color: 'rgba(59,130,246,0.15)', type: 'link', title: 'Short Link' },
-  ai: { icon: '🤖', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Reply' },
-  support: { icon: '🛟', color: 'rgba(59,130,246,0.15)', type: 'support', title: 'Support Page' },
-  ai_content: { icon: '✍️', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Content' },
-  ai_social: { icon: '📱', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Social Caption' },
-  ai_product: { icon: '🛍️', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Product Description' },
-  ai_email: { icon: '📧', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Email' },
-  ai_rewrite: { icon: '🔄', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Rewrite' },
-  ai_chat: { icon: '🧠', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Chat' },
-  ai_longform: { icon: '📄', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Long-Form Content' },
-  ai_code: { icon: '💻', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Coding Assistant' },
-  opay_receipt: { icon: '🟢', color: 'rgba(29,198,119,0.15)', type: 'opay', title: 'OPay Receipt' }
+  download: { icon: 'fa-solid fa-receipt', color: 'rgba(249,115,22,0.15)', type: 'receipt', title: 'Receipt Downloaded' },
+  print: { icon: 'fa-solid fa-print', color: 'rgba(34,197,94,0.15)', type: 'receipt', title: 'Receipt Printed' },
+  email: { icon: 'fa-solid fa-envelope', color: 'rgba(34,197,94,0.15)', type: 'email', title: 'Email Sent' },
+  link: { icon: 'fa-solid fa-link', color: 'rgba(59,130,246,0.15)', type: 'link', title: 'Short Link' },
+  ai: { icon: 'fa-solid fa-robot', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Reply' },
+  support: { icon: 'fa-solid fa-headset', color: 'rgba(59,130,246,0.15)', type: 'support', title: 'Support Page' },
+  ai_content: { icon: 'fa-solid fa-pen-nib', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Content' },
+  ai_social: { icon: 'fa-solid fa-mobile-screen', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Social Caption' },
+  ai_product: { icon: 'fa-solid fa-bag-shopping', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Product Description' },
+  ai_email: { icon: 'fa-solid fa-envelope', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Email' },
+  ai_rewrite: { icon: 'fa-solid fa-arrows-rotate', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Rewrite' },
+  ai_chat: { icon: 'fa-solid fa-brain', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Chat' },
+  ai_longform: { icon: 'fa-solid fa-file-lines', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Long-Form Content' },
+  ai_code: { icon: 'fa-solid fa-laptop-code', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Coding Assistant' },
+  opay_receipt: { icon: 'fa-solid fa-wallet', color: 'rgba(29,198,119,0.15)', type: 'opay', title: 'OPay Receipt' }
 }
 
 // Deduct points for action
@@ -65,7 +65,7 @@ points.post('/deduct', authMiddleware, async (c) => {
 
   const newBalance = user.points - amount
   const now = new Date().toISOString()
-  const meta = ACTION_META[action] || { icon: '📋', color: 'rgba(34,197,94,0.15)', type: action, title: action }
+  const meta = ACTION_META[action] || { icon: 'fa-solid fa-circle-info', color: 'rgba(34,197,94,0.15)', type: action, title: action }
 
   await c.env.DB.batch([
     c.env.DB.prepare('UPDATE users SET points = ? WHERE id = ?').bind(newBalance, userId),

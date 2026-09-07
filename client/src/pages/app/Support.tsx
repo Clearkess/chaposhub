@@ -23,26 +23,26 @@ export default function Support() {
   async function generateSupportPage() {
     const cost = CONFIG.points.support
     if ((user?.points || 0) < cost) {
-      showToast(`❌ Need ${cost} points to generate`, 'error')
+      showToast(`Need ${cost} points to generate`, 'error')
       return
     }
     setPreview({ company, color, email, whatsapp, telegram, desc })
     try {
       await api.deductPoints(cost, 'support', company)
       await refreshUser()
-      showToast(`🚀 Support page generated! (-${cost} pts)`, 'success')
+      showToast(`Support page generated! (-${cost} pts)`, 'success')
     } catch (err) {
       if (err instanceof APIError && err.status === 401) {
-        showToast('❌ Please log in again', 'error')
+        showToast('Please log in again', 'error')
       } else {
-        showToast('❌ ' + (err instanceof Error ? err.message : 'Something went wrong'), 'error')
+        showToast(err instanceof Error ? err.message : 'Something went wrong', 'error')
       }
     }
   }
 
   return (
     <div className="page active" role="main" aria-label="Support Builder">
-      <PageHeader title="🛟 Chapo'sHub Support" />
+      <PageHeader title="Chapo'sHub Support" icon="fa-solid fa-headset" />
       <div className="form-section">
         <div className="form-field">
           <label>Company Name</label>
@@ -85,7 +85,7 @@ export default function Support() {
           <textarea value={desc} onChange={(e) => setDesc(e.target.value)} required maxLength={200} />
         </div>
         <button className="action-btn primary" style={{ width: '100%', marginTop: '.5rem' }} onClick={generateSupportPage}>
-          🚀 Generate Page
+          <i className="fa-solid fa-rocket"></i> Generate Page
         </button>
       </div>
       <div className="section-title" style={{ marginTop: '1rem' }}>
@@ -98,9 +98,9 @@ export default function Support() {
             <p>{preview.desc}</p>
           </div>
           <div className="support-body">
-            <div className="support-contact">📧 {preview.email}</div>
-            <div className="support-contact">📱 {preview.whatsapp}</div>
-            <div className="support-contact">💬 {preview.telegram}</div>
+            <div className="support-contact"><i className="fa-solid fa-envelope"></i> {preview.email}</div>
+            <div className="support-contact"><i className="fa-solid fa-mobile-screen"></i> {preview.whatsapp}</div>
+            <div className="support-contact"><i className="fa-brands fa-telegram"></i> {preview.telegram}</div>
           </div>
         </div>
       </div>

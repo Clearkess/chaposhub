@@ -44,7 +44,7 @@ export default function JoinVendorModal({
     try {
       await api.applyForVendor(trimmed)
       await refreshUser()
-      showToast("You're now a Chapo'sHub vendor! ✓", 'success')
+      showToast("You're now a Chapo'sHub vendor!", 'success')
       onClose()
       onSuccess?.()
     } catch (err: any) {

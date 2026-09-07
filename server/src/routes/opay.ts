@@ -115,7 +115,7 @@ router.post('/generate', authMiddleware, (req: AuthedRequest, res) => {
       ).run(generateId('ptx'), userId, -COST, userId, `OPay receipt #${finalReference}`, now)
       db.prepare(
         `INSERT INTO activities (id, user_id, type, title, description, icon, color, created_at)
-         VALUES (?, ?, 'opay', 'OPay Receipt', ?, '🟢', 'rgba(29,198,119,0.15)', ?)`
+         VALUES (?, ?, 'opay', 'OPay Receipt', ?, 'fa-solid fa-wallet', 'rgba(29,198,119,0.15)', ?)`
       ).run(generateId('act'), userId, `#${finalReference} · ₦${amt.toLocaleString()}`, now)
     })
     tx()

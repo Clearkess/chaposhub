@@ -30,6 +30,9 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     <ToastContext.Provider value={{ showToast }}>
       {children}
       <div className={`toast ${toast.kind !== 'default' ? toast.kind : ''} ${toast.visible ? 'show' : ''}`}>
+        {toast.kind === 'success' && <i className="fa-solid fa-circle-check"></i>}
+        {toast.kind === 'error' && <i className="fa-solid fa-circle-exclamation"></i>}
+        {toast.kind === 'default' && <i className="fa-solid fa-circle-info"></i>}
         {toast.message}
       </div>
     </ToastContext.Provider>

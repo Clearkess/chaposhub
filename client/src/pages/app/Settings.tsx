@@ -34,7 +34,7 @@ export default function Settings() {
     try {
       await api.updateProfile({ name: name.trim(), whatsapp: trimmedWhatsapp })
       await refreshUser()
-      showToast('Profile saved ✓')
+      showToast('Profile saved', 'success')
     } catch (err: any) {
       setError(err.details || err.message || 'Failed to save profile')
     } finally {

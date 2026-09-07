@@ -215,7 +215,7 @@ export default function Points() {
     setListingSubmitting(true)
     try {
       await api.createP2pListing({ rateNgnPerPoint: rate, minPoints, maxPoints })
-      showToast('Listing created ✓')
+      showToast('Listing created', 'success')
       closeListingForm()
       loadMyListings()
     } catch (err: any) {
@@ -261,7 +261,7 @@ export default function Points() {
     if (!window.confirm(`Confirm you received ${NGN(o.totalNgn)} for ${o.pointsAmount} points?`)) return
     try {
       await api.confirmP2pOrder(o.id)
-      showToast('Payment confirmed — points transferred ✓')
+      showToast('Payment confirmed — points transferred', 'success')
       loadOrders()
       refreshUser()
     } catch (err: any) {

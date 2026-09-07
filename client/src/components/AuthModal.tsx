@@ -79,7 +79,10 @@ export default function AuthModal({
         <div className="auth-modal-logo">
           <img src="/images/logo-mark.png" alt="Chapo'sHub logo" width={52} height={52} />
         </div>
-        <h2>{mode === 'login' ? "👋 Welcome back" : "🚀 Join Chapo'sHub"}</h2>
+        <h2>
+          <i className={`fa-solid ${mode === 'login' ? 'fa-hand-peace' : 'fa-rocket'}`}></i>{' '}
+          {mode === 'login' ? 'Welcome back' : "Join Chapo'sHub"}
+        </h2>
         <p className="auth-sub">
           {mode === 'login'
             ? 'Log in to access your receipts, points & AI tools.'

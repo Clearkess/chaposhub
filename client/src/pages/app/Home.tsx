@@ -3,7 +3,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { usePage } from '../../contexts/PageContext'
 import { useToast } from '../../contexts/ToastContext'
-import { allServices } from '../../lib/config'
+import { allServices, isFaIcon } from '../../lib/config'
 import JoinVendorModal from '../../components/JoinVendorModal'
 
 // Originally ported 1:1 from `#page-dashboard` in src/lib/app-html.ts +
@@ -37,8 +37,8 @@ export default function Home() {
     const link = 'https://chaposhub.link/ref/' + code
     navigator.clipboard
       .writeText(link)
-      .then(() => showToast('📋 Referral link copied!', 'success'))
-      .catch(() => showToast('📋 Ref: ' + link))
+      .then(() => showToast('Referral link copied!', 'success'))
+      .catch(() => showToast('Ref: ' + link))
   }
 
   return (
@@ -193,7 +193,7 @@ export default function Home() {
         {allServices.slice(0, 5).map((s) => (
           <div className="all-service" key={s.key} onClick={() => serviceNavAction(s)}>
             <div className="all-service-logo" style={{ background: s.color || 'var(--bg-card)', color: 'white' }}>
-              {s.icon}
+              {isFaIcon(s.icon) ? <i className={s.icon}></i> : s.icon}
             </div>
             <div className="all-service-name">{s.name}</div>
             {s.new && <div className="all-service-new">New</div>}
