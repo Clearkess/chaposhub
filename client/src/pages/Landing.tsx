@@ -274,6 +274,27 @@ export default function Landing({ onSignIn, onSignUp }: { onSignIn: () => void; 
         </div>
       </section>
 
+      {/* 9.5 JOIN OUR COMMUNITY */}
+      <section className="gh-community" aria-label="Join our community">
+        <div className="gh-container gh-community-inner">
+          <div className="gh-community-icon">
+            <i className="fa-brands fa-telegram"></i>
+          </div>
+          <h2 className="gh-community-title">Join Our Community</h2>
+          <p className="gh-community-desc">
+            Get product updates, P2P vendor tips, and talk directly with the ChaposHub team on Telegram.
+          </p>
+          <a
+            className="gh-btn gh-btn-primary gh-community-btn"
+            href="https://t.me/chaposhubupdates"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <i className="fa-brands fa-telegram"></i> Join our Telegram
+          </a>
+        </div>
+      </section>
+
       {/* 10. FINAL CTA */}
       <section className="gh-final-cta">
         <div className="gh-final-cta-inner">

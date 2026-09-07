@@ -73,7 +73,7 @@ export default function Settings() {
         <button
           className="action-btn secondary"
           style={{ flex: 1 }}
-          onClick={() => showToast('Telegram community link coming soon!')}
+          onClick={() => window.open('https://t.me/chaposhubupdates', '_blank', 'noopener,noreferrer')}
         >
           <i className="fa-brands fa-telegram"></i> Contact Telegram
         </button>
