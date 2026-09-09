@@ -214,6 +214,12 @@ Full Buy / Sell / Orders tabbed UI in `client/src/pages/app/Points.tsx`, styled 
 ### Status
 ✅ Backend (both Hono and Express trees) and frontend built and verified via a local smoke test: registered a vendor + buyer, applied for vendor status, created a listing, placed an order, marked it paid, and confirmed it — points moved atomically from vendor to buyer as expected, with a matching activity-feed entry recorded on each side.
 
+⚠️ **Not yet applied to production D1** (confirmed 2026-09-09 via live curl testing against `https://chaposhub.pages.dev`): every `/api/p2p/*` endpoint returns 500, including a plain `GET /listings` and `POST /vendor/apply` with a valid token — `migrations/0006_p2p_vendor.sql` (the `users.whatsapp`/`users.is_vendor` columns + `p2p_listings`/`p2p_orders` tables) has never been run against `chaposhub-production`. This is the same recurring gap noted for `0003_opay_service.sql` and (previously, now resolved) `0004_opay_wallet_demo.sql`/`0005_marketplace.sql` — writing a migration file does not apply it; someone with Cloudflare account access must run:
+```bash
+npx wrangler d1 execute chaposhub-production --remote --file=migrations/0006_p2p_vendor.sql
+```
+No code redeploy is needed afterward — D1 schema changes take effect immediately. Until this runs, the entire P2P Buy/Sell/Orders feature (including "Join Vendor") is broken in production despite working correctly in every local test.
+
 ### Removed: Whop payment integration
 The previous points-purchase flow redirected buyers to a third-party (Whop) hosted checkout, which auto-credited points via an incoming payment webhook. This has been **fully removed** in favor of the P2P marketplace above:
 - The webhook route handlers (`src/routes/webhooks.ts` + server mirror) were deleted and `/api/webhooks/*` unmounted.
