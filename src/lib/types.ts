@@ -197,6 +197,13 @@ export const P2P_MAX_RATE_NGN = 5000
 export const P2P_MIN_LISTING_POINTS = 50
 export const P2P_MAX_LISTING_POINTS = 1_000_000
 
+// One-time points fee charged when a user applies to become a vendor
+// (deducted the same way any other points spend is — atomic conditional
+// UPDATE, logged to points_transactions + activities). Vendors recoup this
+// by selling points at their own rate, same as a real P2P exchange's
+// merchant-onboarding fee.
+export const P2P_VENDOR_FEE_POINTS = 500
+
 export interface ActivityRow {
   id: string
   user_id: string

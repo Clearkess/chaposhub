@@ -2,7 +2,13 @@ import { Hono } from 'hono'
 import { generateId } from '../lib/crypto'
 import { authMiddleware, optionalAuthMiddleware } from '../lib/auth-middleware'
 import type { Bindings, AppVariables, P2pListingRow, P2pOrderRow, UserRow } from '../lib/types'
-import { P2P_MIN_RATE_NGN, P2P_MAX_RATE_NGN, P2P_MIN_LISTING_POINTS, P2P_MAX_LISTING_POINTS } from '../lib/types'
+import {
+  P2P_MIN_RATE_NGN,
+  P2P_MAX_RATE_NGN,
+  P2P_MIN_LISTING_POINTS,
+  P2P_MAX_LISTING_POINTS,
+  P2P_VENDOR_FEE_POINTS
+} from '../lib/types'
 
 // ─────────────────────────────────────────────────────────────────────────
 // Peer-to-peer (P2P) points marketplace — replaces the removed Whop
@@ -67,16 +73,24 @@ function serializeOrder(row: any) {
 // GET /api/p2p/vendor/status
 p2p.get('/vendor/status', authMiddleware, async (c) => {
   const userId = c.get('userId')
-  const user = await c.env.DB.prepare('SELECT is_vendor, whatsapp FROM users WHERE id = ?')
-    .bind(userId).first<{ is_vendor: number; whatsapp: string | null }>()
+  const user = await c.env.DB.prepare('SELECT is_vendor, whatsapp, points FROM users WHERE id = ?')
+    .bind(userId).first<{ is_vendor: number; whatsapp: string | null; points: number }>()
   if (!user) return c.json({ error: 'User not found' }, 404)
-  return c.json({ isVendor: !!user.is_vendor, whatsapp: user.whatsapp })
+  return c.json({
+    isVendor: !!user.is_vendor,
+    whatsapp: user.whatsapp,
+    vendorFeePoints: P2P_VENDOR_FEE_POINTS,
+    points: user.points
+  })
 })
 
 // POST /api/p2p/vendor/apply  { whatsapp }
 // Real "Join Vendor" flow — becoming a vendor requires a WhatsApp number on
-// file, since buyer/vendor payment coordination happens over WhatsApp
-// (matches the "Used for vendor order notifications only" convention).
+// file (buyer/vendor payment coordination happens over WhatsApp), AND a
+// one-time P2P_VENDOR_FEE_POINTS onboarding fee, deducted atomically the
+// same way any other points spend is (conditional UPDATE ... WHERE points
+// >= ?, never a stale read-then-write), with a matching points_transactions
+// + activities record on success.
 p2p.post('/vendor/apply', authMiddleware, async (c) => {
   const userId = c.get('userId')
   const body = await c.req.json().catch(() => ({}))
@@ -89,10 +103,61 @@ p2p.post('/vendor/apply', authMiddleware, async (c) => {
     return c.json({ error: 'Validation failed', details: 'WhatsApp number format looks invalid' }, 400)
   }
 
-  await c.env.DB.prepare("UPDATE users SET is_vendor = 1, whatsapp = ?, updated_at = ? WHERE id = ?")
-    .bind(whatsapp, new Date().toISOString(), userId).run()
+  const existing = await c.env.DB.prepare('SELECT is_vendor, points FROM users WHERE id = ?')
+    .bind(userId).first<{ is_vendor: number; points: number }>()
+  if (!existing) return c.json({ error: 'User not found' }, 404)
 
-  return c.json({ success: true, isVendor: true, whatsapp })
+  // Already a vendor — just let them update their WhatsApp number, no
+  // second fee charge.
+  if (existing.is_vendor) {
+    await c.env.DB.prepare('UPDATE users SET whatsapp = ?, updated_at = ? WHERE id = ?')
+      .bind(whatsapp, new Date().toISOString(), userId).run()
+    return c.json({ success: true, isVendor: true, whatsapp, feeCharged: 0 })
+  }
+
+  if (existing.points < P2P_VENDOR_FEE_POINTS) {
+    return c.json({
+      error: 'Insufficient point balance',
+      details: `Becoming a vendor requires a one-time fee of ${P2P_VENDOR_FEE_POINTS.toLocaleString()} points`,
+      required: P2P_VENDOR_FEE_POINTS,
+      points: existing.points
+    }, 402)
+  }
+
+  // Atomic, race-safe fee debit — never a stale read-then-write.
+  const debit = await c.env.DB.prepare('UPDATE users SET points = points - ? WHERE id = ? AND points >= ?')
+    .bind(P2P_VENDOR_FEE_POINTS, userId, P2P_VENDOR_FEE_POINTS).run()
+  if (!debit.meta || debit.meta.changes === 0) {
+    return c.json({
+      error: 'Insufficient point balance',
+      details: `Becoming a vendor requires a one-time fee of ${P2P_VENDOR_FEE_POINTS.toLocaleString()} points`,
+      required: P2P_VENDOR_FEE_POINTS
+    }, 402)
+  }
+
+  const now = new Date().toISOString()
+  try {
+    await c.env.DB.batch([
+      c.env.DB.prepare('UPDATE users SET is_vendor = 1, whatsapp = ?, updated_at = ? WHERE id = ?')
+        .bind(whatsapp, now, userId),
+      c.env.DB.prepare(
+        `INSERT INTO points_transactions (id, user_id, type, amount, balance, description, action, payment_method, created_at)
+         VALUES (?, ?, 'deduction', ?, (SELECT points FROM users WHERE id = ?), ?, 'p2p_vendor_fee', 'points', ?)`
+      ).bind(generateId('ptx'), userId, -P2P_VENDOR_FEE_POINTS, userId, `Vendor onboarding fee (${P2P_VENDOR_FEE_POINTS.toLocaleString()} pts)`, now),
+      c.env.DB.prepare(
+        `INSERT INTO activities (id, user_id, type, title, description, icon, color, created_at)
+         VALUES (?, ?, 'p2p', 'Became a Vendor', ?, 'fa-solid fa-store', 'rgba(34,197,94,0.15)', ?)`
+      ).bind(generateId('act'), userId, `Paid ${P2P_VENDOR_FEE_POINTS.toLocaleString()} pts onboarding fee`, now)
+    ])
+  } catch (err) {
+    // Refund the fee if the follow-up writes fail, so a half-applied vendor
+    // upgrade never leaves the user charged with no benefit.
+    await c.env.DB.prepare('UPDATE users SET points = points + ? WHERE id = ?')
+      .bind(P2P_VENDOR_FEE_POINTS, userId).run()
+    return c.json({ error: 'Vendor signup failed, fee refunded' }, 500)
+  }
+
+  return c.json({ success: true, isVendor: true, whatsapp, feeCharged: P2P_VENDOR_FEE_POINTS })
 })
 
 // ── Public browse ──────────────────────────────────────────────────────
