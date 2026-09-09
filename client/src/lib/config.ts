@@ -1,5 +1,5 @@
-// Shared config ported from public/static/js/app.js CONFIG / WHOP_CHECKOUT_URLS
-// / platforms / allServices constants.
+// Shared config ported from public/static/js/app.js CONFIG / platforms /
+// allServices constants.
 
 export const CONFIG = {
   points: {
@@ -9,10 +9,6 @@ export const CONFIG = {
     opay_wallet_send: 6, opay_bank_transfer: 10
   } as Record<string, number>,
   app: { name: "Chapo'sHub", version: '2.0.0' }
-}
-
-export const WHOP_CHECKOUT_URLS: Record<string, string> = {
-  starter: 'https://whop.com/checkout/plan_DZtaB5bXDuHOm'
 }
 
 export interface ReceiptItem {
@@ -147,8 +143,12 @@ export interface ServiceDef {
   dedicated?: boolean
 }
 
+// `icon` is either a FontAwesome class string (e.g. "fa-solid fa-receipt",
+// rendered as <i className={icon}>) or a plain 1-char brand-letter glyph
+// (e.g. 'P', 'K', '$' — kept as literal text marks, matching the existing
+// service-icon convention of text-based brand marks with no logo images).
 export const allServices: ServiceDef[] = [
-  { key: 'crypto', name: 'Crypto Receipts', icon: '📄', new: true },
+  { key: 'crypto', name: 'Crypto Receipts', icon: 'fa-solid fa-file-invoice-dollar', new: true },
   { key: 'paypal', name: 'Paypal', icon: 'P', color: '#003087' },
   { key: 'kuda', name: 'Kuda', icon: 'K', color: '#40196d' },
   { key: 'cashapp', name: 'Cash App', icon: '$', color: '#00d632' },
@@ -158,15 +158,21 @@ export const allServices: ServiceDef[] = [
   { key: 'wise', name: 'Wise', icon: 'W', color: '#00b9ff', new: true },
   { key: 'opay', name: 'OPay', icon: 'O', color: '#1dc677', dedicated: true },
   {
-    key: 'support', name: 'Support Sites', icon: '🎧',
+    key: 'support', name: 'Support Sites', icon: 'fa-solid fa-headset',
     color: 'linear-gradient(135deg,#3b82f6,#60a5fa)', dedicated: true
   },
   { key: 'binance', name: 'Binance', icon: 'B', color: '#f0b90b' },
   {
-    key: 'marketplace', name: 'Scripts Marketplace', icon: '🛒',
+    key: 'marketplace', name: 'Scripts Marketplace', icon: 'fa-solid fa-cart-shopping',
     color: 'linear-gradient(135deg,#22c55e,#4ade80)', dedicated: true, new: true
   }
 ]
+
+// True when a ServiceDef/AITool `icon` value is a FontAwesome class string
+// (vs. a plain brand-letter glyph like 'P' or '$').
+export function isFaIcon(icon: string): boolean {
+  return icon.startsWith('fa-')
+}
 
 export function escHtml(str: string): string {
   return String(str)
@@ -203,59 +209,62 @@ export interface AITool {
   extras: AIToolExtra[]
 }
 
+// `icon` here is always a FontAwesome class string (rendered as
+// <i className={icon}>). `btnLabel` intentionally has no leading icon text —
+// the sparkle/generate icon is rendered separately in AIHub.tsx's button JSX.
 export const AI_TOOLS: Record<string, AITool> = {
   reply: {
-    icon: '💬', label: 'Customer Reply', prompt: '💬 Paste a customer message to get a smart reply',
+    icon: 'fa-solid fa-comments', label: 'Customer Reply', prompt: 'Paste a customer message to get a smart reply',
     placeholder: "e.g. 'Hey, did you send me that payment? I haven't received it yet.'",
-    maxLen: 500, costKey: 'ai', btnLabel: '✨ Generate Reply',
+    maxLen: 500, costKey: 'ai', btnLabel: 'Generate Reply',
     extras: [{ id: 'aiTone', type: 'select', options: ['professional', 'friendly', 'casual', 'urgent', 'apologetic'] }]
   },
   content: {
-    icon: '✍️', label: 'Content Generator', prompt: '✍️ Describe the topic or brief for your content',
+    icon: 'fa-solid fa-pen-nib', label: 'Content Generator', prompt: 'Describe the topic or brief for your content',
     placeholder: "e.g. 'Write a short intro paragraph about the benefits of online shopping.'",
-    maxLen: 500, costKey: 'ai_content', btnLabel: '✨ Generate Content',
+    maxLen: 500, costKey: 'ai_content', btnLabel: 'Generate Content',
     extras: [{ id: 'aiTone2', type: 'select', options: ['professional', 'friendly', 'casual', 'persuasive', 'informative'] }]
   },
   social: {
-    icon: '📱', label: 'Social Captions', prompt: '📱 What is the post about?',
+    icon: 'fa-solid fa-mobile-screen', label: 'Social Captions', prompt: 'What is the post about?',
     placeholder: "e.g. 'New summer collection just dropped, 20% off this weekend.'",
-    maxLen: 300, costKey: 'ai_social', btnLabel: '✨ Generate Caption',
+    maxLen: 300, costKey: 'ai_social', btnLabel: 'Generate Caption',
     extras: [{ id: 'aiPlatform', type: 'select', options: ['Instagram', 'Twitter/X', 'TikTok', 'Facebook', 'LinkedIn'] }]
   },
   product: {
-    icon: '🛍️', label: 'Product Descriptions', prompt: '🛍️ Describe the product (name, features, materials, etc.)',
+    icon: 'fa-solid fa-bag-shopping', label: 'Product Descriptions', prompt: 'Describe the product (name, features, materials, etc.)',
     placeholder: "e.g. 'Handmade leather wallet, slim design, RFID-blocking, 6 card slots.'",
-    maxLen: 400, costKey: 'ai_product', btnLabel: '✨ Generate Description',
+    maxLen: 400, costKey: 'ai_product', btnLabel: 'Generate Description',
     extras: []
   },
   email_gen: {
-    icon: '📧', label: 'Email Generator', prompt: '📧 What should the email say?',
+    icon: 'fa-solid fa-envelope', label: 'Email Generator', prompt: 'What should the email say?',
     placeholder: "e.g. 'Follow up with a customer whose order shipped late, apologize and offer 10% off.'",
-    maxLen: 500, costKey: 'ai_email', btnLabel: '✨ Generate Email',
+    maxLen: 500, costKey: 'ai_email', btnLabel: 'Generate Email',
     extras: [{ id: 'aiTone3', type: 'select', options: ['professional', 'friendly', 'apologetic', 'formal'] }]
   },
   rewrite: {
-    icon: '🔄', label: 'Rewrite / Improve', prompt: '🔄 Paste the text you want rewritten or improved',
+    icon: 'fa-solid fa-arrows-rotate', label: 'Rewrite / Improve', prompt: 'Paste the text you want rewritten or improved',
     placeholder: 'Paste any text here and AI will improve clarity, grammar, and flow.',
-    maxLen: 2000, costKey: 'ai_rewrite', btnLabel: '✨ Rewrite Text',
+    maxLen: 2000, costKey: 'ai_rewrite', btnLabel: 'Rewrite Text',
     extras: [{ id: 'aiStyle', type: 'select', options: ['clear and polished', 'more concise', 'more formal', 'more casual', 'more persuasive'] }]
   },
   chat: {
-    icon: '🧠', label: 'General Chat', prompt: '🧠 Ask me anything',
+    icon: 'fa-solid fa-brain', label: 'General Chat', prompt: 'Ask me anything',
     placeholder: "e.g. 'What are some good ideas for a small business loyalty program?'",
-    maxLen: 1000, costKey: 'ai_chat', btnLabel: '✨ Ask AI',
+    maxLen: 1000, costKey: 'ai_chat', btnLabel: 'Ask AI',
     extras: []
   },
   longform: {
-    icon: '📄', label: 'Long-Form Content', prompt: '📄 Describe the article or blog post topic',
+    icon: 'fa-solid fa-file-lines', label: 'Long-Form Content', prompt: 'Describe the article or blog post topic',
     placeholder: "e.g. 'Write a blog post about how small businesses can improve customer retention.'",
-    maxLen: 500, costKey: 'ai_longform', btnLabel: '✨ Generate Article',
+    maxLen: 500, costKey: 'ai_longform', btnLabel: 'Generate Article',
     extras: [{ id: 'aiTone4', type: 'select', options: ['professional', 'friendly', 'informative', 'persuasive'] }]
   },
   code: {
-    icon: '💻', label: 'Coding Assistant', prompt: '💻 Describe what you need help coding',
+    icon: 'fa-solid fa-laptop-code', label: 'Coding Assistant', prompt: 'Describe what you need help coding',
     placeholder: "e.g. 'Write a JavaScript function that validates an email address.'",
-    maxLen: 2000, costKey: 'ai_code', btnLabel: '✨ Generate Code',
+    maxLen: 2000, costKey: 'ai_code', btnLabel: 'Generate Code',
     extras: [{ id: 'aiLanguage', type: 'select', options: ['JavaScript', 'Python', 'TypeScript', 'HTML/CSS', 'SQL', 'Other'] }]
   }
 }

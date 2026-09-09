@@ -35,6 +35,10 @@ export default function GoldFooter() {
               <a href="#gh-pricing">Pricing</a>
               <a href="/contact">Contact</a>
               <a href="/help">Support</a>
+              <a href="https://t.me/chaposhubupdates" target="_blank" rel="noopener noreferrer">
+                <i className="fa-brands fa-telegram" style={{ marginRight: '.4rem' }}></i>
+                Telegram
+              </a>
             </div>
           </div>
 

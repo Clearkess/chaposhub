@@ -26,21 +26,21 @@ router.get('/balance', authMiddleware, async (req: AuthedRequest, res) => {
 })
 
 const ACTION_META: Record<string, { icon: string; color: string; type: string; title: string }> = {
-  download: { icon: '🧾', color: 'rgba(249,115,22,0.15)', type: 'receipt', title: 'Receipt Downloaded' },
-  print: { icon: '🖨️', color: 'rgba(34,197,94,0.15)', type: 'receipt', title: 'Receipt Printed' },
-  email: { icon: '📧', color: 'rgba(34,197,94,0.15)', type: 'email', title: 'Email Sent' },
-  link: { icon: '🔗', color: 'rgba(59,130,246,0.15)', type: 'link', title: 'Short Link' },
-  ai: { icon: '🤖', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Reply' },
-  support: { icon: '🛟', color: 'rgba(59,130,246,0.15)', type: 'support', title: 'Support Page' },
-  ai_content: { icon: '✍️', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Content' },
-  ai_social: { icon: '📱', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Social Caption' },
-  ai_product: { icon: '🛍️', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Product Description' },
-  ai_email: { icon: '📧', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Email' },
-  ai_rewrite: { icon: '🔄', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Rewrite' },
-  ai_chat: { icon: '🧠', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Chat' },
-  ai_longform: { icon: '📄', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Long-Form Content' },
-  ai_code: { icon: '💻', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Coding Assistant' },
-  opay_receipt: { icon: '🟢', color: 'rgba(29,198,119,0.15)', type: 'opay', title: 'OPay Receipt' }
+  download: { icon: 'fa-solid fa-receipt', color: 'rgba(249,115,22,0.15)', type: 'receipt', title: 'Receipt Downloaded' },
+  print: { icon: 'fa-solid fa-print', color: 'rgba(34,197,94,0.15)', type: 'receipt', title: 'Receipt Printed' },
+  email: { icon: 'fa-solid fa-envelope', color: 'rgba(34,197,94,0.15)', type: 'email', title: 'Email Sent' },
+  link: { icon: 'fa-solid fa-link', color: 'rgba(59,130,246,0.15)', type: 'link', title: 'Short Link' },
+  ai: { icon: 'fa-solid fa-robot', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Reply' },
+  support: { icon: 'fa-solid fa-headset', color: 'rgba(59,130,246,0.15)', type: 'support', title: 'Support Page' },
+  ai_content: { icon: 'fa-solid fa-pen-nib', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Content' },
+  ai_social: { icon: 'fa-solid fa-mobile-screen', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Social Caption' },
+  ai_product: { icon: 'fa-solid fa-bag-shopping', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Product Description' },
+  ai_email: { icon: 'fa-solid fa-envelope', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Email' },
+  ai_rewrite: { icon: 'fa-solid fa-arrows-rotate', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Rewrite' },
+  ai_chat: { icon: 'fa-solid fa-brain', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Chat' },
+  ai_longform: { icon: 'fa-solid fa-file-lines', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Long-Form Content' },
+  ai_code: { icon: 'fa-solid fa-laptop-code', color: 'rgba(139,92,246,0.15)', type: 'ai', title: 'AI Coding Assistant' },
+  opay_receipt: { icon: 'fa-solid fa-wallet', color: 'rgba(29,198,119,0.15)', type: 'opay', title: 'OPay Receipt' }
 }
 
 // Deduct points for action
@@ -65,7 +65,7 @@ router.post('/deduct', authMiddleware, async (req: AuthedRequest, res) => {
 
   const newBalance = user.points - amount
   const now = new Date().toISOString()
-  const meta = ACTION_META[action] || { icon: '📋', color: 'rgba(34,197,94,0.15)', type: action, title: action }
+  const meta = ACTION_META[action] || { icon: 'fa-solid fa-circle-info', color: 'rgba(34,197,94,0.15)', type: action, title: action }
 
   const tx = db.transaction(() => {
     db.prepare('UPDATE users SET points = ? WHERE id = ?').run(newBalance, userId)
@@ -89,9 +89,10 @@ router.post('/deduct', authMiddleware, async (req: AuthedRequest, res) => {
   })
 })
 
-// Purchase points via Stripe (legacy/optional path). Real purchases go
-// through the Whop checkout links (see WHOP_CHECKOUT_URLS on the frontend)
-// and are credited by /api/webhooks/whop, NOT this endpoint.
+// Purchase points via Stripe (legacy/optional card-checkout path — not
+// currently wired to a live Stripe account). The primary way to buy points
+// is now the peer-to-peer marketplace (see server/src/routes/p2p.ts), where
+// any vendor can sell points directly to another user at a rate they set.
 //
 // IMPORTANT: this endpoint intentionally does NOT have a "mock mode" that
 // credits points without a real payment. If STRIPE_SECRET_KEY is not
@@ -109,7 +110,7 @@ router.post('/purchase', authMiddleware, async (req: AuthedRequest, res) => {
 
   if (!process.env.STRIPE_SECRET_KEY) {
     return res.status(501).json({
-      error: 'Card checkout is not available right now. Please use the Whop checkout link instead.'
+      error: 'Card checkout is not available right now. Please use the P2P points marketplace instead.'
     })
   }
 

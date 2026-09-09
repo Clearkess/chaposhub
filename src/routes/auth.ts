@@ -27,7 +27,9 @@ function publicUser(u: UserRow) {
     role: u.role,
     receiptsGenerated: u.receipts_generated,
     referralCode: u.referral_code,
-    memberSince: u.created_at
+    memberSince: u.created_at,
+    whatsapp: u.whatsapp,
+    isVendor: !!u.is_vendor
   }
 }
 
@@ -73,7 +75,7 @@ auth.post('/register', async (c) => {
 
   await c.env.DB.prepare(
     `INSERT INTO activities (id, user_id, type, title, description, icon, color, created_at)
-     VALUES (?, ?, 'login', 'Account Created', 'Welcome to Chapo''sHub!', '🎉', 'rgba(34,197,94,0.15)', ?)`
+     VALUES (?, ?, 'login', 'Account Created', 'Welcome to Chapo''sHub!', 'fa-solid fa-champagne-glasses', 'rgba(34,197,94,0.15)', ?)`
   ).bind(generateId('act'), userId, now).run()
 
   const token = await generateToken(userId, 'user', c.env.JWT_SECRET)

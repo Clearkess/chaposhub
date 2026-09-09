@@ -381,11 +381,11 @@ router.post('/listings/:id/purchase', authMiddleware, (req: AuthedRequest, res) 
       ).run(generateId('ptx'), listing.seller_id, sellerEarned, listing.seller_id, `Sold "${listing.title}" on Scripts Marketplace`, now)
       db.prepare(
         `INSERT INTO activities (id, user_id, type, title, description, icon, color, created_at)
-         VALUES (?, ?, 'marketplace', ?, ?, '🛒', 'rgba(34,197,94,0.15)', ?)`
+         VALUES (?, ?, 'marketplace', ?, ?, 'fa-solid fa-cart-shopping', 'rgba(34,197,94,0.15)', ?)`
       ).run(generateId('act'), buyerId, 'Marketplace Purchase', `Bought "${listing.title}"`, now)
       db.prepare(
         `INSERT INTO activities (id, user_id, type, title, description, icon, color, created_at)
-         VALUES (?, ?, 'marketplace', ?, ?, '💰', 'rgba(34,197,94,0.15)', ?)`
+         VALUES (?, ?, 'marketplace', ?, ?, 'fa-solid fa-sack-dollar', 'rgba(34,197,94,0.15)', ?)`
       ).run(generateId('act'), listing.seller_id, 'Marketplace Sale', `Sold "${listing.title}" (+${sellerEarned} pts)`, now)
     })
     tx()

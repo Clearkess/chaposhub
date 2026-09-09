@@ -73,7 +73,7 @@ export default function GoldHeader({
             Log In
           </a>
           <button className="gh-btn gh-btn-primary gh-btn-sm" onClick={onSignUp}>
-            Get Started →
+            Get Started <i className="fa-solid fa-arrow-right"></i>
           </button>
           <button
             className="gh-burger"
@@ -81,7 +81,7 @@ export default function GoldHeader({
             aria-expanded={open}
             onClick={() => setOpen((v) => !v)}
           >
-            {open ? '✕' : '☰'}
+            {open ? <i className="fa-solid fa-xmark"></i> : <i className="fa-solid fa-bars"></i>}
           </button>
         </div>
       </div>
@@ -117,7 +117,7 @@ export default function GoldHeader({
               onSignUp()
             }}
           >
-            Get Started →
+            Get Started <i className="fa-solid fa-arrow-right"></i>
           </button>
         </div>
       )}

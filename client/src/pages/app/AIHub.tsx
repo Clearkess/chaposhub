@@ -42,7 +42,7 @@ export default function AIHub() {
 
   async function generate() {
     if ((user?.points || 0) < cost) {
-      showToast(`❌ Need ${cost} points for ${tool.label}`, 'error')
+      showToast(`Need ${cost} points for ${tool.label}`, 'error')
       return
     }
     const trimmed = input.trim()
@@ -75,12 +75,12 @@ export default function AIHub() {
       setOutput(res.reply)
       await api.deductPoints(cost, tool.costKey, description)
       await refreshUser()
-      showToast(`✨ ${tool.label} generated! (-${cost} pts)`, 'success')
+      showToast(`${tool.label} generated! (-${cost} pts)`, 'success')
     } catch (err) {
       if (err instanceof APIError && err.status === 401) {
-        showToast('❌ Please log in again', 'error')
+        showToast('Please log in again', 'error')
       } else {
-        showToast('❌ ' + (err instanceof Error ? err.message : 'Something went wrong'), 'error')
+        showToast(err instanceof Error ? err.message : 'Something went wrong', 'error')
       }
     } finally {
       setLoading(false)
@@ -91,13 +91,13 @@ export default function AIHub() {
     if (!output) return
     navigator.clipboard
       .writeText(output)
-      .then(() => showToast('📋 Copied to clipboard!', 'success'))
-      .catch(() => showToast('❌ Could not copy'))
+      .then(() => showToast('Copied to clipboard!', 'success'))
+      .catch(() => showToast('Could not copy', 'error'))
   }
 
   return (
     <div className="page active" role="main" aria-label="AI Assistant">
-      <PageHeader title="🤖 Chapo'sHub AI" />
+      <PageHeader title="Chapo'sHub AI" icon="fa-solid fa-robot" />
       <div className="ai-tool-scroll" role="tablist" aria-label="AI tools">
         {Object.entries(AI_TOOLS).map(([key, t]) => (
           <div
@@ -107,7 +107,7 @@ export default function AIHub() {
             role="tab"
             aria-selected={key === toolKey}
           >
-            {t.icon} {t.label}
+            <i className={t.icon}></i> {t.label}
           </div>
         ))}
       </div>
@@ -142,16 +142,22 @@ export default function AIHub() {
             {input.length} / {tool.maxLen}
           </div>
           <button className="ai-generate-btn" onClick={generate} disabled={loading}>
-            {loading ? '✨ Generating...' : `${tool.btnLabel} (${cost} pts)`}
+            {loading ? (
+              <span className="spinner"></span>
+            ) : (
+              <>
+                <i className="fa-solid fa-wand-magic-sparkles"></i> {tool.btnLabel} ({cost} pts)
+              </>
+            )}
           </button>
           {output && <div className="ai-output show">{output}</div>}
           {output && (
             <div className="ai-output-actions" style={{ display: 'flex' }}>
               <button className="action-btn secondary" onClick={copyOutput}>
-                📋 Copy
+                <i className="fa-solid fa-copy"></i> Copy
               </button>
               <button className="action-btn secondary" onClick={() => setOutput('')}>
-                🗑️ Clear
+                <i className="fa-solid fa-trash"></i> Clear
               </button>
             </div>
           )}

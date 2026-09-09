@@ -189,7 +189,7 @@ export default function Marketplace() {
   async function approve(id: string) {
     try {
       await api.approveMarketplaceListing(id)
-      showToast('Listing approved ✓')
+      showToast('Listing approved', 'success')
       loadAdminQueue()
     } catch (err: any) {
       showToast(err.message || 'Failed to approve', 'error')
@@ -268,7 +268,7 @@ export default function Marketplace() {
         if (fieldFile.size > 25 * 1024 * 1024) throw new Error('File too large (max 25MB)')
         await api.uploadMarketplaceFile(listing.id, fieldFile)
       }
-      showToast('Listing submitted for review ✓')
+      showToast('Listing submitted for review', 'success')
       closeCreateForm()
       loadMyListings()
     } catch (err: any) {
@@ -319,7 +319,7 @@ export default function Marketplace() {
   async function purchase(id: string) {
     try {
       const result = await api.purchaseMarketplaceListing(id)
-      showToast(`Purchased "${result.title}" ✓`)
+      showToast(`Purchased "${result.title}"`, 'success')
       closeDetail()
       refreshUser()
       switchTab('purchases')
@@ -356,7 +356,7 @@ export default function Marketplace() {
               fontSize: '2rem'
             }}
           >
-            🛒
+            <i className="fa-solid fa-cart-shopping"></i>
           </div>
         )}
         {context === 'mine' && l.status && l.status !== 'approved' && (
@@ -376,7 +376,7 @@ export default function Marketplace() {
 
   return (
     <div className="page active" role="main" aria-label="Scripts Marketplace">
-      <PageHeader title="🛒 Scripts Marketplace" />
+      <PageHeader title="Scripts Marketplace" icon="fa-solid fa-cart-shopping" />
 
       <div className="mkt-tabs" role="tablist" aria-label="Marketplace sections">
         <button
@@ -458,7 +458,7 @@ export default function Marketplace() {
           )}
           {!browseError && browseListings && browseListings.length === 0 && (
             <div className="empty-state" style={{ gridColumn: '1 / -1' }}>
-              <div className="empty-state-icon">🛒</div>
+              <div className="empty-state-icon"><i className="fa-solid fa-cart-shopping"></i></div>
               <div className="empty-state-title">No templates yet</div>
               <div className="empty-state-desc">Be the first to list a website template.</div>
             </div>
@@ -487,7 +487,7 @@ export default function Marketplace() {
           )}
           {!myListingsError && myListings && myListings.length === 0 && (
             <div className="empty-state" style={{ gridColumn: '1 / -1' }}>
-              <div className="empty-state-icon">📦</div>
+              <div className="empty-state-icon"><i className="fa-solid fa-box"></i></div>
               <div className="empty-state-title">No listings yet</div>
               <div className="empty-state-desc">Create your first template listing above.</div>
             </div>
@@ -527,7 +527,7 @@ export default function Marketplace() {
           )}
           {!purchasesError && purchases && purchases.length === 0 && (
             <div className="empty-state" style={{ gridColumn: '1 / -1' }}>
-              <div className="empty-state-icon">🧾</div>
+              <div className="empty-state-icon"><i className="fa-solid fa-receipt"></i></div>
               <div className="empty-state-title">No purchases yet</div>
               <div className="empty-state-desc">Templates you buy will show up here with a download link.</div>
             </div>
@@ -556,7 +556,7 @@ export default function Marketplace() {
                       alt=""
                     />
                   ) : (
-                    '🛒'
+                    <i className="fa-solid fa-cart-shopping"></i>
                   )}
                 </div>
                 <div className="mkt-listing-body">
@@ -569,7 +569,7 @@ export default function Marketplace() {
                     style={{ width: '100%', marginTop: '.6rem' }}
                     onClick={(e) => download(p.id, e)}
                   >
-                    ⬇ Download
+                    <i className="fa-solid fa-download"></i> Download
                   </button>
                 </div>
               </div>
@@ -591,7 +591,7 @@ export default function Marketplace() {
             )}
             {!adminError && adminQueue && adminQueue.length === 0 && (
               <div className="empty-state" style={{ gridColumn: '1 / -1' }}>
-                <div className="empty-state-icon">✅</div>
+                <div className="empty-state-icon"><i className="fa-solid fa-circle-check"></i></div>
                 <div className="empty-state-title">Nothing pending</div>
                 <div className="empty-state-desc">New submissions will appear here for review.</div>
               </div>
@@ -618,10 +618,10 @@ export default function Marketplace() {
                     </div>
                     <div style={{ display: 'flex', gap: '.5rem' }}>
                       <button className="action-btn success" style={{ flex: 1 }} onClick={() => approve(l.id)}>
-                        ✓ Approve
+                        <i className="fa-solid fa-check"></i> Approve
                       </button>
                       <button className="action-btn secondary" style={{ flex: 1 }} onClick={() => reject(l.id)}>
-                        ✕ Reject
+                        <i className="fa-solid fa-xmark"></i> Reject
                       </button>
                     </div>
                   </div>
@@ -642,7 +642,7 @@ export default function Marketplace() {
           <div className="mkt-form-header">
             <span>{editingId ? 'Edit Listing' : 'Create Listing'}</span>
             <button className="mkt-form-close" onClick={closeCreateForm} aria-label="Close">
-              ✕
+              <i className="fa-solid fa-xmark"></i>
             </button>
           </div>
           <div className="form-field">
@@ -732,7 +732,7 @@ export default function Marketplace() {
               <div className="mkt-form-header">
                 <span>{detailListing.title}</span>
                 <button className="mkt-form-close" onClick={closeDetail}>
-                  ✕
+                  <i className="fa-solid fa-xmark"></i>
                 </button>
               </div>
               {detailListing.previewImageUrl && (
@@ -767,14 +767,14 @@ export default function Marketplace() {
                     style={{ width: '100%', marginBottom: '.5rem' }}
                     onClick={() => editListing(detailListing.id)}
                   >
-                    ✎ Edit
+                    <i className="fa-solid fa-pen"></i> Edit
                   </button>
                   <button
                     className="action-btn secondary"
                     style={{ width: '100%', color: 'var(--danger)' }}
                     onClick={() => deleteListing(detailListing.id)}
                   >
-                    🗑 Remove Listing
+                    <i className="fa-solid fa-trash"></i> Remove Listing
                   </button>
                 </>
               ) : detailListing.purchased ? (
@@ -787,10 +787,10 @@ export default function Marketplace() {
                       marginBottom: '.5rem'
                     }}
                   >
-                    ✓ You own this template
+                    <i className="fa-solid fa-check"></i> You own this template
                   </div>
                   <button className="action-btn primary" style={{ width: '100%' }} onClick={buyThenClose}>
-                    Go to My Purchases →
+                    Go to My Purchases <i className="fa-solid fa-arrow-right"></i>
                   </button>
                 </>
               ) : (

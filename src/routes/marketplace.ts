@@ -361,11 +361,11 @@ marketplace.post('/listings/:id/purchase', authMiddleware, async (c) => {
       ).bind(generateId('ptx'), listing.seller_id, sellerEarned, listing.seller_id, `Sold "${listing.title}" on Scripts Marketplace`, now),
       c.env.DB.prepare(
         `INSERT INTO activities (id, user_id, type, title, description, icon, color, created_at)
-         VALUES (?, ?, 'marketplace', ?, ?, '🛒', 'rgba(34,197,94,0.15)', ?)`
+         VALUES (?, ?, 'marketplace', ?, ?, 'fa-solid fa-cart-shopping', 'rgba(34,197,94,0.15)', ?)`
       ).bind(generateId('act'), buyerId, 'Marketplace Purchase', `Bought "${listing.title}"`, now),
       c.env.DB.prepare(
         `INSERT INTO activities (id, user_id, type, title, description, icon, color, created_at)
-         VALUES (?, ?, 'marketplace', ?, ?, '💰', 'rgba(34,197,94,0.15)', ?)`
+         VALUES (?, ?, 'marketplace', ?, ?, 'fa-solid fa-sack-dollar', 'rgba(34,197,94,0.15)', ?)`
       ).bind(generateId('act'), listing.seller_id, 'Marketplace Sale', `Sold "${listing.title}" (+${sellerEarned} pts)`, now)
     ])
   } catch {

@@ -1,6 +1,5 @@
 import React from 'react'
 import { PageProvider, usePage } from '../../contexts/PageContext'
-import { useAuth } from '../../contexts/AuthContext'
 import Home from './Home'
 import Receipts from './Receipts'
 import OpayWallet from './OpayWallet'
@@ -11,6 +10,7 @@ import Services from './Services'
 import History from './History'
 import Orders from './Orders'
 import Support from './Support'
+import Settings from './Settings'
 
 // Top-level authenticated app shell: client-side page-switcher (no browser
 // routing — mirrors the original single-page #appShell behaviour) + a
@@ -22,19 +22,12 @@ import Support from './Support'
 // every other page has its own `.receipt-page-header` back-button bar.
 function BottomNav() {
   const { page, goTo } = usePage()
-  const { logout } = useAuth()
-
-  function handleLogout() {
-    if (window.confirm("Log out of Chapo'sHub?")) {
-      logout()
-    }
-  }
 
   return (
     <nav className="bottom-nav" role="navigation" aria-label="Main navigation">
       <button className="nav-item-btm" onClick={() => goTo('dashboard')} aria-label="Transactions">
         <span className="nav-icon" aria-hidden="true">
-          💵
+          <i className="fa-solid fa-money-bill-wave"></i>
         </span>
         <span className="nav-label">Transactions</span>
       </button>
@@ -45,7 +38,7 @@ function BottomNav() {
         aria-current={page === 'services' ? 'page' : undefined}
       >
         <span className="nav-icon" aria-hidden="true">
-          🛒
+          <i className="fa-solid fa-cart-shopping"></i>
         </span>
         <span className="nav-label">Services</span>
       </button>
@@ -56,7 +49,7 @@ function BottomNav() {
         aria-current={page === 'dashboard' ? 'page' : undefined}
       >
         <span className="nav-icon" aria-hidden="true">
-          ⊞
+          <i className="fa-solid fa-house"></i>
         </span>
         <span className="nav-label">Home</span>
       </button>
@@ -67,15 +60,20 @@ function BottomNav() {
         aria-current={page === 'history' ? 'page' : undefined}
       >
         <span className="nav-icon" aria-hidden="true">
-          🕐
+          <i className="fa-solid fa-clock-rotate-left"></i>
         </span>
         <span className="nav-label">History</span>
       </button>
-      <button className="nav-item-btm" onClick={handleLogout} aria-label="Logout">
+      <button
+        className={`nav-item-btm ${page === 'settings' ? 'active' : ''}`}
+        onClick={() => goTo('settings')}
+        aria-label="Settings"
+        aria-current={page === 'settings' ? 'page' : undefined}
+      >
         <span className="nav-icon" aria-hidden="true">
-          🚪
+          <i className="fa-solid fa-gear"></i>
         </span>
-        <span className="nav-label">Logout</span>
+        <span className="nav-label">Settings</span>
       </button>
     </nav>
   )
@@ -104,6 +102,8 @@ function PageSwitcher() {
       return <Orders />
     case 'support':
       return <Support />
+    case 'settings':
+      return <Settings />
     default:
       return <Home />
   }

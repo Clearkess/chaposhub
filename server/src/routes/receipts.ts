@@ -86,7 +86,7 @@ router.post('/', authMiddleware, async (req: AuthedRequest, res) => {
 
   db.prepare(
     `INSERT INTO activities (id, user_id, type, title, description, icon, color, created_at)
-     VALUES (?, ?, 'receipt', ?, ?, '🧾', 'rgba(249,115,22,0.15)', ?)`
+     VALUES (?, ?, 'receipt', ?, ?, 'fa-solid fa-receipt', 'rgba(249,115,22,0.15)', ?)`
   ).run(generateId('act'), userId, `${storeName} Receipt`, `#${finalOrderId} · ${currency}${total.toFixed(2)}`, now)
 
   return res.status(201).json({

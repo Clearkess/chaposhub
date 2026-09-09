@@ -110,7 +110,7 @@ function ThermalSkin({
         <svg ref={barcodeRef} />
       </div>
       <div className="qr-area" ref={qrRef} />
-      <p className="footer-note">Thank you for using {storeName}! 🛍️</p>
+      <p className="footer-note">Thank you for using {storeName}! <i className="fa-solid fa-bags-shopping"></i></p>
       <p className="footer-note" style={{ fontSize: 8, color: '#888' }}>
         This is a simulated receipt.
       </p>
@@ -140,7 +140,7 @@ function CryptoSkin({
       <div className="rc-label">Amount</div>
       <div className="rc-amount">{formatCurrency(totals.total)}</div>
       <div className="rc-status">
-        <span className="rc-check">✓</span> Completed
+        <span className="rc-check"><i className="fa-solid fa-check"></i></span> Completed
       </div>
       <div className="rc-disclaimer">
         Funds transferred out of {storeName}. Network delays may affect arrival time.
@@ -170,7 +170,7 @@ function CryptoSkin({
         ))}
         <div className="rc-row">
           <span className="rc-l">Txn ID</span>
-          <span className="rc-v rc-mono">{txid} 📋</span>
+          <span className="rc-v rc-mono">{txid} <i className="fa-solid fa-clipboard"></i></span>
         </div>
         <div className="rc-row">
           <span className="rc-l">Date</span>
@@ -199,7 +199,7 @@ function PaypalSkin({ preset, storeName, orderId, dateTime, items, formatCurrenc
         Pay<span>Pal</span>
       </div>
       <div className="rp-check-wrap">
-        <div className="rp-check">✓</div>
+        <div className="rp-check"><i className="fa-solid fa-check"></i></div>
       </div>
       <div className="rp-title">You sent {formatCurrency(mainAmount)}</div>
       <div className="rp-sub">to {storeName}</div>
@@ -250,7 +250,7 @@ function CashAppSkin({ storeName, orderId, dateTime, items, formatCurrency, form
   return (
     <div className="rca" role="img" aria-label={`${storeName} Cash App receipt`}>
       <div className="rca-check-wrap">
-        <div className="rca-check">✓</div>
+        <div className="rca-check"><i className="fa-solid fa-check"></i></div>
       </div>
       <div className="rca-amount">{formatCurrency(mainAmount)}</div>
       <div className="rca-status">Payment Sent</div>

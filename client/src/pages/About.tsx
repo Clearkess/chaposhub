@@ -39,26 +39,26 @@ export default function About({ onSignIn, onSignUp }: { onSignIn: () => void; on
           <h2>What We Stand For</h2>
           <div className="subpage-values">
             <div className="subpage-value-card">
-              <div className="subpage-value-icon">⚡</div>
+              <div className="subpage-value-icon"><i className="fa-solid fa-bolt"></i></div>
               <div className="subpage-value-title">Speed</div>
               <div className="subpage-value-desc">
                 Every tool is built for instant results — generate a receipt or an AI reply in seconds, not minutes.
               </div>
             </div>
             <div className="subpage-value-card">
-              <div className="subpage-value-icon">🔒</div>
+              <div className="subpage-value-icon"><i className="fa-solid fa-lock"></i></div>
               <div className="subpage-value-title">Security</div>
               <div className="subpage-value-desc">
                 SSL encrypted end to end, with account data stored securely in a managed database.
               </div>
             </div>
             <div className="subpage-value-card">
-              <div className="subpage-value-icon">🌍</div>
+              <div className="subpage-value-icon"><i className="fa-solid fa-earth-americas"></i></div>
               <div className="subpage-value-title">Accessibility</div>
               <div className="subpage-value-desc">Available worldwide, 24/7, from any device — no installs, no app store required.</div>
             </div>
             <div className="subpage-value-card">
-              <div className="subpage-value-icon">✨</div>
+              <div className="subpage-value-icon"><i className="fa-solid fa-sparkles"></i></div>
               <div className="subpage-value-title">Honesty</div>
               <div className="subpage-value-desc">
                 We're upfront that receipts are simulated records for personal/demo use — not official proof of

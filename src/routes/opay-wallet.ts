@@ -179,7 +179,7 @@ async function performDebit(
       ).bind(generateId('ptx'), userId, -cost, userId, `OPay demo ${category === 'bank_transfer' ? 'bank transfer' : 'send'} #${reference}`, category === 'bank_transfer' ? 'opay_bank_transfer' : 'opay_wallet_send', now),
       db.prepare(
         `INSERT INTO activities (id, user_id, type, title, description, icon, color, created_at)
-         VALUES (?, ?, 'opay_wallet', ?, ?, '🟢', 'rgba(29,198,119,0.15)', ?)`
+         VALUES (?, ?, 'opay_wallet', ?, ?, 'fa-solid fa-wallet', 'rgba(29,198,119,0.15)', ?)`
       ).bind(generateId('act'), userId, category === 'bank_transfer' ? 'OPay Bank Transfer' : 'OPay Send Money', `#${reference} · ₦${amount.toLocaleString()}`, now)
     ])
   } catch (e: any) {

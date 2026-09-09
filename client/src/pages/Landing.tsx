@@ -31,7 +31,7 @@ export default function Landing({ onSignIn, onSignUp }: { onSignIn: () => void; 
       <section className="gh-hero">
         <div className="gh-container gh-hero-grid">
           <div className="gh-hero-copy">
-            <div className="gh-hero-badge">✦ Trusted by 401,212+ users worldwide</div>
+            <div className="gh-hero-badge"><i className="fa-solid fa-star"></i> Trusted by 401,212+ users worldwide</div>
             <h1 className="gh-hero-title">
               Everything Digital.
               <span>One Powerful Platform.</span>
@@ -42,7 +42,7 @@ export default function Landing({ onSignIn, onSignUp }: { onSignIn: () => void; 
             </p>
             <div className="gh-hero-cta">
               <button className="gh-btn gh-btn-primary" onClick={onSignUp}>
-                Get Started Free →
+                Get Started Free <i className="fa-solid fa-arrow-right"></i>
               </button>
               <button
                 className="gh-btn gh-btn-secondary"
@@ -52,9 +52,9 @@ export default function Landing({ onSignIn, onSignUp }: { onSignIn: () => void; 
               </button>
             </div>
             <div className="gh-hero-note-row">
-              <span className="gh-hero-note">🔒 SSL Encrypted</span>
-              <span className="gh-hero-note">⚡ Instant Delivery</span>
-              <span className="gh-hero-note">🌍 Worldwide</span>
+              <span className="gh-hero-note"><i className="fa-solid fa-lock"></i> SSL Encrypted</span>
+              <span className="gh-hero-note"><i className="fa-solid fa-bolt"></i> Instant Delivery</span>
+              <span className="gh-hero-note"><i className="fa-solid fa-earth-americas"></i> Worldwide</span>
             </div>
           </div>
           <div className="gh-hero-visual">
@@ -107,11 +107,11 @@ export default function Landing({ onSignIn, onSignUp }: { onSignIn: () => void; 
           <div className="gh-feature-grid">
             {FEATURES.map((f) => (
               <div className="gh-feature-card" key={f.title}>
-                <div className="gh-feature-icon">{f.icon}</div>
+                <div className="gh-feature-icon"><i className={f.icon}></i></div>
                 <div className="gh-feature-title">{f.title}</div>
                 <div className="gh-feature-desc">{f.desc}</div>
                 <button className="gh-feature-link" onClick={onSignUp}>
-                  {f.cta} →
+                  {f.cta} <i className="fa-solid fa-arrow-right"></i>
                 </button>
               </div>
             ))}
@@ -145,7 +145,7 @@ export default function Landing({ onSignIn, onSignUp }: { onSignIn: () => void; 
           </div>
           <div className="gh-how-cta">
             <button className="gh-btn gh-btn-primary" onClick={onSignUp}>
-              Start Creating Free →
+              Start Creating Free <i className="fa-solid fa-arrow-right"></i>
             </button>
           </div>
         </div>
@@ -212,7 +212,7 @@ export default function Landing({ onSignIn, onSignUp }: { onSignIn: () => void; 
                 <li>Mobile access</li>
               </ul>
               <button className="gh-btn gh-btn-secondary gh-btn-block" onClick={onSignUp}>
-                Get Started Free →
+                Get Started Free <i className="fa-solid fa-arrow-right"></i>
               </button>
             </div>
 
@@ -232,7 +232,7 @@ export default function Landing({ onSignIn, onSignUp }: { onSignIn: () => void; 
                 <li>Priority support</li>
               </ul>
               <button className="gh-btn gh-btn-primary gh-btn-block" onClick={onSignUp}>
-                Upgrade to Pro →
+                Upgrade to Pro <i className="fa-solid fa-arrow-right"></i>
               </button>
             </div>
 
@@ -249,7 +249,7 @@ export default function Landing({ onSignIn, onSignUp }: { onSignIn: () => void; 
                 <li>Custom solutions</li>
               </ul>
               <a href="/contact" className="gh-btn gh-btn-secondary gh-btn-block">
-                Contact Us →
+                Contact Us <i className="fa-solid fa-arrow-right"></i>
               </a>
             </div>
           </div>
@@ -274,6 +274,27 @@ export default function Landing({ onSignIn, onSignUp }: { onSignIn: () => void; 
         </div>
       </section>
 
+      {/* 9.5 JOIN OUR COMMUNITY */}
+      <section className="gh-community" aria-label="Join our community">
+        <div className="gh-container gh-community-inner">
+          <div className="gh-community-icon">
+            <i className="fa-brands fa-telegram"></i>
+          </div>
+          <h2 className="gh-community-title">Join Our Community</h2>
+          <p className="gh-community-desc">
+            Get product updates, P2P vendor tips, and talk directly with the ChaposHub team on Telegram.
+          </p>
+          <a
+            className="gh-btn gh-btn-primary gh-community-btn"
+            href="https://t.me/chaposhubupdates"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <i className="fa-brands fa-telegram"></i> Join our Telegram
+          </a>
+        </div>
+      </section>
+
       {/* 10. FINAL CTA */}
       <section className="gh-final-cta">
         <div className="gh-final-cta-inner">
@@ -283,7 +304,7 @@ export default function Landing({ onSignIn, onSignUp }: { onSignIn: () => void; 
             Join thousands of users using ChaposHub to simplify their digital workflows.
           </p>
           <button className="gh-btn gh-btn-primary" onClick={onSignUp}>
-            Get Started Free →
+            Get Started Free <i className="fa-solid fa-arrow-right"></i>
           </button>
           <div className="gh-final-cta-note">
             <span>No complicated setup</span>
@@ -300,37 +321,37 @@ export default function Landing({ onSignIn, onSignUp }: { onSignIn: () => void; 
 
 const FEATURES = [
   {
-    icon: '🧾',
+    icon: 'fa-solid fa-receipt',
     title: 'Receipt Generator',
     desc: 'Create professional digital receipts in seconds.',
     cta: 'Generate Receipt'
   },
   {
-    icon: '⚡',
+    icon: 'fa-solid fa-bolt',
     title: 'Instant Generation',
     desc: 'Turn your ideas into usable digital assets quickly.',
     cta: 'Generate Now'
   },
   {
-    icon: '✉️',
+    icon: 'fa-solid fa-envelope',
     title: 'Flash Email',
     desc: 'Create and manage fast email workflows from one place.',
     cta: 'Create Email'
   },
   {
-    icon: '🛠️',
+    icon: 'fa-solid fa-screwdriver-wrench',
     title: 'Support Page Builder',
     desc: 'Build professional support pages without complicated setup.',
     cta: 'Build Page'
   },
   {
-    icon: '🔐',
+    icon: 'fa-solid fa-lock',
     title: 'Login Page Builder',
     desc: 'Create modern authentication pages for your projects.',
     cta: 'Create Login'
   },
   {
-    icon: '📊',
+    icon: 'fa-solid fa-chart-column',
     title: 'Activity Management',
     desc: 'Track your generated services and account activity from one dashboard.',
     cta: 'View Activity'

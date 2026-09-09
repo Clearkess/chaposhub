@@ -53,9 +53,11 @@ export default function Legal({ kind, onSignIn }: { kind: 'privacy' | 'terms'; o
                 you can access your history and re-download past receipts.
               </p>
               <p>
-                When you purchase points, payment is processed by a third-party provider (Whop). We receive
-                confirmation of the payment and the amount, but we do not receive or store your card or payment
-                details directly.
+                Points can be bought directly from other Chapo'sHub users through our peer-to-peer (P2P)
+                marketplace. Payment for these orders happens directly between buyer and vendor, off-platform
+                (e.g. WhatsApp or bank transfer) — we do not process, receive, or store any card or payment
+                details ourselves. We only record the order status and the points transferred once a vendor
+                confirms payment.
               </p>
 
               <h2>2. How We Use Your Information</h2>
@@ -71,7 +73,7 @@ export default function Legal({ kind, onSignIn }: { kind: 'privacy' | 'terms'; o
               <p>Account and receipt data is stored securely. All traffic between your browser and our servers is encrypted with SSL/TLS.</p>
 
               <h2>4. Third-Party Services</h2>
-              <p>We use Whop for payment processing. When you buy points, you're redirected to Whop's own checkout, governed by Whop's own privacy policy and terms.</p>
+              <p>Points purchases happen directly between users on our peer-to-peer marketplace — we do not use a third-party payment processor. Any coordination between buyer and vendor (e.g. via WhatsApp) is governed by those services' own terms and privacy policies, not ours.</p>
 
               <h2>5. Your Rights</h2>
               <p>You may delete individual receipts from your History page at any time. To request full account deletion or a copy of your stored data, contact us using the details below.</p>

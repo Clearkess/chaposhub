@@ -3,6 +3,34 @@
 // by Vite in dev, same-origin in production).
 const TOKEN_KEY = 'chapo_token'
 
+// The canonical, always-live backend for this app (Hono on Cloudflare
+// Workers/Pages — see src/index.tsx + wrangler.jsonc). Same-origin '/api'
+// works when this SPA is served *from* that Cloudflare Pages deployment
+// (or from `vite dev`'s proxy locally), but this app is sometimes also
+// deployed as a standalone static build on other hosts (e.g. a Vercel
+// preview) that only serve the built client — there is no backend at
+// their origin, so a relative '/api/...' request 404s. Detect that case
+// at runtime and point straight at the real backend instead.
+const CANONICAL_API_BASE_URL = 'https://chaposhub.pages.dev/api'
+
+function resolveBaseUrl(): string {
+  // Explicit override always wins (set VITE_API_BASE_URL at build time for
+  // a specific deployment if you ever need something other than the
+  // canonical backend or same-origin).
+  const envUrl = (import.meta as any).env?.VITE_API_BASE_URL as string | undefined
+  if (envUrl) return envUrl.replace(/\/+$/, '')
+
+  if (typeof window !== 'undefined' && window.location) {
+    const host = window.location.hostname
+    const isLocalDev = host === 'localhost' || host === '127.0.0.1'
+    const isCloudflarePages = host === 'chaposhub.pages.dev' || host.endsWith('.chaposhub.pages.dev')
+    if (!isLocalDev && !isCloudflarePages) {
+      return CANONICAL_API_BASE_URL
+    }
+  }
+  return '/api'
+}
+
 export class APIError extends Error {
   status: number
   details?: string | null
@@ -22,7 +50,7 @@ interface RequestOptions {
 class APIService {
   baseUrl: string
   constructor(baseUrl?: string) {
-    this.baseUrl = baseUrl || '/api'
+    this.baseUrl = baseUrl || resolveBaseUrl()
   }
 
   getToken(): string | null {
@@ -270,6 +298,44 @@ class APIService {
   async rejectMarketplaceListing(id: string, reason: string) {
     return this.request('/marketplace/admin/listings/' + id + '/reject', { method: 'POST', body: { reason } })
   }
+
+  // --- P2P points marketplace ---
+  async getVendorStatus() {
+    return this.request('/p2p/vendor/status')
+  }
+  async applyForVendor(whatsapp: string) {
+    return this.request('/p2p/vendor/apply', { method: 'POST', body: { whatsapp } })
+  }
+  async getP2pListings() {
+    return this.request('/p2p/listings')
+  }
+  async getMyP2pListings() {
+    return this.request('/p2p/my-listings')
+  }
+  async createP2pListing(payload: { rateNgnPerPoint: number; minPoints?: number; maxPoints?: number }) {
+    return this.request('/p2p/listings', { method: 'POST', body: payload })
+  }
+  async updateP2pListing(id: string, payload: { status?: string; rateNgnPerPoint?: number }) {
+    return this.request('/p2p/listings/' + id, { method: 'PATCH', body: payload })
+  }
+  async createP2pOrder(listingId: string, pointsAmount: number) {
+    return this.request('/p2p/orders', { method: 'POST', body: { listingId, pointsAmount } })
+  }
+  async getP2pOrdersBuying() {
+    return this.request('/p2p/orders/buying')
+  }
+  async getP2pOrdersSelling() {
+    return this.request('/p2p/orders/selling')
+  }
+  async markP2pOrderPaid(id: string) {
+    return this.request('/p2p/orders/' + id + '/mark-paid', { method: 'POST' })
+  }
+  async confirmP2pOrder(id: string) {
+    return this.request('/p2p/orders/' + id + '/confirm', { method: 'POST' })
+  }
+  async cancelP2pOrder(id: string) {
+    return this.request('/p2p/orders/' + id + '/cancel', { method: 'POST' })
+  }
 }
 
-export const api = new APIService('/api')
+export const api = new APIService()

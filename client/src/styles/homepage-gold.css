@@ -334,6 +334,24 @@
 .gh-faq-item p{font-size:.85rem;color:var(--gh-text-dim);line-height:1.65;margin-top:.8rem}
 
 /* ==========================================================================
+   9.5 JOIN OUR COMMUNITY (Telegram)
+   ========================================================================== */
+.gh-community{
+  position:relative;text-align:center;padding:3.6rem 1.5rem;overflow:hidden;
+  background:radial-gradient(ellipse at 50% 100%,rgba(212,175,55,.12),transparent 65%),var(--gh-bg-alt);
+  border-top:1px solid var(--gh-border);border-bottom:1px solid var(--gh-border);
+}
+.gh-community-inner{max-width:520px;margin:0 auto;position:relative;z-index:1}
+.gh-community-icon{
+  width:56px;height:56px;margin:0 auto 1.1rem;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:1.6rem;color:#100c04;
+  background:var(--gh-gold-grad);box-shadow:0 10px 30px rgba(212,175,55,.35);
+}
+.gh-community-title{font-size:1.5rem;font-weight:900;letter-spacing:-.02em;margin-bottom:.6rem;color:var(--gh-text)}
+.gh-community-desc{font-size:.9rem;color:var(--gh-text-dim);line-height:1.6;margin-bottom:1.5rem}
+.gh-community-btn{gap:.55rem}
+
+/* ==========================================================================
    10. FINAL CTA
    ========================================================================== */
 .gh-final-cta{

@@ -170,7 +170,7 @@ export default function Receipts() {
       orderId: generateRandomOrderId(p.name),
       items: JSON.parse(JSON.stringify(p.items))
     }))
-    showToast('🔄 ' + p.name)
+    showToast(p.name)
   }
 
   function updateItem(idx: number, field: keyof ReceiptItem, value: string) {
@@ -198,24 +198,24 @@ export default function Receipts() {
 
   function randomizeId() {
     setDraft((prev) => ({ ...prev, orderId: generateRandomOrderId(prev.storeName) }))
-    showToast('🎲 Order ID randomized')
+    showToast('Order ID randomized')
   }
 
   function validateForm(): boolean {
     if (!draft.storeName.trim()) {
-      showToast('❌ Store name required', 'error')
+      showToast('Store name required', 'error')
       return false
     }
     if (!draft.orderId.trim()) {
-      showToast('❌ Order ID required', 'error')
+      showToast('Order ID required', 'error')
       return false
     }
     if (draft.taxRate < 0 || draft.taxRate > 100 || Number.isNaN(draft.taxRate)) {
-      showToast('❌ Tax rate must be 0-100', 'error')
+      showToast('Tax rate must be 0-100', 'error')
       return false
     }
     if (draft.items.length === 0 || !draft.items.some((i) => i.description.trim())) {
-      showToast('❌ Add at least one item', 'error')
+      showToast('Add at least one item', 'error')
       return false
     }
     return true
@@ -223,9 +223,9 @@ export default function Receipts() {
 
   function handleAuthFailure(err: unknown) {
     if (err instanceof APIError && err.status === 401) {
-      showToast('❌ Please log in again', 'error')
+      showToast('Please log in again', 'error')
     } else {
-      showToast('❌ ' + (err instanceof Error ? err.message : 'Something went wrong'), 'error')
+      showToast(err instanceof Error ? err.message : 'Something went wrong', 'error')
     }
   }
 
@@ -249,7 +249,7 @@ export default function Receipts() {
   async function downloadReceipt() {
     if (!validateForm()) return
     if ((user?.points || 0) < CONFIG.points.download) {
-      showToast(`❌ Need ${CONFIG.points.download} points to download`, 'error')
+      showToast(`Need ${CONFIG.points.download} points to download`, 'error')
       return
     }
     const element = receiptRef.current
@@ -271,7 +271,7 @@ export default function Receipts() {
         '#' + draft.orderId + ' · ' + formatCurrency(recalcTotals().total)
       )
       await refreshUser()
-      showToast(`📸 Receipt downloaded! (-${CONFIG.points.download} pts)`, 'success')
+      showToast(`Receipt downloaded! (-${CONFIG.points.download} pts)`, 'success')
     } catch (err) {
       handleAuthFailure(err)
     }
@@ -280,12 +280,12 @@ export default function Receipts() {
   async function printReceipt() {
     if (!validateForm()) return
     if ((user?.points || 0) < CONFIG.points.print) {
-      showToast(`❌ Need ${CONFIG.points.print} points to print`, 'error')
+      showToast(`Need ${CONFIG.points.print} points to print`, 'error')
       return
     }
     const printWindow = window.open('', '_blank')
     if (!printWindow) {
-      showToast('❌ Pop-up blocked', 'error')
+      showToast('Pop-up blocked', 'error')
       return
     }
     const doc = printWindow.document
@@ -314,7 +314,7 @@ export default function Receipts() {
     try {
       await api.deductPoints(CONFIG.points.print, 'print', '#' + draft.orderId + ' · Printed')
       await refreshUser()
-      showToast(`🖨️ Print dialog opened (-${CONFIG.points.print} pts)`, 'success')
+      showToast(`Print dialog opened (-${CONFIG.points.print} pts)`, 'success')
     } catch (err) {
       handleAuthFailure(err)
     }
@@ -323,12 +323,12 @@ export default function Receipts() {
   async function sendEmailReceipt() {
     if (!validateForm()) return
     if ((user?.points || 0) < CONFIG.points.email) {
-      showToast(`❌ Need ${CONFIG.points.email} points to email`, 'error')
+      showToast(`Need ${CONFIG.points.email} points to email`, 'error')
       return
     }
     const email = recipientEmail.trim()
     if (!email || !validateEmail(email)) {
-      showToast('❌ Enter a valid email', 'error')
+      showToast('Enter a valid email', 'error')
       return
     }
     const totals = recalcTotals()
@@ -342,7 +342,7 @@ export default function Receipts() {
       })
       await api.deductPoints(CONFIG.points.email, 'email', 'To: ' + email)
       await refreshUser()
-      showToast(`📧 Email receipt sent! (-${CONFIG.points.email} pts)`, 'success')
+      showToast(`Email receipt sent! (-${CONFIG.points.email} pts)`, 'success')
     } catch (err) {
       handleAuthFailure(err)
     }
@@ -351,7 +351,7 @@ export default function Receipts() {
   async function generateShortLink() {
     if (!validateForm()) return
     if ((user?.points || 0) < CONFIG.points.link) {
-      showToast(`❌ Need ${CONFIG.points.link} points for link`, 'error')
+      showToast(`Need ${CONFIG.points.link} points for link`, 'error')
       return
     }
     try {
@@ -359,7 +359,7 @@ export default function Receipts() {
       const shortUrl = (res && (res as any).shortUrl) || 'chaposhub.link/r/' + Math.random().toString(36).slice(2, 8)
       await api.deductPoints(CONFIG.points.link, 'link', shortUrl)
       await refreshUser()
-      showToast(`🔗 ${shortUrl} (-${CONFIG.points.link} pts)`, 'success')
+      showToast(`${shortUrl} (-${CONFIG.points.link} pts)`, 'success')
     } catch (err) {
       handleAuthFailure(err)
     }
@@ -374,7 +374,7 @@ export default function Receipts() {
 
   return (
     <div className="page active" role="main" aria-label="Receipt Generator">
-      <PageHeader title="🧾 Chapo'sHub Receipts" />
+      <PageHeader title="Chapo'sHub Receipts" icon="fa-solid fa-receipt" />
 
       <div className="platform-scroll">
         {Object.keys(platforms).map((key) => {
@@ -386,7 +386,7 @@ export default function Receipts() {
               onClick={() => applyPlatform(key)}
             >
               <div className="chip-logo" style={{ background: preset.color, color: preset.badgeDark ? '#1a1a1a' : 'white' }}>
-                {key === 'generic' ? '🛒' : preset.logoGlyph || preset.name[0]}
+                {key === 'generic' ? <i className="fa-solid fa-cart-shopping"></i> : preset.logoGlyph || preset.name[0]}
               </div>
               {preset.name}
             </div>
@@ -424,7 +424,7 @@ export default function Receipts() {
               aria-label="Randomize order ID"
               title="Randomize order ID"
             >
-              🎲
+              <i className="fa-solid fa-dice"></i>
             </button>
           </div>
         </div>
@@ -543,7 +543,7 @@ export default function Receipts() {
                     padding: '.2rem'
                   }}
                 >
-                  ✕
+                  <i className="fa-solid fa-xmark"></i>
                 </button>
               </div>
             ))}
@@ -564,7 +564,7 @@ export default function Receipts() {
             textAlign: 'center'
           }}
         >
-          👁️ Live Preview
+          <i className="fa-solid fa-eye"></i> Live Preview
         </div>
         <div
           ref={receiptRef}
@@ -593,16 +593,16 @@ export default function Receipts() {
 
       <div className="action-buttons" role="group" aria-label="Receipt actions">
         <button className="action-btn primary" onClick={downloadReceipt}>
-          📸 Download
+          <i className="fa-solid fa-camera"></i> Download
         </button>
         <button className="action-btn secondary" onClick={printReceipt}>
-          🖨️ Print
+          <i className="fa-solid fa-print"></i> Print
         </button>
         <button className="action-btn success" onClick={sendEmailReceipt}>
-          📧 Email
+          <i className="fa-solid fa-envelope"></i> Email
         </button>
         <button className="action-btn secondary" onClick={generateShortLink}>
-          🔗 Link
+          <i className="fa-solid fa-link"></i> Link
         </button>
       </div>
       <div style={{ height: 20 }} />
