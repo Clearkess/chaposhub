@@ -41,7 +41,7 @@ export default function Contact({ onSignIn }: { onSignIn: () => void }) {
         <section className="subpage-section" aria-label="Contact channels">
           <div className="contact-channels">
             <a href={CONTACT.whatsappHref} target="_blank" rel="noopener noreferrer" className="contact-channel-card">
-              <div className="contact-channel-icon">💬</div>
+              <div className="contact-channel-icon"><i className="fa-brands fa-telegram"></i></div>
               <div>
                 <div className="contact-channel-tag">Instant</div>
                 <div className="contact-channel-title">WhatsApp</div>
@@ -49,7 +49,7 @@ export default function Contact({ onSignIn }: { onSignIn: () => void }) {
               </div>
             </a>
             <a href={`mailto:${CONTACT.email}`} className="contact-channel-card">
-              <div className="contact-channel-icon">📧</div>
+              <div className="contact-channel-icon"><i className="fa-solid fa-envelope"></i></div>
               <div>
                 <div className="contact-channel-tag">Email</div>
                 <div className="contact-channel-title">Support Email</div>
@@ -110,7 +110,7 @@ export default function Contact({ onSignIn }: { onSignIn: () => void }) {
               />
             </div>
             <button type="submit" className="action-btn primary" style={{ width: '100%' }}>
-              📨 Send Message
+              <i className="fa-solid fa-paper-plane"></i> Send Message
             </button>
           </form>
 

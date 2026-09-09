@@ -21,10 +21,10 @@ const SIDEBAR_ITEMS = [
 ]
 
 const ACTIVITY = [
-  { text: '🧾 Receipt generated · PayPal', time: '2m ago' },
-  { text: '✉️ Flash email sent', time: '14m ago' },
-  { text: '🔐 Login page created', time: '38m ago' },
-  { text: '📊 Activity synced', time: '1h ago' }
+  { icon: 'fa-solid fa-receipt', text: 'Receipt generated · PayPal', time: '2m ago' },
+  { icon: 'fa-solid fa-envelope', text: 'Flash email sent', time: '14m ago' },
+  { icon: 'fa-solid fa-lock', text: 'Login page created', time: '38m ago' },
+  { icon: 'fa-solid fa-chart-column', text: 'Activity synced', time: '1h ago' }
 ]
 
 export default function GoldDashboardMockup({ large = false }: { large?: boolean }) {
@@ -40,7 +40,7 @@ export default function GoldDashboardMockup({ large = false }: { large?: boolean
           <img src="/images/logo-mark.png" alt="" width={20} height={20} />
           ChaposHub
         </div>
-        <div className="gh-mockup-topbar-pts">⭐ 2,450 pts</div>
+        <div className="gh-mockup-topbar-pts"><i className="fa-solid fa-star"></i> 2,450 pts</div>
       </div>
       <div className="gh-mockup-body">
         <div className="gh-mockup-sidebar">
@@ -79,7 +79,10 @@ export default function GoldDashboardMockup({ large = false }: { large?: boolean
           <div className="gh-mockup-activity-title">Recent Activity</div>
           {ACTIVITY.slice(0, large ? 4 : 3).map((a) => (
             <div className="gh-mockup-activity-row" key={a.text}>
-              <span className="gh-mockup-activity-text">{a.text}</span>
+              <span className="gh-mockup-activity-text">
+                <i className={a.icon} style={{ marginRight: '.4rem' }}></i>
+                {a.text}
+              </span>
               <span className="gh-mockup-activity-time">{a.time}</span>
             </div>
           ))}
