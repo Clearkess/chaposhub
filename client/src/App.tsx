@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
+import { SpeedInsights } from '@vercel/speed-insights/react'
 import { useAuth } from './contexts/AuthContext'
 import AuthModal from './components/AuthModal'
 import Landing from './pages/Landing'
@@ -40,7 +41,12 @@ export default function App() {
 
   // Authenticated users always see the dashboard app shell, regardless of path.
   if (isAuthenticated) {
-    return <Dashboard />
+    return (
+      <>
+        <Dashboard />
+        <SpeedInsights />
+      </>
+    )
   }
 
   return (
@@ -55,6 +61,7 @@ export default function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <AuthModal open={authOpen} initialMode={authMode} onClose={closeAuth} />
+      <SpeedInsights />
     </>
   )
 }
