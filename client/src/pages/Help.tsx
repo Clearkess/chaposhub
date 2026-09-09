@@ -26,11 +26,11 @@ const FAQS: { q: string; a: string }[] = [
   },
   {
     q: 'How do I buy points?',
-    a: "Open the Points page from your dashboard and pick a package. Purchases are processed securely by Whop — you'll be taken to Whop's checkout, and points are credited to your account automatically once payment completes."
+    a: "Open the Points page and switch to the Buy tab to browse vendors selling points at their own NGN-per-point rate. Place an order, pay the vendor directly off-platform (WhatsApp or bank transfer), and once the vendor confirms your payment, the points transfer to your account automatically."
   },
   {
-    q: "I paid but didn't receive my points — what do I do?",
-    a: "This can happen if the email you used at Whop checkout doesn't match your Chapo'sHub account email. Contact support with your order/payment ID and the email you used, and we'll reconcile it manually."
+    q: "I paid a vendor but didn't receive my points — what do I do?",
+    a: "First check the Orders tab on the Points page — the vendor needs to confirm your payment before points transfer. If it's been a while and the vendor hasn't confirmed, contact support with your order ID and we'll help you sort it out."
   },
   {
     q: 'What is the Support Page Builder?',
